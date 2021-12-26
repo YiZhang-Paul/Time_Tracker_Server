@@ -19,3 +19,24 @@ D:\Apps\General\time_tracker_server\Time Tracker\WebApi\obj\Debug\netcoreapp3.1\
 D:\Apps\General\time_tracker_server\Time Tracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.dll
 D:\Apps\General\time_tracker_server\Time Tracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.pdb
 D:\Apps\General\time_tracker_server\Time Tracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.genruntimeconfig.cache
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\appsettings.Development.json
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\appsettings.json
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\appsettings.Local.json
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\WebApi.exe
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\Properties\launchSettings.json
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\WebApi.deps.json
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\WebApi.runtimeconfig.json
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\WebApi.runtimeconfig.dev.json
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\WebApi.dll
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\bin\Debug\netcoreapp3.1\WebApi.pdb
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.csprojAssemblyReference.cache
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.AssemblyInfoInputs.cache
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.AssemblyInfo.cs
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.csproj.CoreCompileInputs.cache
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.MvcApplicationPartsAssemblyInfo.cache
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.RazorTargetAssemblyInfo.cache
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\staticwebassets\WebApi.StaticWebAssets.Manifest.cache
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\staticwebassets\WebApi.StaticWebAssets.xml
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.dll
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.pdb
+D:\Apps\General\time_tracker_server\TimeTracker\WebApi\obj\Debug\netcoreapp3.1\WebApi.genruntimeconfig.cache
