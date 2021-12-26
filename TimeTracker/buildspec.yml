@@ -3,8 +3,8 @@ version: 0.2
 env:
     variables:
         ROOT_FOLDER: TimeTracker
+        ENTRY: ./TimeTracker/WebApi/WebApi.csproj
         DOTNET_CORE_RUNTIME: 3.1
-        ENTRY: ./${ROOT_FOLDER}/WebApi/WebApi
 
 phases:
     install:
@@ -14,17 +14,17 @@ phases:
     pre_build:
         commands:
             - echo Restore started on `date`
-            - dotnet restore ${ENTRY}.csproj
+            - dotnet restore ${ENTRY}
 
     build:
         commands:
             - echo Build started on `date`
-            - dotnet build -c Debug ${ENTRY}.csproj
+            - dotnet build -c Debug ${ENTRY}
 
     post_build:
         commands:
             - echo Publish started on `date`
-            - dotnet publish -c Debug -r linux-x64 -o ./build_output ${ENTRY}.csproj --self-contained false
+            - dotnet publish -c Debug -r linux-x64 -o ./build_output ${ENTRY} --self-contained false
             - cp ./${ROOT_FOLDER}/Procfile ./build_output
 
 artifacts:
