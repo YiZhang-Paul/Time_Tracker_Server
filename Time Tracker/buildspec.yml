@@ -2,7 +2,7 @@ version: 0.2
 
 env:
     variables:
-        PROJECT: Time Tracker
+        PROJECT: WebApi
         DOTNET_CORE_RUNTIME: 3.1
 
 phases:
@@ -13,7 +13,7 @@ phases:
     pre_build:
         commands:
             - echo Restore started on `date`
-            - dotnet restore
+            - dotnet restore ${PROJECT}/${PROJECT}.csproj
 
     build:
         commands:
