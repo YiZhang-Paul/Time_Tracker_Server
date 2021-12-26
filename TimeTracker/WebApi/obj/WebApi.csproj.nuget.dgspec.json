@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Apps\\General\\time_tracker_server\\Time Tracker\\WebApi\\WebApi.csproj": {}
+    "D:\\Apps\\General\\time_tracker_server\\TimeTracker\\WebApi\\WebApi.csproj": {}
   },
   "projects": {
-    "D:\\Apps\\General\\time_tracker_server\\Time Tracker\\WebApi\\WebApi.csproj": {
+    "D:\\Apps\\General\\time_tracker_server\\TimeTracker\\WebApi\\WebApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Apps\\General\\time_tracker_server\\Time Tracker\\WebApi\\WebApi.csproj",
+        "projectUniqueName": "D:\\Apps\\General\\time_tracker_server\\TimeTracker\\WebApi\\WebApi.csproj",
         "projectName": "WebApi",
-        "projectPath": "D:\\Apps\\General\\time_tracker_server\\Time Tracker\\WebApi\\WebApi.csproj",
+        "projectPath": "D:\\Apps\\General\\time_tracker_server\\TimeTracker\\WebApi\\WebApi.csproj",
         "packagesPath": "C:\\Users\\YI\\.nuget\\packages\\",
-        "outputPath": "D:\\Apps\\General\\time_tracker_server\\Time Tracker\\WebApi\\obj\\",
+        "outputPath": "D:\\Apps\\General\\time_tracker_server\\TimeTracker\\WebApi\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
