@@ -1,0 +1,32 @@
+version: 0.2
+
+env:
+    variables:
+        PROJECT: Time Tracker
+        DOTNET_CORE_RUNTIME: 3.1
+
+phases:
+    install:
+        runtime-versions:
+            dotnet: ${DOTNET_CORE_RUNTIME}
+
+    pre_build:
+        commands:
+            - echo Restore started on `date`
+            - dotnet restore
+
+    build:
+        commands:
+            - echo Build started on `date`
+            - dotnet build -c Debug
+
+    post_build:
+        commands:
+            - echo Publish started on `date`
+            - dotnet publish -c Debug -r linux-x64 -o ./build_output ./${PROJECT}/${PROJECT}.csproj --self-contained false
+
+artifacts:
+    files:
+        - '**/*'
+    base-directory: ./build_output
+    discard-paths: no
