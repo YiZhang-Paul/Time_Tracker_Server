@@ -20,7 +20,7 @@
         "WebApi": {
             "commandName": "Project",
             "launchBrowser": true,
-            "launchUrl": "",
+            "launchUrl": "api/v1/version",
             "applicationUrl": "https://localhost:5001",
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Local"
