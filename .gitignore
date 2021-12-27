@@ -1,3 +1,10 @@
 .vs
-**/bin
-**/obj
+.suo
+.dtbcache.*
+
+bin
+obj
+coverage
+
+appsettings.Local.json
+appsettings.Test.json
