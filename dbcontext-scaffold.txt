@@ -1,0 +1,1 @@
+dotnet ef dbcontext scaffold Name=TimeTrackerDbConnectionString Npgsql.EntityFrameworkCore.PostgreSQL --context {{ context }} --table {{ table }} --context-dir ../Core/DbContexts --output-dir ../Core/Models/{{ folder }} --data-annotations

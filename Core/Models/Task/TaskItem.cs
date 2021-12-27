@@ -1,0 +1,24 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+// Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
+// If you have enabled NRTs for your project, then un-comment the following line:
+// #nullable disable
+
+namespace Core.Models.Task
+{
+    public partial class TaskItem
+    {
+        [Key]
+        public long Id { get; set; }
+        [Required]
+        [StringLength(140)]
+        public string Name { get; set; }
+        public string Description { get; set; }
+        [Column(TypeName = "date")]
+        public DateTime CreationTime { get; set; }
+        [Column(TypeName = "date")]
+        public DateTime ModifiedTime { get; set; }
+    }
+}
