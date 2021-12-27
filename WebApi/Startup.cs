@@ -1,12 +1,15 @@
 using Core.DbContexts;
 using Core.Interfaces.Repositories;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Service.Repositories;
+using System.Text.Json;
 
 namespace WebApi
 {
@@ -40,6 +43,14 @@ namespace WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseExceptionHandler(_ => _.Run(async context =>
+            {
+                var exception = context.Features.Get<IExceptionHandlerPathFeature>().Error;
+                var payload = new { Error = $"{exception.Message} {exception.StackTrace}" };
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
+            }));
 
             app.UseHttpsRedirection();
             app.UseRouting();
