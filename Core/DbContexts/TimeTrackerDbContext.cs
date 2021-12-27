@@ -30,17 +30,6 @@ namespace Core.DbContexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<TaskItem>(entity =>
-            {
-                entity.Property(e => e.CreationTime).HasColumnType("date");
-
-                entity.Property(e => e.ModifiedTime).HasColumnType("date");
-
-                entity.Property(e => e.Name)
-                    .IsRequired()
-                    .HasMaxLength(140);
-            });
-
             OnModelCreatingPartial(modelBuilder);
         }
 

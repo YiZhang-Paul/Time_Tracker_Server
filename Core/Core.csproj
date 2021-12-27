@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="DbContexts\" />
     <Folder Include="Models\Task\" />
   </ItemGroup>
 
