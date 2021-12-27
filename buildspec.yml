@@ -2,8 +2,7 @@ version: 0.2
 
 env:
     variables:
-        ROOT_FOLDER: TimeTracker
-        ENTRY: ./TimeTracker/WebApi/WebApi.csproj
+        ENTRY: ./WebApi/WebApi.csproj
         DOTNET_CORE_RUNTIME: 3.1
 
 phases:
@@ -25,7 +24,7 @@ phases:
         commands:
             - echo Publish started on `date`
             - dotnet publish -c Debug -r linux-x64 -o ./build_output ${ENTRY} --self-contained false
-            - cp ./${ROOT_FOLDER}/Procfile ./build_output
+            - cp ./Procfile ./build_output
 
 artifacts:
     files:
