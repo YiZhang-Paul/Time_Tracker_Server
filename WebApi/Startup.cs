@@ -22,6 +22,11 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("time-tracker-cors", _ => _.WithOrigins("http://localhost:8080").AllowAnyHeader().AllowAnyMethod());
+            });
+
             services.AddControllers();
             services.AddDbContext<TimeTrackerDbContext>(_ => _.UseNpgsql(Configuration["TimeTrackerDbConnectionString"]));
             services.AddScoped<TimeTrackerDbContext, TimeTrackerDbContext>();
@@ -38,6 +43,7 @@ namespace WebApi
 
             app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseCors("time-tracker-cors");
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
