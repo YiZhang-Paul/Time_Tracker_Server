@@ -1,5 +1,6 @@
 using Core.Dtos;
 using Core.Interfaces.Repositories;
+using Core.Models.Task;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -19,9 +20,21 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("summaries")]
-        public async Task<List<TaskItemDto>> GetTaskItemSummaries()
+        public async Task<List<TaskItemSummaryDto>> GetTaskItemSummaries()
         {
             return await TaskItemRepository.GetTaskItemSummaries().ConfigureAwait(false);
+        }
+
+        [HttpPost]
+        [Route("")]
+        public async Task<TaskItem> CreateTaskItem([FromBody]TaskItemCreationDto item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name))
+            {
+                return null;
+            }
+
+            return await TaskItemRepository.CreateTaskItem(item).ConfigureAwait(false);
         }
     }
 }
