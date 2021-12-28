@@ -27,7 +27,7 @@ namespace WebApi
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("time-tracker-cors", _ => _.WithOrigins("http://localhost:8080").AllowAnyHeader().AllowAnyMethod());
+                options.AddPolicy("time-tracker-cors", _ => _.WithOrigins("http://localhost:8080", "https://*.yizhang-paul.com").AllowAnyHeader().AllowAnyMethod());
             });
 
             services.AddControllers();
