@@ -1,8 +1,9 @@
 using Core.DbContexts;
+using Core.Dtos;
 using Core.Interfaces.Repositories;
-using Core.Models.Task;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Service.Repositories
@@ -16,9 +17,11 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<List<TaskItem>> GetVisibleTaskItems()
+        public async Task<List<TaskItemDto>> GetTaskItemSummaries()
         {
-            return await Context.TaskItem.ToListAsync().ConfigureAwait(false);
+            var items = Context.TaskItem.Select(_ => new TaskItemDto { Id = _.Id, Name = _.Name });
+
+            return await items.ToListAsync().ConfigureAwait(false);
         }
     }
 }

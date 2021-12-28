@@ -1,5 +1,5 @@
+using Core.Dtos;
 using Core.Interfaces.Repositories;
-using Core.Models.Task;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,10 +18,10 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("")]
-        public async Task<List<TaskItem>> GetTaskItems()
+        [Route("summaries")]
+        public async Task<List<TaskItemDto>> GetTaskItemSummaries()
         {
-            return await TaskItemRepository.GetVisibleTaskItems().ConfigureAwait(false);
+            return await TaskItemRepository.GetTaskItemSummaries().ConfigureAwait(false);
         }
     }
 }
