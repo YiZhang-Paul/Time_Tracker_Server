@@ -19,16 +19,16 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<TaskItem> GetTaskItemById(long id)
-        {
-            return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
-        }
-
         public async Task<List<TaskItemSummaryDto>> GetTaskItemSummaries()
         {
             var items = Context.TaskItem.Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name });
 
             return await items.ToListAsync().ConfigureAwait(false);
+        }
+
+        public async Task<TaskItem> GetTaskItemById(long id)
+        {
+            return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
         public async Task<TaskItem> CreateTaskItem(TaskItemCreationDto item)
@@ -46,6 +46,13 @@ namespace Service.Repositories
             Context.TaskItem.Add(payload);
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? payload : null;
+        }
+
+        public async Task<bool> DeleteTaskItemById(long id)
+        {
+            Context.TaskItem.Remove(new TaskItem { Id = id });
+
+            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1;
         }
     }
 }
