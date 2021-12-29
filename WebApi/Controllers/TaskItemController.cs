@@ -44,6 +44,18 @@ namespace WebApi.Controllers
             return await TaskItemRepository.CreateTaskItem(item).ConfigureAwait(false);
         }
 
+        [HttpPut]
+        [Route("")]
+        public async Task<TaskItem> UpdateTaskItem([FromBody]TaskItem item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
+            {
+                return null;
+            }
+
+            return await TaskItemRepository.UpdateTaskItem(item).ConfigureAwait(false);
+        }
+
         [HttpDelete]
         [Route("{id}")]
         public async Task<bool> DeleteTaskItemById(long id)

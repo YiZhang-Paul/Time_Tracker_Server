@@ -10,6 +10,7 @@ namespace Core.Interfaces.Repositories
         Task<List<TaskItemSummaryDto>> GetTaskItemSummaries();
         Task<TaskItem> GetTaskItemById(long id);
         Task<TaskItem> CreateTaskItem(TaskItemCreationDto item);
+        Task<TaskItem> UpdateTaskItem(TaskItem item);
         Task<bool> DeleteTaskItemById(long id);
     }
 }
