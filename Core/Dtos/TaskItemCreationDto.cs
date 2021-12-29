@@ -4,5 +4,6 @@ namespace Core.Dtos
     {
         public string Name { get; set; }
         public string Description { get; set; }
+        public int Effort { get; set; }
     }
 }

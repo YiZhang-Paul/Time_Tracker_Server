@@ -16,6 +16,7 @@ namespace Core.Models.Task
         [StringLength(140)]
         public string Name { get; set; }
         public string Description { get; set; }
+        public int Effort { get; set; }
         [Column(TypeName = "timestamp with time zone")]
         public DateTime CreationTime { get; set; }
         [Column(TypeName = "timestamp with time zone")]

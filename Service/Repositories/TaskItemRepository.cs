@@ -21,7 +21,7 @@ namespace Service.Repositories
 
         public async Task<List<TaskItemSummaryDto>> GetTaskItemSummaries()
         {
-            var items = Context.TaskItem.Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name });
+            var items = Context.TaskItem.Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name, Effort = _.Effort });
 
             return await items.ToListAsync().ConfigureAwait(false);
         }
@@ -39,6 +39,7 @@ namespace Service.Repositories
             {
                 Name = item.Name,
                 Description = item.Description,
+                Effort = item.Effort,
                 CreationTime = now,
                 ModifiedTime = now
             };
@@ -59,6 +60,7 @@ namespace Service.Repositories
 
             existing.Name = item.Name;
             existing.Description = item.Description;
+            existing.Effort = item.Effort;
             existing.ModifiedTime = DateTime.UtcNow;
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
