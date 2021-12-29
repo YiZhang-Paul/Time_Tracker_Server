@@ -19,6 +19,11 @@ namespace Service.Repositories
             Context = context;
         }
 
+        public async Task<TaskItem> GetTaskItemById(long id)
+        {
+            return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
+        }
+
         public async Task<List<TaskItemSummaryDto>> GetTaskItemSummaries()
         {
             var items = Context.TaskItem.Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name });

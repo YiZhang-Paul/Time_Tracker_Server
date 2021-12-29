@@ -25,6 +25,13 @@ namespace WebApi.Controllers
             return await TaskItemRepository.GetTaskItemSummaries().ConfigureAwait(false);
         }
 
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<TaskItem> GetTaskItemById(long id)
+        {
+            return await TaskItemRepository.GetTaskItemById(id).ConfigureAwait(false);
+        }
+
         [HttpPost]
         [Route("")]
         public async Task<TaskItem> CreateTaskItem([FromBody]TaskItemCreationDto item)
