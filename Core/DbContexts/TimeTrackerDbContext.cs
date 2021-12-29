@@ -30,6 +30,7 @@ namespace Core.DbContexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.UseSerialColumns();
             OnModelCreatingPartial(modelBuilder);
         }
 
