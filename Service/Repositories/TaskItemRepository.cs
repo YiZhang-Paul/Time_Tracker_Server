@@ -48,6 +48,22 @@ namespace Service.Repositories
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? payload : null;
         }
 
+        public async Task<TaskItem> UpdateTaskItem(TaskItem item)
+        {
+            var existing = await GetTaskItemById(item.Id).ConfigureAwait(false);
+
+            if (existing == null)
+            {
+                return null;
+            }
+
+            existing.Name = item.Name;
+            existing.Description = item.Description;
+            existing.ModifiedTime = DateTime.UtcNow;
+
+            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
+        }
+
         public async Task<bool> DeleteTaskItemById(long id)
         {
             Context.TaskItem.Remove(new TaskItem { Id = id });
