@@ -19,6 +19,7 @@ namespace Core.DbContexts
         }
 
         public virtual DbSet<TaskItem> TaskItem { get; set; }
+        public virtual DbSet<InterruptionItem> InterruptionItem { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
