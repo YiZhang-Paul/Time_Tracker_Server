@@ -2,7 +2,10 @@ using Core.DbContexts;
 using Core.Dtos;
 using Core.Interfaces.Repositories;
 using Core.Models.Interruption;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Service.Repositories
@@ -14,6 +17,13 @@ namespace Service.Repositories
         public InterruptionItemRepository(TimeTrackerDbContext context)
         {
             Context = context;
+        }
+
+        public async Task<List<InterruptionItemSummaryDto>> GetInterruptionItemSummaries()
+        {
+            var items = Context.InterruptionItem.Select(_ => new InterruptionItemSummaryDto { Id = _.Id, Name = _.Name, Priority = _.Priority });
+
+            return await items.ToListAsync().ConfigureAwait(false);
         }
 
         public async Task<InterruptionItem> CreateInterruptionItem(InterruptionItemCreationDto item)

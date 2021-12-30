@@ -2,6 +2,7 @@ using Core.Dtos;
 using Core.Interfaces.Repositories;
 using Core.Models.Interruption;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -15,6 +16,13 @@ namespace WebApi.Controllers
         public InterruptionItemController(IInterruptionItemRepository interruptionItemRepository)
         {
             InterruptionItemRepository = interruptionItemRepository;
+        }
+
+        [HttpGet]
+        [Route("summaries")]
+        public async Task<List<InterruptionItemSummaryDto>> GetInterruptionItemSummaries()
+        {
+            return await InterruptionItemRepository.GetInterruptionItemSummaries().ConfigureAwait(false);
         }
 
         [HttpPost]
