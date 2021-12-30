@@ -39,6 +39,7 @@ namespace WebApi
             services.AddControllers();
             services.AddDbContext<TimeTrackerDbContext>(_ => _.UseNpgsql(Configuration["TimeTrackerDbConnectionString"]));
             services.AddScoped<TimeTrackerDbContext, TimeTrackerDbContext>();
+            services.AddScoped<IInterruptionItemRepository, InterruptionItemRepository>();
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
         }
 
