@@ -43,5 +43,24 @@ namespace WebApi.Controllers
 
             return await InterruptionItemRepository.CreateInterruptionItem(item).ConfigureAwait(false);
         }
+
+        [HttpPut]
+        [Route("")]
+        public async Task<InterruptionItem> UpdateInterruptionItem([FromBody]InterruptionItem item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
+            {
+                return null;
+            }
+
+            return await InterruptionItemRepository.UpdateInterruptionItem(item).ConfigureAwait(false);
+        }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public async Task<bool> DeleteInterruptionItemById(long id)
+        {
+            return await InterruptionItemRepository.DeleteInterruptionItemById(id).ConfigureAwait(false);
+        }
     }
 }

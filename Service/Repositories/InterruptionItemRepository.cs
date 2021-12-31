@@ -48,5 +48,29 @@ namespace Service.Repositories
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? payload : null;
         }
+
+        public async Task<InterruptionItem> UpdateInterruptionItem(InterruptionItem item)
+        {
+            var existing = await GetInterruptionItemById(item.Id).ConfigureAwait(false);
+
+            if (existing == null)
+            {
+                return null;
+            }
+
+            existing.Name = item.Name;
+            existing.Description = item.Description;
+            existing.Priority = item.Priority;
+            existing.ModifiedTime = DateTime.UtcNow;
+
+            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
+        }
+
+        public async Task<bool> DeleteInterruptionItemById(long id)
+        {
+            Context.InterruptionItem.Remove(new InterruptionItem { Id = id });
+
+            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1;
+        }
     }
 }

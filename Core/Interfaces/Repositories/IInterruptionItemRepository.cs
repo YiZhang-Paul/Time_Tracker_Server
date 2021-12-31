@@ -10,5 +10,7 @@ namespace Core.Interfaces.Repositories
         Task<List<InterruptionItemSummaryDto>> GetInterruptionItemSummaries();
         Task<InterruptionItem> GetInterruptionItemById(long id);
         Task<InterruptionItem> CreateInterruptionItem(InterruptionItemCreationDto item);
+        Task<InterruptionItem> UpdateInterruptionItem(InterruptionItem item);
+        Task<bool> DeleteInterruptionItemById(long id);
     }
 }
