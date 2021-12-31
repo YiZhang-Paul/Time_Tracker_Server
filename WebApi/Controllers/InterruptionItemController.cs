@@ -25,6 +25,13 @@ namespace WebApi.Controllers
             return await InterruptionItemRepository.GetInterruptionItemSummaries().ConfigureAwait(false);
         }
 
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<InterruptionItem> GetInterruptionItemById(long id)
+        {
+            return await InterruptionItemRepository.GetInterruptionItemById(id).ConfigureAwait(false);
+        }
+
         [HttpPost]
         [Route("")]
         public async Task<InterruptionItem> CreateInterruptionItem([FromBody]InterruptionItemCreationDto item)

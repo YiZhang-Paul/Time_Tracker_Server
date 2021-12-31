@@ -26,6 +26,11 @@ namespace Service.Repositories
             return await items.ToListAsync().ConfigureAwait(false);
         }
 
+        public async Task<InterruptionItem> GetInterruptionItemById(long id)
+        {
+            return await Context.InterruptionItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
+        }
+
         public async Task<InterruptionItem> CreateInterruptionItem(InterruptionItemCreationDto item)
         {
             var now = DateTime.UtcNow;
