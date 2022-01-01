@@ -1,4 +1,5 @@
 using Core.Models.Interruption;
+using Core.Models.ItemHistory;
 using Core.Models.Task;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,7 @@ namespace Core.DbContexts
 
         public virtual DbSet<InterruptionItem> InterruptionItem { get; set; }
         public virtual DbSet<TaskItem> TaskItem { get; set; }
+        public virtual DbSet<ItemHistory> ItemHistory { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

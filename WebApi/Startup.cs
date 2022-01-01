@@ -1,5 +1,6 @@
 using Core.DbContexts;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Service.Repositories;
+using Service.Services;
 using System.Text.Json;
 
 namespace WebApi
@@ -41,6 +43,8 @@ namespace WebApi
             services.AddScoped<TimeTrackerDbContext, TimeTrackerDbContext>();
             services.AddScoped<IInterruptionItemRepository, InterruptionItemRepository>();
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
+            services.AddScoped<IItemHistoryRepository, ItemHistoryRepository>();
+            services.AddScoped<IItemHistoryService, ItemHistoryService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
