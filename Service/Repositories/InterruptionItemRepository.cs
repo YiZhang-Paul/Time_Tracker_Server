@@ -21,13 +21,20 @@ namespace Service.Repositories
 
         public async Task<List<InterruptionItemSummaryDto>> GetInterruptionItemSummaries()
         {
-            var items = Context.InterruptionItem.Select(_ => new InterruptionItemSummaryDto { Id = _.Id, Name = _.Name, Priority = _.Priority });
+            var items = Context.InterruptionItem
+                .Where(_ => !_.IsDeleted)
+                .Select(_ => new InterruptionItemSummaryDto { Id = _.Id, Name = _.Name, Priority = _.Priority });
 
             return await items.ToListAsync().ConfigureAwait(false);
         }
 
-        public async Task<InterruptionItem> GetInterruptionItemById(long id)
+        public async Task<InterruptionItem> GetInterruptionItemById(long id, bool excludeDeleted = true)
         {
+            if (excludeDeleted)
+            {
+                return await Context.InterruptionItem.FirstOrDefaultAsync(_ => _.Id == id && !_.IsDeleted).ConfigureAwait(false);
+            }
+
             return await Context.InterruptionItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
@@ -68,7 +75,15 @@ namespace Service.Repositories
 
         public async Task<bool> DeleteInterruptionItemById(long id)
         {
-            Context.InterruptionItem.Remove(new InterruptionItem { Id = id });
+            var existing = await GetInterruptionItemById(id).ConfigureAwait(false);
+
+            if (existing == null)
+            {
+                return false;
+            }
+
+            existing.IsDeleted = true;
+            existing.ModifiedTime = DateTime.UtcNow;
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1;
         }

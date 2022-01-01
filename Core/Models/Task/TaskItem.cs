@@ -21,5 +21,6 @@ namespace Core.Models.Task
         public DateTime CreationTime { get; set; }
         [Column(TypeName = "timestamp with time zone")]
         public DateTime ModifiedTime { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }

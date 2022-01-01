@@ -21,13 +21,20 @@ namespace Service.Repositories
 
         public async Task<List<TaskItemSummaryDto>> GetTaskItemSummaries()
         {
-            var items = Context.TaskItem.Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name, Effort = _.Effort });
+            var items = Context.TaskItem
+                .Where(_ => !_.IsDeleted)
+                .Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name, Effort = _.Effort });
 
             return await items.ToListAsync().ConfigureAwait(false);
         }
 
-        public async Task<TaskItem> GetTaskItemById(long id)
+        public async Task<TaskItem> GetTaskItemById(long id, bool excludeDeleted = true)
         {
+            if (excludeDeleted)
+            {
+                return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id && !_.IsDeleted).ConfigureAwait(false);
+            }
+
             return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
@@ -68,7 +75,15 @@ namespace Service.Repositories
 
         public async Task<bool> DeleteTaskItemById(long id)
         {
-            Context.TaskItem.Remove(new TaskItem { Id = id });
+            var existing = await GetTaskItemById(id).ConfigureAwait(false);
+
+            if (existing == null)
+            {
+                return false;
+            }
+
+            existing.IsDeleted = true;
+            existing.ModifiedTime = DateTime.UtcNow;
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1;
         }
