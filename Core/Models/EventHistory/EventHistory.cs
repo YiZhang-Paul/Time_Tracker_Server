@@ -7,16 +7,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 // If you have enabled NRTs for your project, then un-comment the following line:
 // #nullable disable
 
-namespace Core.Models.ItemHistory
+namespace Core.Models.EventHistory
 {
-    public partial class ItemHistory
+    public partial class EventHistory
     {
         [Key]
         public long Id { get; set; }
         [Required]
-        public long ItemId { get; set; }
+        public long ResourceId { get; set; }
         [Required]
-        public ItemType ItemType { get; set; }
+        public EventType EventType { get; set; }
         [Column(TypeName = "timestamp with time zone")]
         public DateTime Timestamp { get; set; }
     }

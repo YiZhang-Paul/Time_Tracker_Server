@@ -1,6 +1,6 @@
 namespace Core.Enums
 {
-    public enum ItemType
+    public enum EventType
     {
         Idling = 0,
         Interruption = 1,

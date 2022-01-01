@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Core.Interfaces.Services
 {
-    public interface IItemHistoryService
+    public interface IEventHistoryService
     {
         Task<bool> StartIdlingSession();
         Task<bool> StartInterruptionItem(InterruptionItem item);

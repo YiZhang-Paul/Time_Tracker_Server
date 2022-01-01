@@ -1,30 +1,30 @@
 using Core.DbContexts;
 using Core.Interfaces.Repositories;
-using Core.Models.ItemHistory;
+using Core.Models.EventHistory;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
 
 namespace Service.Repositories
 {
-    public class ItemHistoryRepository : IItemHistoryRepository
+    public class EventHistoryRepository : IEventHistoryRepository
     {
         private TimeTrackerDbContext Context { get; }
 
-        public ItemHistoryRepository(TimeTrackerDbContext context)
+        public EventHistoryRepository(TimeTrackerDbContext context)
         {
             Context = context;
         }
 
-        public async Task<ItemHistory> GetLastItemHistory()
+        public async Task<EventHistory> GetLastEventHistory()
         {
-            return await Context.ItemHistory.LastOrDefaultAsync().ConfigureAwait(false);
+            return await Context.EventHistory.LastOrDefaultAsync().ConfigureAwait(false);
         }
 
-        public async Task<ItemHistory> CreateItemHistory(ItemHistory history)
+        public async Task<EventHistory> CreateEventHistory(EventHistory history)
         {
             history.Timestamp = DateTime.UtcNow;
-            Context.ItemHistory.Add(history);
+            Context.EventHistory.Add(history);
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? history : null;
         }

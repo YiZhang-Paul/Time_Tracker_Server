@@ -6,36 +6,36 @@ using System.Threading.Tasks;
 
 namespace WebApi.Controllers
 {
-    [Route("api/v1/item-histories")]
+    [Route("api/v1/event-histories")]
     [ApiController]
-    public class ItemHistoryController : ControllerBase
+    public class EventHistoryController : ControllerBase
     {
-        private IItemHistoryService ItemHistoryService { get; }
+        private IEventHistoryService EventHistoryService { get; }
 
-        public ItemHistoryController(IItemHistoryService itemHistoryService)
+        public EventHistoryController(IEventHistoryService eventHistoryService)
         {
-            ItemHistoryService = itemHistoryService;
+            EventHistoryService = eventHistoryService;
         }
 
         [HttpPost]
         [Route("idling-sessions")]
         public async Task<bool> StartIdlingSession()
         {
-            return await ItemHistoryService.StartIdlingSession().ConfigureAwait(false);
+            return await EventHistoryService.StartIdlingSession().ConfigureAwait(false);
         }
 
         [HttpPost]
         [Route("interruption-items")]
         public async Task<bool> StartInterruptionItem([FromBody]InterruptionItem item)
         {
-            return await ItemHistoryService.StartInterruptionItem(item).ConfigureAwait(false);
+            return await EventHistoryService.StartInterruptionItem(item).ConfigureAwait(false);
         }
 
         [HttpPost]
         [Route("task-items")]
         public async Task<bool> StartTaskItem([FromBody]TaskItem item)
         {
-            return await ItemHistoryService.StartTaskItem(item).ConfigureAwait(false);
+            return await EventHistoryService.StartTaskItem(item).ConfigureAwait(false);
         }
     }
 }

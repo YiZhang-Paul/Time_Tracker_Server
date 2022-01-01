@@ -43,8 +43,8 @@ namespace WebApi
             services.AddScoped<TimeTrackerDbContext, TimeTrackerDbContext>();
             services.AddScoped<IInterruptionItemRepository, InterruptionItemRepository>();
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
-            services.AddScoped<IItemHistoryRepository, ItemHistoryRepository>();
-            services.AddScoped<IItemHistoryService, ItemHistoryService>();
+            services.AddScoped<IEventHistoryRepository, EventHistoryRepository>();
+            services.AddScoped<IEventHistoryService, EventHistoryService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
