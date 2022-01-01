@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Models\ItemHistory\" />
     <Folder Include="Models\Task\" />
     <Folder Include="DbContexts\" />
   </ItemGroup>
