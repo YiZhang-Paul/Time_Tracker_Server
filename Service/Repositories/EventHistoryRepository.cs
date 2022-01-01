@@ -3,6 +3,7 @@ using Core.Interfaces.Repositories;
 using Core.Models.EventHistory;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Service.Repositories
@@ -18,7 +19,7 @@ namespace Service.Repositories
 
         public async Task<EventHistory> GetLastEventHistory()
         {
-            return await Context.EventHistory.LastOrDefaultAsync().ConfigureAwait(false);
+            return await Context.EventHistory.OrderByDescending(_ => _.Id).FirstOrDefaultAsync().ConfigureAwait(false);
         }
 
         public async Task<EventHistory> CreateEventHistory(EventHistory history)
