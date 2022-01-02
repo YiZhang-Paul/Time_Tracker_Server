@@ -8,10 +8,19 @@ namespace Service.Services
 {
     public class EventHistoryService : IEventHistoryService
     {
+        private IInterruptionItemRepository InterruptionItemRepository { get; }
+        private ITaskItemRepository TaskItemRepository { get; }
         private IEventHistoryRepository EventHistoryRepository { get; }
 
-        public EventHistoryService(IEventHistoryRepository eventHistoryRepository)
+        public EventHistoryService
+        (
+            IInterruptionItemRepository interruptionItemRepository,
+            ITaskItemRepository taskItemRepository,
+            IEventHistoryRepository eventHistoryRepository
+        )
         {
+            InterruptionItemRepository = interruptionItemRepository;
+            TaskItemRepository = taskItemRepository;
             EventHistoryRepository = eventHistoryRepository;
         }
 
@@ -31,6 +40,13 @@ namespace Service.Services
 
         public async Task<bool> StartInterruptionItem(long id)
         {
+            var item = await InterruptionItemRepository.GetInterruptionItemById(id).ConfigureAwait(false);
+
+            if (item == null)
+            {
+                return false;
+            }
+
             var last = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
 
             if (last?.EventType == EventType.Interruption && last?.ResourceId == id)
@@ -45,6 +61,13 @@ namespace Service.Services
 
         public async Task<bool> StartTaskItem(long id)
         {
+            var item = await TaskItemRepository.GetTaskItemById(id).ConfigureAwait(false);
+
+            if (item == null)
+            {
+                return false;
+            }
+
             var last = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
 
             if (last?.EventType == EventType.Task && last?.ResourceId == id)
