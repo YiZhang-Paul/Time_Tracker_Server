@@ -28,6 +28,15 @@ namespace Service.Repositories
             return await items.ToListAsync().ConfigureAwait(false);
         }
 
+        public async Task<TaskItemSummaryDto> GetTaskItemSummaryById(long id)
+        {
+            return await Context.TaskItem
+                .Where(_ => !_.IsDeleted)
+                .Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name, Effort = _.Effort })
+                .FirstOrDefaultAsync(_ => _.Id == id)
+                .ConfigureAwait(false);
+        }
+
         public async Task<TaskItem> GetTaskItemById(long id, bool excludeDeleted = true)
         {
             if (excludeDeleted)

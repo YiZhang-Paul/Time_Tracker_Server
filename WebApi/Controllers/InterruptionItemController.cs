@@ -26,6 +26,13 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [Route("summaries/{id}")]
+        public async Task<InterruptionItemSummaryDto> GetInterruptionItemSummaryById(long id)
+        {
+            return await InterruptionItemRepository.GetInterruptionItemSummaryById(id).ConfigureAwait(false);
+        }
+
+        [HttpGet]
         [Route("{id}")]
         public async Task<InterruptionItem> GetInterruptionItemById(long id)
         {
