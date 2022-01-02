@@ -8,7 +8,6 @@ namespace Core.Interfaces.Repositories
     public interface ITaskItemRepository
     {
         Task<List<TaskItemSummaryDto>> GetTaskItemSummaries();
-        Task<TaskItemSummaryDto> GetTaskItemSummaryById(long id);
         Task<TaskItem> GetTaskItemById(long id, bool excludeDeleted = true);
         Task<TaskItem> CreateTaskItem(TaskItemCreationDto item);
         Task<TaskItem> UpdateTaskItem(TaskItem item);

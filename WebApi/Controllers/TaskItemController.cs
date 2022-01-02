@@ -26,13 +26,6 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("summaries/{id}")]
-        public async Task<TaskItemSummaryDto> GetTaskItemSummaryById(long id)
-        {
-            return await TaskItemRepository.GetTaskItemSummaryById(id).ConfigureAwait(false);
-        }
-
-        [HttpGet]
         [Route("{id}")]
         public async Task<TaskItem> GetTaskItemById(long id)
         {
