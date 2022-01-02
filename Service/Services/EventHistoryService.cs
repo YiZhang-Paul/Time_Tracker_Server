@@ -2,8 +2,6 @@ using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.EventHistory;
-using Core.Models.Interruption;
-using Core.Models.Task;
 using System.Threading.Tasks;
 
 namespace Service.Services
@@ -31,30 +29,30 @@ namespace Service.Services
             return await EventHistoryRepository.CreateEventHistory(history).ConfigureAwait(false) != null;
         }
 
-        public async Task<bool> StartInterruptionItem(InterruptionItem item)
+        public async Task<bool> StartInterruptionItem(long id)
         {
             var last = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
 
-            if (last?.EventType == EventType.Interruption && last?.ResourceId == item.Id)
+            if (last?.EventType == EventType.Interruption && last?.ResourceId == id)
             {
                 return false;
             }
 
-            var history = new EventHistory { ResourceId = item.Id, EventType = EventType.Interruption };
+            var history = new EventHistory { ResourceId = id, EventType = EventType.Interruption };
 
             return await EventHistoryRepository.CreateEventHistory(history).ConfigureAwait(false) != null;
         }
 
-        public async Task<bool> StartTaskItem(TaskItem item)
+        public async Task<bool> StartTaskItem(long id)
         {
             var last = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
 
-            if (last?.EventType == EventType.Task && last?.ResourceId == item.Id)
+            if (last?.EventType == EventType.Task && last?.ResourceId == id)
             {
                 return false;
             }
 
-            var history = new EventHistory { ResourceId = item.Id, EventType = EventType.Task };
+            var history = new EventHistory { ResourceId = id, EventType = EventType.Task };
 
             return await EventHistoryRepository.CreateEventHistory(history).ConfigureAwait(false) != null;
         }

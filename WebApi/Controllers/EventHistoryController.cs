@@ -1,8 +1,6 @@
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.EventHistory;
-using Core.Models.Interruption;
-using Core.Models.Task;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -36,17 +34,17 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
-        [Route("interruption-items")]
-        public async Task<bool> StartInterruptionItem([FromBody]InterruptionItem item)
+        [Route("interruption-items/{id}")]
+        public async Task<bool> StartInterruptionItem(long id)
         {
-            return await EventHistoryService.StartInterruptionItem(item).ConfigureAwait(false);
+            return await EventHistoryService.StartInterruptionItem(id).ConfigureAwait(false);
         }
 
         [HttpPost]
-        [Route("task-items")]
-        public async Task<bool> StartTaskItem([FromBody]TaskItem item)
+        [Route("task-items/{id}")]
+        public async Task<bool> StartTaskItem(long id)
         {
-            return await EventHistoryService.StartTaskItem(item).ConfigureAwait(false);
+            return await EventHistoryService.StartTaskItem(id).ConfigureAwait(false);
         }
     }
 }
