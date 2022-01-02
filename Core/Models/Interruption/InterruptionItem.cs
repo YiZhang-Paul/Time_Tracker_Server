@@ -1,3 +1,4 @@
+using Core.Enums;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -16,7 +17,7 @@ namespace Core.Models.Interruption
         [StringLength(140)]
         public string Name { get; set; }
         public string Description { get; set; }
-        public int Priority { get; set; }
+        public Priority Priority { get; set; }
         [Column(TypeName = "timestamp with time zone")]
         public DateTime CreationTime { get; set; }
         [Column(TypeName = "timestamp with time zone")]
