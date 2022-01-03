@@ -3,10 +3,6 @@ using Core.Models.Interruption;
 using Core.Models.Task;
 using Microsoft.EntityFrameworkCore;
 
-// Code scaffolded by EF Core assumes nullable reference types (NRTs) are not used or disabled.
-// If you have enabled NRTs for your project, then un-comment the following line:
-// #nullable disable
-
 namespace Core.DbContexts
 {
     public partial class TimeTrackerDbContext : DbContext
@@ -17,6 +13,7 @@ namespace Core.DbContexts
         public virtual DbSet<InterruptionItem> InterruptionItem { get; set; }
         public virtual DbSet<TaskItem> TaskItem { get; set; }
         public virtual DbSet<EventHistory> EventHistory { get; set; }
+        public virtual DbSet<EventPrompt> EventPrompt { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

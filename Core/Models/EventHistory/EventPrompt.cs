@@ -5,14 +5,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Models.EventHistory
 {
-    public partial class EventHistory
+    public class EventPrompt
     {
         [Key]
         public long Id { get; set; }
         [Required]
-        public long ResourceId { get; set; }
+        public PromptType PromptType { get; set; }
         [Required]
-        public EventType EventType { get; set; }
+        public PromptConfirmType ConfirmType { get; set; }
         [Column(TypeName = "timestamp with time zone")]
         public DateTime Timestamp { get; set; }
     }
