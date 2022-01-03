@@ -45,7 +45,7 @@ namespace WebApi
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
             services.AddScoped<IEventHistoryRepository, EventHistoryRepository>();
             services.AddScoped<IEventPromptRepository, EventPromptRepository>();
-            services.AddScoped<IEventHistoryService, EventHistoryService>();
+            services.AddScoped<IEventService, EventService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

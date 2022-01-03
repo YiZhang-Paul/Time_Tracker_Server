@@ -10,39 +10,39 @@ namespace WebApi.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
-        private IEventHistoryService EventHistoryService { get; }
+        private IEventService EventService { get; }
 
-        public EventController(IEventHistoryService eventHistoryService)
+        public EventController(IEventService eventService)
         {
-            EventHistoryService = eventHistoryService;
+            EventService = eventService;
         }
 
         [HttpGet]
         [Route("time-distribution/{start}")]
         public async Task<OngoingEventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
         {
-            return await EventHistoryService.GetOngoingTimeDistribution(start).ConfigureAwait(false);
+            return await EventService.GetOngoingTimeDistribution(start).ConfigureAwait(false);
         }
 
         [HttpPost]
         [Route("idling-sessions")]
         public async Task<bool> StartIdlingSession()
         {
-            return await EventHistoryService.StartIdlingSession().ConfigureAwait(false);
+            return await EventService.StartIdlingSession().ConfigureAwait(false);
         }
 
         [HttpPost]
         [Route("interruption-items/{id}")]
         public async Task<bool> StartInterruptionItem(long id)
         {
-            return await EventHistoryService.StartInterruptionItem(id).ConfigureAwait(false);
+            return await EventService.StartInterruptionItem(id).ConfigureAwait(false);
         }
 
         [HttpPost]
         [Route("task-items/{id}")]
         public async Task<bool> StartTaskItem(long id)
         {
-            return await EventHistoryService.StartTaskItem(id).ConfigureAwait(false);
+            return await EventService.StartTaskItem(id).ConfigureAwait(false);
         }
     }
 }

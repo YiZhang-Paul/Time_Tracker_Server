@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace Service.Services
 {
-    public class EventHistoryService : IEventHistoryService
+    public class EventService : IEventService
     {
         private IInterruptionItemRepository InterruptionItemRepository { get; }
         private ITaskItemRepository TaskItemRepository { get; }
         private IEventHistoryRepository EventHistoryRepository { get; }
         private IEventPromptRepository EventPromptRepository { get; }
 
-        public EventHistoryService
+        public EventService
         (
             IInterruptionItemRepository interruptionItemRepository,
             ITaskItemRepository taskItemRepository,

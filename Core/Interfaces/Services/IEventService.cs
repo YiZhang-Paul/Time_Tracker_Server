@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Core.Interfaces.Services
 {
-    public interface IEventHistoryService
+    public interface IEventService
     {
         Task<OngoingEventTimeDistribution> GetOngoingTimeDistribution(DateTime start);
         Task<bool> StartIdlingSession();
