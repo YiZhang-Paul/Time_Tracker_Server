@@ -6,22 +6,22 @@ using System.Threading.Tasks;
 
 namespace WebApi.Controllers
 {
-    [Route("api/v1/event-histories")]
+    [Route("api/v1/events")]
     [ApiController]
-    public class EventHistoryController : ControllerBase
+    public class EventController : ControllerBase
     {
         private IEventHistoryService EventHistoryService { get; }
 
-        public EventHistoryController(IEventHistoryService eventHistoryService)
+        public EventController(IEventHistoryService eventHistoryService)
         {
             EventHistoryService = eventHistoryService;
         }
 
         [HttpGet]
         [Route("time-distribution/{start}")]
-        public async Task<EventTimeDistribution> GetTimeDistribution(DateTime start)
+        public async Task<EventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
         {
-            return await EventHistoryService.GetTimeDistribution(start).ConfigureAwait(false);
+            return await EventHistoryService.GetOngoingTimeDistribution(start).ConfigureAwait(false);
         }
 
         [HttpPost]

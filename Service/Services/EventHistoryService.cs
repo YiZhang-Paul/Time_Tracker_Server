@@ -26,26 +26,15 @@ namespace Service.Services
             EventHistoryRepository = eventHistoryRepository;
         }
 
-        public async Task<EventTimeDistribution> GetTimeDistribution(DateTime start)
+        public async Task<EventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
         {
             var startTime = start.ToUniversalTime();
-            var histories = await EventHistoryRepository.GetEventHistories(startTime, DateTime.UtcNow).ConfigureAwait(false);
-            var lastHistory = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
-            var distribution = new EventTimeDistribution { Unconcluded = lastHistory };
+            var distribution = await GetConcludedTimeDistribution(startTime, DateTime.UtcNow).ConfigureAwait(false);
+            distribution.Unconcluded = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
 
-            if (histories.Any())
+            if (distribution.Unconcluded != null)
             {
-                for (var i = 0; i < histories.Count - 1; ++i)
-                {
-                    AddTimeDistribution(distribution, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
-                }
-
-                var previous = await EventHistoryRepository.GetEventHistoryById(histories[0].Id - 1).ConfigureAwait(false);
-                AddTimeDistribution(distribution, previous?.EventType ?? EventType.Idling, startTime, histories[0].Timestamp);
-            }
-            else if (distribution.Unconcluded != null)
-            {
-                distribution.Unconcluded.Timestamp = startTime;
+                distribution.Unconcluded.Timestamp = distribution.Unconcluded.Timestamp > startTime ? distribution.Unconcluded.Timestamp : startTime;
             }
 
             return distribution;
@@ -107,7 +96,29 @@ namespace Service.Services
             return await EventHistoryRepository.CreateEventHistory(history).ConfigureAwait(false) != null;
         }
 
-        private static void AddTimeDistribution(EventTimeDistribution distribution, EventType type, DateTime start, DateTime end)
+        private async Task<EventTimeDistribution> GetConcludedTimeDistribution(DateTime start, DateTime end)
+        {
+            var distribution = new EventTimeDistribution();
+            var startTime = start.ToUniversalTime();
+            var endTime = end.ToUniversalTime();
+            var histories = await EventHistoryRepository.GetEventHistories(startTime, endTime).ConfigureAwait(false);
+
+            if (!histories.Any())
+            {
+                return distribution;
+            }
+
+            for (var i = 0; i < histories.Count - 1; ++i)
+            {
+                distribution = RecordTimeDistribution(distribution, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
+            }
+
+            var previous = await EventHistoryRepository.GetEventHistoryById(histories[0].Id - 1).ConfigureAwait(false);
+
+            return RecordTimeDistribution(distribution, previous?.EventType ?? EventType.Idling, startTime, histories[0].Timestamp);
+        }
+
+        private static EventTimeDistribution RecordTimeDistribution(EventTimeDistribution distribution, EventType type, DateTime start, DateTime end)
         {
             var elapsed = (int)(end.ToUniversalTime() - start.ToUniversalTime()).TotalMilliseconds;
 
@@ -123,6 +134,8 @@ namespace Service.Services
             {
                 distribution.Task += elapsed;
             }
+
+            return distribution;
         }
     }
 }
