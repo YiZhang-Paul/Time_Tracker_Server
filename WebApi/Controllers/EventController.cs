@@ -19,7 +19,7 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("time-distribution/{start}")]
-        public async Task<EventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
+        public async Task<OngoingEventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
         {
             return await EventHistoryService.GetOngoingTimeDistribution(start).ConfigureAwait(false);
         }

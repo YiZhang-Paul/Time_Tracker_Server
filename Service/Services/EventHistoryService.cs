@@ -13,24 +13,35 @@ namespace Service.Services
         private IInterruptionItemRepository InterruptionItemRepository { get; }
         private ITaskItemRepository TaskItemRepository { get; }
         private IEventHistoryRepository EventHistoryRepository { get; }
+        private IEventPromptRepository EventPromptRepository { get; }
 
         public EventHistoryService
         (
             IInterruptionItemRepository interruptionItemRepository,
             ITaskItemRepository taskItemRepository,
-            IEventHistoryRepository eventHistoryRepository
+            IEventHistoryRepository eventHistoryRepository,
+            IEventPromptRepository eventPromptRepository
         )
         {
             InterruptionItemRepository = interruptionItemRepository;
             TaskItemRepository = taskItemRepository;
             EventHistoryRepository = eventHistoryRepository;
+            EventPromptRepository = eventPromptRepository;
         }
 
-        public async Task<EventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
+        public async Task<OngoingEventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
         {
+            var lastPrompt = await EventPromptRepository.GetLastEventPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
             var startTime = start.ToUniversalTime();
-            var distribution = await GetConcludedTimeDistribution(startTime, DateTime.UtcNow).ConfigureAwait(false);
-            distribution.Unconcluded = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
+            var promptTime = lastPrompt?.Timestamp ?? startTime;
+            var endTime = DateTime.UtcNow;
+
+            var distribution = new OngoingEventTimeDistribution
+            {
+                SinceStart = await GetConcludedTimeDistribution(startTime, endTime).ConfigureAwait(false),
+                SinceLastBreakPrompt = await GetConcludedTimeDistribution(promptTime, endTime).ConfigureAwait(false),
+                Unconcluded = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false)
+            };
 
             if (distribution.Unconcluded != null)
             {
