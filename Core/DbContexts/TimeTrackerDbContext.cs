@@ -11,14 +11,8 @@ namespace Core.DbContexts
 {
     public partial class TimeTrackerDbContext : DbContext
     {
-        public TimeTrackerDbContext()
-        {
-        }
-
-        public TimeTrackerDbContext(DbContextOptions<TimeTrackerDbContext> options)
-            : base(options)
-        {
-        }
+        public TimeTrackerDbContext() { }
+        public TimeTrackerDbContext(DbContextOptions<TimeTrackerDbContext> options) : base(options) { }
 
         public virtual DbSet<InterruptionItem> InterruptionItem { get; set; }
         public virtual DbSet<TaskItem> TaskItem { get; set; }

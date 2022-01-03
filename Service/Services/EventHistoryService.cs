@@ -109,7 +109,7 @@ namespace Service.Services
 
         private static void AddTimeDistribution(EventTimeDistribution distribution, EventType type, DateTime start, DateTime end)
         {
-            var elapsed = (int)(end - start).TotalMilliseconds;
+            var elapsed = (int)(end.ToUniversalTime() - start.ToUniversalTime()).TotalMilliseconds;
 
             if (type == EventType.Idling)
             {
