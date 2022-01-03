@@ -1,4 +1,3 @@
-using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.EventHistory;
 using Microsoft.AspNetCore.Mvc;
@@ -10,20 +9,18 @@ namespace WebApi.Controllers
     [ApiController]
     public class EventHistoryController : ControllerBase
     {
-        private IEventHistoryRepository EventHistoryRepository { get; }
         private IEventHistoryService EventHistoryService { get; }
 
-        public EventHistoryController(IEventHistoryRepository eventHistoryRepository, IEventHistoryService eventHistoryService)
+        public EventHistoryController(IEventHistoryService eventHistoryService)
         {
-            EventHistoryRepository = eventHistoryRepository;
             EventHistoryService = eventHistoryService;
         }
 
         [HttpGet]
-        [Route("last-history")]
-        public async Task<EventHistory> GetLastEventHistory()
+        [Route("time-distribution/today")]
+        public async Task<EventTimeDistribution> GetCurrentTimeDistribution()
         {
-            return await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
+            return await EventHistoryService.GetCurrentTimeDistribution().ConfigureAwait(false);
         }
 
         [HttpPost]
