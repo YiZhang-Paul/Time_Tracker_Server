@@ -1,6 +1,7 @@
 using Core.Interfaces.Services;
 using Core.Models.EventHistory;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -17,10 +18,10 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("time-distribution/today")]
-        public async Task<EventTimeDistribution> GetCurrentTimeDistribution()
+        [Route("time-distribution/{start}")]
+        public async Task<EventTimeDistribution> GetTimeDistribution(DateTime start)
         {
-            return await EventHistoryService.GetCurrentTimeDistribution().ConfigureAwait(false);
+            return await EventHistoryService.GetTimeDistribution(start).ConfigureAwait(false);
         }
 
         [HttpPost]

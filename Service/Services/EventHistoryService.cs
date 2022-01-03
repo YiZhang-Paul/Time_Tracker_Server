@@ -26,10 +26,10 @@ namespace Service.Services
             EventHistoryRepository = eventHistoryRepository;
         }
 
-        public async Task<EventTimeDistribution> GetCurrentTimeDistribution()
+        public async Task<EventTimeDistribution> GetTimeDistribution(DateTime start)
         {
-            var now = DateTime.UtcNow;
-            var histories = await EventHistoryRepository.GetEventHistories(now.Date, now).ConfigureAwait(false);
+            var startTime = start.ToUniversalTime();
+            var histories = await EventHistoryRepository.GetEventHistories(startTime, DateTime.UtcNow).ConfigureAwait(false);
             var lastHistory = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
             var distribution = new EventTimeDistribution { Unconcluded = lastHistory };
 
@@ -41,11 +41,11 @@ namespace Service.Services
                 }
 
                 var previous = await EventHistoryRepository.GetEventHistoryById(histories[0].Id - 1).ConfigureAwait(false);
-                AddTimeDistribution(distribution, previous?.EventType ?? EventType.Idling, now.Date, histories[0].Timestamp);
+                AddTimeDistribution(distribution, previous?.EventType ?? EventType.Idling, startTime, histories[0].Timestamp);
             }
             else if (distribution.Unconcluded != null)
             {
-                distribution.Unconcluded.Timestamp = now.Date;
+                distribution.Unconcluded.Timestamp = startTime;
             }
 
             return distribution;
