@@ -29,26 +29,26 @@ namespace Service.Services
             EventPromptRepository = eventPromptRepository;
         }
 
-        public async Task<OngoingEventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
+        public async Task<OngoingEventTimeSummary> GetOngoingTimeSummary(DateTime start)
         {
             var lastPrompt = await EventPromptRepository.GetLastEventPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
             var startTime = start.ToUniversalTime();
             var promptTime = lastPrompt?.Timestamp ?? startTime;
             var endTime = DateTime.UtcNow;
 
-            var distribution = new OngoingEventTimeDistribution
+            var summary = new OngoingEventTimeSummary
             {
-                SinceStart = await GetConcludedTimeDistribution(startTime, endTime).ConfigureAwait(false),
-                SinceLastBreakPrompt = await GetConcludedTimeDistribution(promptTime, endTime).ConfigureAwait(false),
+                SinceStart = await GetConcludedTimeSummary(startTime, endTime).ConfigureAwait(false),
+                SinceLastBreakPrompt = await GetConcludedTimeSummary(promptTime, endTime).ConfigureAwait(false),
                 Unconcluded = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false)
             };
 
-            if (distribution.Unconcluded != null)
+            if (summary.Unconcluded != null)
             {
-                distribution.Unconcluded.Timestamp = distribution.Unconcluded.Timestamp > startTime ? distribution.Unconcluded.Timestamp : startTime;
+                summary.Unconcluded.Timestamp = summary.Unconcluded.Timestamp > startTime ? summary.Unconcluded.Timestamp : startTime;
             }
 
-            return distribution;
+            return summary;
         }
 
         public async Task<bool> StartIdlingSession()
@@ -135,50 +135,50 @@ namespace Service.Services
             return await EventPromptRepository.CreateEventPrompt(prompt).ConfigureAwait(false) != null;
         }
 
-        private async Task<EventTimeDistribution> GetConcludedTimeDistribution(DateTime start, DateTime end)
+        private async Task<EventTimeSummary> GetConcludedTimeSummary(DateTime start, DateTime end)
         {
-            var distribution = new EventTimeDistribution();
+            var summary = new EventTimeSummary();
             var startTime = start.ToUniversalTime();
             var endTime = end.ToUniversalTime();
             var histories = await EventHistoryRepository.GetEventHistories(startTime, endTime).ConfigureAwait(false);
 
             if (!histories.Any())
             {
-                return distribution;
+                return summary;
             }
 
             for (var i = 0; i < histories.Count - 1; ++i)
             {
-                distribution = RecordTimeDistribution(distribution, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
+                summary = RecordTimeSummary(summary, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
             }
 
             var previous = await EventHistoryRepository.GetEventHistoryById(histories[0].Id - 1).ConfigureAwait(false);
 
-            return RecordTimeDistribution(distribution, previous?.EventType ?? EventType.Idling, startTime, histories[0].Timestamp);
+            return RecordTimeSummary(summary, previous?.EventType ?? EventType.Idling, startTime, histories[0].Timestamp);
         }
 
-        private static EventTimeDistribution RecordTimeDistribution(EventTimeDistribution distribution, EventType type, DateTime start, DateTime end)
+        private static EventTimeSummary RecordTimeSummary(EventTimeSummary summary, EventType type, DateTime start, DateTime end)
         {
             var elapsed = (int)(end.ToUniversalTime() - start.ToUniversalTime()).TotalMilliseconds;
 
             if (type == EventType.Idling)
             {
-                distribution.Idling += elapsed;
+                summary.Idling += elapsed;
             }
             else if (type == EventType.Interruption)
             {
-                distribution.Interruption += elapsed;
+                summary.Interruption += elapsed;
             }
             else if (type == EventType.Task)
             {
-                distribution.Task += elapsed;
+                summary.Task += elapsed;
             }
             else if (type == EventType.Break)
             {
-                distribution.Break += elapsed;
+                summary.Break += elapsed;
             }
 
-            return distribution;
+            return summary;
         }
     }
 }

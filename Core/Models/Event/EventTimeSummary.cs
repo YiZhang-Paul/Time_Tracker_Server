@@ -1,6 +1,6 @@
 namespace Core.Models.Event
 {
-    public class EventTimeDistribution
+    public class EventTimeSummary
     {
         public int Idling { get; set; }
         public int Interruption { get; set; }

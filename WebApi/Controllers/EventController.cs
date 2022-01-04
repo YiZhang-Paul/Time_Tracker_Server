@@ -18,10 +18,10 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("time-distribution/{start}")]
-        public async Task<OngoingEventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
+        [Route("time-summary/{start}")]
+        public async Task<OngoingEventTimeSummary> GetOngoingTimeSummary(DateTime start)
         {
-            return await EventService.GetOngoingTimeDistribution(start).ConfigureAwait(false);
+            return await EventService.GetOngoingTimeSummary(start).ConfigureAwait(false);
         }
 
         [HttpPost]
