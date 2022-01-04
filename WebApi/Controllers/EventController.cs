@@ -1,5 +1,5 @@
 using Core.Interfaces.Services;
-using Core.Models.EventHistory;
+using Core.Models.Event;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;

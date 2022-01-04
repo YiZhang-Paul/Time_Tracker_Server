@@ -1,4 +1,4 @@
-using Core.Models.EventHistory;
+using Core.Models.Event;
 using System;
 using System.Threading.Tasks;
 

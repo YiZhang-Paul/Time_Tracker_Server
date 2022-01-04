@@ -1,4 +1,4 @@
-namespace Core.Models.EventHistory
+namespace Core.Models.Event
 {
     public class OngoingEventTimeDistribution
     {

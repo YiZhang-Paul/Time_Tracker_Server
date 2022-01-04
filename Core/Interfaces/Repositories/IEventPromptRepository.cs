@@ -1,5 +1,5 @@
 using Core.Enums;
-using Core.Models.EventHistory;
+using Core.Models.Event;
 using System.Threading.Tasks;
 
 namespace Core.Interfaces.Repositories

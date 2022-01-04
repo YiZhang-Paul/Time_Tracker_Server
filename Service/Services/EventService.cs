@@ -1,7 +1,7 @@
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
-using Core.Models.EventHistory;
+using Core.Models.Event;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

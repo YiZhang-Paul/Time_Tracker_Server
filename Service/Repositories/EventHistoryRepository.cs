@@ -1,6 +1,6 @@
 using Core.DbContexts;
 using Core.Interfaces.Repositories;
-using Core.Models.EventHistory;
+using Core.Models.Event;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-using Core.Models.EventHistory;
+using Core.Models.Event;
 using Core.Models.Interruption;
 using Core.Models.Task;
 using Microsoft.EntityFrameworkCore;
