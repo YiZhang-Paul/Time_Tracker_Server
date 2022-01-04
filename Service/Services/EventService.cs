@@ -156,7 +156,7 @@ namespace Service.Services
             var startTime = start.ToUniversalTime();
             var history = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
             history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = startTime };
-            history.Timestamp = history.Timestamp > startTime ? history.Timestamp : startTime;
+            history.Timestamp = history.Timestamp.ToUniversalTime() > startTime ? history.Timestamp.ToUniversalTime() : startTime;
 
             return history;
         }
