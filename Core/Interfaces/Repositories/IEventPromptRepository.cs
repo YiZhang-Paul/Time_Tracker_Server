@@ -7,5 +7,6 @@ namespace Core.Interfaces.Repositories
     public interface IEventPromptRepository
     {
         Task<EventPrompt> GetLastEventPrompt(PromptType? type);
+        Task<EventPrompt> CreateEventPrompt(EventPrompt prompt);
     }
 }

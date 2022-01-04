@@ -44,5 +44,17 @@ namespace WebApi.Controllers
         {
             return await EventService.StartTaskItem(id).ConfigureAwait(false);
         }
+
+        [HttpPut]
+        [Route("scheduled-break-prompts")]
+        public async Task<bool> ConfirmBreakSessionPrompt([FromQuery]bool skip = false)
+        {
+            if (skip)
+            {
+                return await EventService.SkipBreakSession().ConfigureAwait(false);
+            }
+
+            return await EventService.StartBreakSession().ConfigureAwait(false);
+        }
     }
 }

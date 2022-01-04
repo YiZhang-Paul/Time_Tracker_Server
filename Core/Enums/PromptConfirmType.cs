@@ -2,7 +2,7 @@ namespace Core.Enums
 {
     public enum PromptConfirmType
     {
-        Confirmed = 0,
+        Commenced = 0,
         Skipped = 1
     }
 }

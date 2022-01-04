@@ -4,6 +4,7 @@ namespace Core.Enums
     {
         Idling = 0,
         Interruption = 1,
-        Task = 2
+        Task = 2,
+        Break = 3
     }
 }

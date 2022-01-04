@@ -107,6 +107,34 @@ namespace Service.Services
             return await EventHistoryRepository.CreateEventHistory(history).ConfigureAwait(false) != null;
         }
 
+        public async Task<bool> StartBreakSession()
+        {
+            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
+
+            if (await EventPromptRepository.CreateEventPrompt(prompt).ConfigureAwait(false) == null)
+            {
+                return false;
+            }
+
+            var last = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
+
+            if (last?.EventType == EventType.Break)
+            {
+                return false;
+            }
+
+            var history = new EventHistory { ResourceId = -1, EventType = EventType.Break };
+
+            return await EventHistoryRepository.CreateEventHistory(history).ConfigureAwait(false) != null;
+        }
+
+        public async Task<bool> SkipBreakSession()
+        {
+            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Skipped };
+
+            return await EventPromptRepository.CreateEventPrompt(prompt).ConfigureAwait(false) != null;
+        }
+
         private async Task<EventTimeDistribution> GetConcludedTimeDistribution(DateTime start, DateTime end)
         {
             var distribution = new EventTimeDistribution();
@@ -141,9 +169,13 @@ namespace Service.Services
             {
                 distribution.Interruption += elapsed;
             }
-            else
+            else if (type == EventType.Task)
             {
                 distribution.Task += elapsed;
+            }
+            else if (type == EventType.Break)
+            {
+                distribution.Break += elapsed;
             }
 
             return distribution;

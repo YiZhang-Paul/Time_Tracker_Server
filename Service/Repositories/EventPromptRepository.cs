@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Models.EventHistory;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -27,6 +28,14 @@ namespace Service.Repositories
             }
 
             return await sorted.FirstOrDefaultAsync(_ => _.PromptType == type).ConfigureAwait(false);
+        }
+
+        public async Task<EventPrompt> CreateEventPrompt(EventPrompt prompt)
+        {
+            prompt.Timestamp = DateTime.UtcNow;
+            Context.EventPrompt.Add(prompt);
+
+            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? prompt : null;
         }
     }
 }
