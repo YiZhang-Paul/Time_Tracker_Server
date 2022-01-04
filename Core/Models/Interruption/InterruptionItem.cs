@@ -1,10 +1,11 @@
+using Core.Enums;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Core.Models.Task
+namespace Core.Models.Interruption
 {
-    public partial class TaskItem
+    public partial class InterruptionItem
     {
         [Key]
         public long Id { get; set; }
@@ -12,7 +13,7 @@ namespace Core.Models.Task
         [StringLength(140)]
         public string Name { get; set; }
         public string Description { get; set; }
-        public int Effort { get; set; }
+        public Priority Priority { get; set; }
         [Column(TypeName = "timestamp with time zone")]
         public DateTime CreationTime { get; set; }
         [Column(TypeName = "timestamp with time zone")]

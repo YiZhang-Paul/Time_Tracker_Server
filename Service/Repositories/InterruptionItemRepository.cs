@@ -1,7 +1,7 @@
 using Core.DbContexts;
 using Core.Dtos;
 using Core.Interfaces.Repositories;
-using Core.Models.Task;
+using Core.Models.Interruption;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,55 +10,55 @@ using System.Threading.Tasks;
 
 namespace Service.Repositories
 {
-    public class TaskItemRepository : ITaskItemRepository
+    public class InterruptionItemRepository : IInterruptionItemRepository
     {
         private TimeTrackerDbContext Context { get; }
 
-        public TaskItemRepository(TimeTrackerDbContext context)
+        public InterruptionItemRepository(TimeTrackerDbContext context)
         {
             Context = context;
         }
 
-        public async Task<List<TaskItemSummaryDto>> GetTaskItemSummaries()
+        public async Task<List<InterruptionItemSummaryDto>> GetInterruptionItemSummaries()
         {
-            var items = Context.TaskItem
+            var items = Context.InterruptionItem
                 .Where(_ => !_.IsDeleted)
-                .Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name, Effort = _.Effort });
+                .Select(_ => new InterruptionItemSummaryDto { Id = _.Id, Name = _.Name, Priority = _.Priority });
 
             return await items.ToListAsync().ConfigureAwait(false);
         }
 
-        public async Task<TaskItem> GetTaskItemById(long id, bool excludeDeleted = true)
+        public async Task<InterruptionItem> GetInterruptionItemById(long id, bool excludeDeleted = true)
         {
             if (excludeDeleted)
             {
-                return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id && !_.IsDeleted).ConfigureAwait(false);
+                return await Context.InterruptionItem.FirstOrDefaultAsync(_ => _.Id == id && !_.IsDeleted).ConfigureAwait(false);
             }
 
-            return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
+            return await Context.InterruptionItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
-        public async Task<TaskItem> CreateTaskItem(TaskItemCreationDto item)
+        public async Task<InterruptionItem> CreateInterruptionItem(InterruptionItemCreationDto item)
         {
             var now = DateTime.UtcNow;
 
-            var payload = new TaskItem
+            var payload = new InterruptionItem
             {
                 Name = item.Name,
                 Description = item.Description,
-                Effort = item.Effort,
+                Priority = item.Priority,
                 CreationTime = now,
                 ModifiedTime = now
             };
 
-            Context.TaskItem.Add(payload);
+            Context.InterruptionItem.Add(payload);
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? payload : null;
         }
 
-        public async Task<TaskItem> UpdateTaskItem(TaskItem item)
+        public async Task<InterruptionItem> UpdateInterruptionItem(InterruptionItem item)
         {
-            var existing = await GetTaskItemById(item.Id).ConfigureAwait(false);
+            var existing = await GetInterruptionItemById(item.Id).ConfigureAwait(false);
 
             if (existing == null)
             {
@@ -67,15 +67,15 @@ namespace Service.Repositories
 
             existing.Name = item.Name;
             existing.Description = item.Description;
-            existing.Effort = item.Effort;
+            existing.Priority = item.Priority;
             existing.ModifiedTime = DateTime.UtcNow;
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
         }
 
-        public async Task<bool> DeleteTaskItemById(long id)
+        public async Task<bool> DeleteInterruptionItemById(long id)
         {
-            var existing = await GetTaskItemById(id).ConfigureAwait(false);
+            var existing = await GetInterruptionItemById(id).ConfigureAwait(false);
 
             if (existing == null)
             {
