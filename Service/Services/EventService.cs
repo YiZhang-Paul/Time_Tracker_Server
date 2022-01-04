@@ -161,21 +161,13 @@ namespace Service.Services
         {
             var elapsed = (int)(end.ToUniversalTime() - start.ToUniversalTime()).TotalMilliseconds;
 
-            if (type == EventType.Idling)
+            if (type == EventType.Interruption || type == EventType.Task)
             {
-                summary.Idling += elapsed;
+                summary.Working += elapsed;
             }
-            else if (type == EventType.Interruption)
+            else if (type == EventType.Idling || type == EventType.Break)
             {
-                summary.Interruption += elapsed;
-            }
-            else if (type == EventType.Task)
-            {
-                summary.Task += elapsed;
-            }
-            else if (type == EventType.Break)
-            {
-                summary.Break += elapsed;
+                summary.NotWorking += elapsed;
             }
 
             return summary;
