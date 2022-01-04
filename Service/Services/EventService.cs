@@ -43,10 +43,8 @@ namespace Service.Services
                 Unconcluded = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false)
             };
 
-            if (summary.Unconcluded != null)
-            {
-                summary.Unconcluded.Timestamp = summary.Unconcluded.Timestamp > startTime ? summary.Unconcluded.Timestamp : startTime;
-            }
+            summary.Unconcluded ??= new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = startTime };
+            summary.Unconcluded.Timestamp = summary.Unconcluded.Timestamp > startTime ? summary.Unconcluded.Timestamp : startTime;
 
             return summary;
         }
