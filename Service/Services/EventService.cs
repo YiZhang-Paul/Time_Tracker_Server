@@ -36,17 +36,13 @@ namespace Service.Services
             var promptTime = lastPrompt?.Timestamp ?? startTime;
             var endTime = DateTime.UtcNow;
 
-            var summary = new OngoingEventTimeSummary
+            return new OngoingEventTimeSummary
             {
-                SinceStart = await GetConcludedTimeSummary(startTime, endTime).ConfigureAwait(false),
-                SinceLastBreakPrompt = await GetConcludedTimeSummary(promptTime, endTime).ConfigureAwait(false),
-                Unconcluded = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false)
+                ConcludedSinceStart = await GetConcludedTimeSummary(startTime, endTime).ConfigureAwait(false),
+                ConcludedSinceLastBreakPrompt = await GetConcludedTimeSummary(promptTime, endTime).ConfigureAwait(false),
+                UnconcludedSinceStart = await GetUnconcludedTimeSummary(startTime).ConfigureAwait(false),
+                UnconcludedSinceLastBreakPrompt = await GetUnconcludedTimeSummary(promptTime).ConfigureAwait(false)
             };
-
-            summary.Unconcluded ??= new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = startTime };
-            summary.Unconcluded.Timestamp = summary.Unconcluded.Timestamp > startTime ? summary.Unconcluded.Timestamp : startTime;
-
-            return summary;
         }
 
         public async Task<bool> StartIdlingSession()
@@ -153,6 +149,16 @@ namespace Service.Services
             var previous = await EventHistoryRepository.GetEventHistoryById(histories[0].Id - 1).ConfigureAwait(false);
 
             return RecordTimeSummary(summary, previous?.EventType ?? EventType.Idling, startTime, histories[0].Timestamp);
+        }
+
+        private async Task<EventHistory> GetUnconcludedTimeSummary(DateTime start)
+        {
+            var startTime = start.ToUniversalTime();
+            var history = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
+            history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = startTime };
+            history.Timestamp = history.Timestamp > startTime ? history.Timestamp : startTime;
+
+            return history;
         }
 
         private static EventTimeSummary RecordTimeSummary(EventTimeSummary summary, EventType type, DateTime start, DateTime end)
