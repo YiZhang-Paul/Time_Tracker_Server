@@ -29,26 +29,20 @@ namespace Service.Services
             EventPromptRepository = eventPromptRepository;
         }
 
-        public async Task<OngoingEventTimeDistribution> GetOngoingTimeDistribution(DateTime start)
+        public async Task<OngoingEventTimeSummary> GetOngoingTimeSummary(DateTime start)
         {
             var lastPrompt = await EventPromptRepository.GetLastEventPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
             var startTime = start.ToUniversalTime();
             var promptTime = lastPrompt?.Timestamp ?? startTime;
             var endTime = DateTime.UtcNow;
 
-            var distribution = new OngoingEventTimeDistribution
+            return new OngoingEventTimeSummary
             {
-                SinceStart = await GetConcludedTimeDistribution(startTime, endTime).ConfigureAwait(false),
-                SinceLastBreakPrompt = await GetConcludedTimeDistribution(promptTime, endTime).ConfigureAwait(false),
-                Unconcluded = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false)
+                ConcludedSinceStart = await GetConcludedTimeSummary(startTime, endTime).ConfigureAwait(false),
+                ConcludedSinceLastBreakPrompt = await GetConcludedTimeSummary(promptTime, endTime).ConfigureAwait(false),
+                UnconcludedSinceStart = await GetUnconcludedTimeSummary(startTime).ConfigureAwait(false),
+                UnconcludedSinceLastBreakPrompt = await GetUnconcludedTimeSummary(promptTime).ConfigureAwait(false)
             };
-
-            if (distribution.Unconcluded != null)
-            {
-                distribution.Unconcluded.Timestamp = distribution.Unconcluded.Timestamp > startTime ? distribution.Unconcluded.Timestamp : startTime;
-            }
-
-            return distribution;
         }
 
         public async Task<bool> StartIdlingSession()
@@ -135,50 +129,52 @@ namespace Service.Services
             return await EventPromptRepository.CreateEventPrompt(prompt).ConfigureAwait(false) != null;
         }
 
-        private async Task<EventTimeDistribution> GetConcludedTimeDistribution(DateTime start, DateTime end)
+        private async Task<EventTimeSummary> GetConcludedTimeSummary(DateTime start, DateTime end)
         {
-            var distribution = new EventTimeDistribution();
+            var summary = new EventTimeSummary();
             var startTime = start.ToUniversalTime();
             var endTime = end.ToUniversalTime();
             var histories = await EventHistoryRepository.GetEventHistories(startTime, endTime).ConfigureAwait(false);
 
             if (!histories.Any())
             {
-                return distribution;
+                return summary;
             }
 
             for (var i = 0; i < histories.Count - 1; ++i)
             {
-                distribution = RecordTimeDistribution(distribution, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
+                summary = RecordTimeSummary(summary, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
             }
 
             var previous = await EventHistoryRepository.GetEventHistoryById(histories[0].Id - 1).ConfigureAwait(false);
 
-            return RecordTimeDistribution(distribution, previous?.EventType ?? EventType.Idling, startTime, histories[0].Timestamp);
+            return RecordTimeSummary(summary, previous?.EventType ?? EventType.Idling, startTime, histories[0].Timestamp);
         }
 
-        private static EventTimeDistribution RecordTimeDistribution(EventTimeDistribution distribution, EventType type, DateTime start, DateTime end)
+        private async Task<EventHistory> GetUnconcludedTimeSummary(DateTime start)
+        {
+            var startTime = start.ToUniversalTime();
+            var history = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
+            history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = startTime };
+            history.Timestamp = history.Timestamp.ToUniversalTime() > startTime ? history.Timestamp.ToUniversalTime() : startTime;
+
+            return history;
+        }
+
+        private static EventTimeSummary RecordTimeSummary(EventTimeSummary summary, EventType type, DateTime start, DateTime end)
         {
             var elapsed = (int)(end.ToUniversalTime() - start.ToUniversalTime()).TotalMilliseconds;
 
-            if (type == EventType.Idling)
+            if (type == EventType.Interruption || type == EventType.Task)
             {
-                distribution.Idling += elapsed;
+                summary.Working += elapsed;
             }
-            else if (type == EventType.Interruption)
+            else if (type == EventType.Idling || type == EventType.Break)
             {
-                distribution.Interruption += elapsed;
-            }
-            else if (type == EventType.Task)
-            {
-                distribution.Task += elapsed;
-            }
-            else if (type == EventType.Break)
-            {
-                distribution.Break += elapsed;
+                summary.NotWorking += elapsed;
             }
 
-            return distribution;
+            return summary;
         }
     }
 }
