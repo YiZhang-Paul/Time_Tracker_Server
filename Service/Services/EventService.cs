@@ -70,7 +70,7 @@ namespace Service.Services
 
             var last = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
 
-            if (last?.EventType == EventType.Interruption && last?.ResourceId == id)
+            if (last != null && last.EventType == EventType.Interruption && last.ResourceId == id)
             {
                 return false;
             }
@@ -91,7 +91,7 @@ namespace Service.Services
 
             var last = await EventHistoryRepository.GetLastEventHistory().ConfigureAwait(false);
 
-            if (last?.EventType == EventType.Task && last?.ResourceId == id)
+            if (last != null && last.EventType == EventType.Task && last.ResourceId == id)
             {
                 return false;
             }
