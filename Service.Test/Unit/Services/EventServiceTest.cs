@@ -78,7 +78,7 @@ namespace Service.Test.Unit.Services
             Assert.AreEqual(0, result.ConcludedSinceStart.Working);
             Assert.AreEqual(0, result.ConcludedSinceStart.NotWorking);
             Assert.AreEqual(0, result.ConcludedSinceLastBreakPrompt.Working);
-            Assert.AreEqual(1, result.ConcludedSinceLastBreakPrompt.NotWorking);
+            Assert.AreEqual(0, result.ConcludedSinceLastBreakPrompt.NotWorking);
         }
 
         [Test]
