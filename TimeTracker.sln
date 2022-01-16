@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildScripts", "BuildScripts", "{7ADB331F-E8B0-43C5-A9C6-2A0B8FD693D9}"
 	ProjectSection(SolutionItems) = preProject
 		buildspec.yml = buildspec.yml
+		coverage.bat = coverage.bat
 		dbcontext-scaffold.txt = dbcontext-scaffold.txt
 		Procfile = Procfile
 	EndProjectSection
@@ -15,6 +16,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{BEE1356B-6B93-483E-A332-36304302A6C7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Service", "Service\Service.csproj", "{F7DA26AC-BFBC-4B02-B4B0-08496D0976AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Service.Test", "Service.Test\Service.Test.csproj", "{F9C13F68-5302-45A2-8705-CBC25D529862}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +37,10 @@ Global
 		{F7DA26AC-BFBC-4B02-B4B0-08496D0976AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7DA26AC-BFBC-4B02-B4B0-08496D0976AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7DA26AC-BFBC-4B02-B4B0-08496D0976AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F9C13F68-5302-45A2-8705-CBC25D529862}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F9C13F68-5302-45A2-8705-CBC25D529862}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F9C13F68-5302-45A2-8705-CBC25D529862}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F9C13F68-5302-45A2-8705-CBC25D529862}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
