@@ -1,29 +1,38 @@
 using Core.DbContexts;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Core.Models.Event;
 using NUnit.Framework;
 using Service.Repositories;
-using System.IO;
+using System;
+using System.Threading.Tasks;
 
 namespace Service.Test.Integration.Repositories
 {
     [TestFixture]
     public class EventHistoryRepositoryTest
     {
+        private TimeTrackerDbContext Context { get; set; }
         private EventHistoryRepository Subject { get; set; }
 
         [SetUp]
-        public void Setup()
+        public async Task Setup()
         {
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.Local.json", true, false)
-                .AddEnvironmentVariables()
-                .Build();
+            Context = await new DatabaseTestUtility().SetupTimeTrackerDbContext().ConfigureAwait(false);
+            Subject = new EventHistoryRepository(Context);
+        }
 
-            var connectionString = config.GetSection("TimeTrackerDbConnectionString").Value;
-            var options = new DbContextOptionsBuilder<TimeTrackerDbContext>().UseNpgsql(connectionString).Options;
-            Subject = new EventHistoryRepository(new TimeTrackerDbContext(options));
+        [Test]
+        public async Task CreateEventHistoryShouldReturnEventHistoryWhenCreationSucceeded()
+        {
+            var result = await Subject.CreateEventHistory(new EventHistory()).ConfigureAwait(false);
+
+            Assert.AreEqual(1, result.Id);
+            Assert.IsTrue((DateTime.UtcNow - result.Timestamp).Duration().TotalMilliseconds < 1000);
+        }
+
+        [TearDown]
+        public async Task TearDown()
+        {
+            await Context.Database.EnsureDeletedAsync().ConfigureAwait(false);
         }
     }
 }
