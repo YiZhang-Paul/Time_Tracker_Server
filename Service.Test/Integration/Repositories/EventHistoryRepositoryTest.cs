@@ -29,77 +29,77 @@ namespace Service.Test.Integration.Repositories
             Assert.IsNull(result);
         }
 
-        //[Test]
-        //public async Task GetLastHistoryShouldReturnLastHistory()
-        //{
-        //    for (var i = 0; i < 3; ++i)
-        //    {
-        //        await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
-        //    }
+        [Test]
+        public async Task GetLastHistoryShouldReturnLastHistory()
+        {
+            for (var i = 0; i < 3; ++i)
+            {
+                await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+            }
 
-        //    var result = await Subject.GetLastHistory().ConfigureAwait(false);
+            var result = await Subject.GetLastHistory().ConfigureAwait(false);
 
-        //    Assert.AreEqual(3, result.Id);
-        //}
+            Assert.AreEqual(3, result.Id);
+        }
 
-        //[Test]
-        //public async Task GetHistoryByIdShouldReturnNullWhenNoHistoryFound()
-        //{
-        //    await Subject.CreateHistory(new EventHistory { Id = 5 }).ConfigureAwait(false);
+        [Test]
+        public async Task GetHistoryByIdShouldReturnNullWhenNoHistoryFound()
+        {
+            await Subject.CreateHistory(new EventHistory { Id = 5 }).ConfigureAwait(false);
 
-        //    var result = await Subject.GetHistoryById(4).ConfigureAwait(false);
+            var result = await Subject.GetHistoryById(4).ConfigureAwait(false);
 
-        //    Assert.IsNull(result);
-        //}
+            Assert.IsNull(result);
+        }
 
-        //[Test]
-        //public async Task GetHistoryByIdShouldReturnHistoryFound()
-        //{
-        //    await Subject.CreateHistory(new EventHistory { Id = 5 }).ConfigureAwait(false);
+        [Test]
+        public async Task GetHistoryByIdShouldReturnHistoryFound()
+        {
+            await Subject.CreateHistory(new EventHistory { Id = 5 }).ConfigureAwait(false);
 
-        //    var result = await Subject.GetHistoryById(5).ConfigureAwait(false);
+            var result = await Subject.GetHistoryById(5).ConfigureAwait(false);
 
-        //    Assert.AreEqual(5, result.Id);
-        //}
+            Assert.AreEqual(5, result.Id);
+        }
 
-        //[Test]
-        //public async Task GetHistoriesShouldReturnEmptyCollectionWhenNoHistoryFound()
-        //{
-        //    var now = DateTime.UtcNow;
+        [Test]
+        public async Task GetHistoriesShouldReturnEmptyCollectionWhenNoHistoryFound()
+        {
+            var now = DateTime.UtcNow;
 
-        //    for (var i = 0; i < 3; ++i)
-        //    {
-        //        await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
-        //    }
+            for (var i = 0; i < 3; ++i)
+            {
+                await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+            }
 
-        //    var result = await Subject.GetHistories(now.AddMinutes(-10), now.AddMinutes(-5)).ConfigureAwait(false);
+            var result = await Subject.GetHistories(now.AddMinutes(-10), now.AddMinutes(-5)).ConfigureAwait(false);
 
-        //    Assert.IsFalse(result.Any());
-        //}
+            Assert.IsFalse(result.Any());
+        }
 
-        //[Test]
-        //public async Task GetHistoriesShouldReturnHistoriesFound()
-        //{
-        //    var now = DateTime.UtcNow;
+        [Test]
+        public async Task GetHistoriesShouldReturnHistoriesFound()
+        {
+            var now = DateTime.UtcNow;
 
-        //    for (var i = 0; i < 3; ++i)
-        //    {
-        //        await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
-        //    }
+            for (var i = 0; i < 3; ++i)
+            {
+                await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+            }
 
-        //    var result = await Subject.GetHistories(now.AddMinutes(-5), now.AddMinutes(5)).ConfigureAwait(false);
+            var result = await Subject.GetHistories(now.AddMinutes(-5), now.AddMinutes(5)).ConfigureAwait(false);
 
-        //    Assert.AreEqual(3, result.Count);
-        //}
+            Assert.AreEqual(3, result.Count);
+        }
 
-        //[Test]
-        //public async Task CreateHistoryShouldReturnHistoryWhenCreationSucceeded()
-        //{
-        //    var result = await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+        [Test]
+        public async Task CreateHistoryShouldReturnHistoryWhenCreationSucceeded()
+        {
+            var result = await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
 
-        //    Assert.AreEqual(1, result.Id);
-        //    Assert.IsTrue((DateTime.UtcNow - result.Timestamp).Duration().TotalMilliseconds < 1000);
-        //}
+            Assert.AreEqual(1, result.Id);
+            Assert.IsTrue((DateTime.UtcNow - result.Timestamp).Duration().TotalMilliseconds < 1000);
+        }
 
         [TearDown]
         public async Task TearDown()
