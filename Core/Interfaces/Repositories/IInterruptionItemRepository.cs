@@ -7,10 +7,10 @@ namespace Core.Interfaces.Repositories
 {
     public interface IInterruptionItemRepository
     {
-        Task<List<InterruptionItemSummaryDto>> GetInterruptionItemSummaries();
-        Task<InterruptionItem> GetInterruptionItemById(long id, bool excludeDeleted = true);
-        Task<InterruptionItem> CreateInterruptionItem(InterruptionItemCreationDto item);
-        Task<InterruptionItem> UpdateInterruptionItem(InterruptionItem item);
-        Task<bool> DeleteInterruptionItemById(long id);
+        Task<List<InterruptionItemSummaryDto>> GetItemSummaries();
+        Task<InterruptionItem> GetItemById(long id, bool excludeDeleted = true);
+        Task<InterruptionItem> CreateItem(InterruptionItemCreationDto item);
+        Task<InterruptionItem> UpdateItem(InterruptionItem item);
+        Task<bool> DeleteItemById(long id);
     }
 }

@@ -7,10 +7,10 @@ namespace Core.Interfaces.Repositories
 {
     public interface ITaskItemRepository
     {
-        Task<List<TaskItemSummaryDto>> GetTaskItemSummaries();
-        Task<TaskItem> GetTaskItemById(long id, bool excludeDeleted = true);
-        Task<TaskItem> CreateTaskItem(TaskItemCreationDto item);
-        Task<TaskItem> UpdateTaskItem(TaskItem item);
-        Task<bool> DeleteTaskItemById(long id);
+        Task<List<TaskItemSummaryDto>> GetItemSummaries();
+        Task<TaskItem> GetItemById(long id, bool excludeDeleted = true);
+        Task<TaskItem> CreateItem(TaskItemCreationDto item);
+        Task<TaskItem> UpdateItem(TaskItem item);
+        Task<bool> DeleteItemById(long id);
     }
 }

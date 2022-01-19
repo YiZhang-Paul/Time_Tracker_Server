@@ -19,7 +19,7 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<List<InterruptionItemSummaryDto>> GetInterruptionItemSummaries()
+        public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries()
         {
             var items = Context.InterruptionItem
                 .Where(_ => !_.IsDeleted)
@@ -28,7 +28,7 @@ namespace Service.Repositories
             return await items.ToListAsync().ConfigureAwait(false);
         }
 
-        public async Task<InterruptionItem> GetInterruptionItemById(long id, bool excludeDeleted = true)
+        public async Task<InterruptionItem> GetItemById(long id, bool excludeDeleted = true)
         {
             if (excludeDeleted)
             {
@@ -38,7 +38,7 @@ namespace Service.Repositories
             return await Context.InterruptionItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
-        public async Task<InterruptionItem> CreateInterruptionItem(InterruptionItemCreationDto item)
+        public async Task<InterruptionItem> CreateItem(InterruptionItemCreationDto item)
         {
             var now = DateTime.UtcNow;
 
@@ -56,9 +56,9 @@ namespace Service.Repositories
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? payload : null;
         }
 
-        public async Task<InterruptionItem> UpdateInterruptionItem(InterruptionItem item)
+        public async Task<InterruptionItem> UpdateItem(InterruptionItem item)
         {
-            var existing = await GetInterruptionItemById(item.Id).ConfigureAwait(false);
+            var existing = await GetItemById(item.Id).ConfigureAwait(false);
 
             if (existing == null)
             {
@@ -73,9 +73,9 @@ namespace Service.Repositories
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
         }
 
-        public async Task<bool> DeleteInterruptionItemById(long id)
+        public async Task<bool> DeleteItemById(long id)
         {
-            var existing = await GetInterruptionItemById(id).ConfigureAwait(false);
+            var existing = await GetItemById(id).ConfigureAwait(false);
 
             if (existing == null)
             {

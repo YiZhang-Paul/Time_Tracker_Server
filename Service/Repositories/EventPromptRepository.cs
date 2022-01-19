@@ -18,7 +18,7 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<EventPrompt> GetLastEventPrompt(PromptType? type)
+        public async Task<EventPrompt> GetLastPrompt(PromptType? type)
         {
             var sorted = Context.EventPrompt.OrderByDescending(_ => _.Id);
 
@@ -30,7 +30,7 @@ namespace Service.Repositories
             return await sorted.FirstOrDefaultAsync(_ => _.PromptType == type).ConfigureAwait(false);
         }
 
-        public async Task<EventPrompt> CreateEventPrompt(EventPrompt prompt)
+        public async Task<EventPrompt> CreatePrompt(EventPrompt prompt)
         {
             prompt.Timestamp = DateTime.UtcNow;
             Context.EventPrompt.Add(prompt);
