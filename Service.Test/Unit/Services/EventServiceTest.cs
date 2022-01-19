@@ -51,7 +51,7 @@ namespace Service.Test.Unit.Services
 
             EventHistoryRepository.Verify(_ => _.GetHistories(start, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 100)), Times.Once);
             EventHistoryRepository.Verify(_ => _.GetHistories(promptTime, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 100)), Times.Once);
-            EventHistoryRepository.Verify(_ => _.GetLastHistory(), Times.Exactly(2));
+            EventHistoryRepository.Verify(_ => _.GetLastHistory(true), Times.Exactly(2));
         }
 
         [Test]
@@ -64,8 +64,8 @@ namespace Service.Test.Unit.Services
 
             await Subject.GetOngoingTimeSummary(start).ConfigureAwait(false);
 
-            EventHistoryRepository.Verify(_ => _.GetHistories(start, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 100)), Times.Exactly(2));
-            EventHistoryRepository.Verify(_ => _.GetLastHistory(), Times.Exactly(2));
+            EventHistoryRepository.Verify(_ => _.GetHistories(start, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 500)), Times.Exactly(2));
+            EventHistoryRepository.Verify(_ => _.GetLastHistory(true), Times.Exactly(2));
         }
 
         [Test]
@@ -139,7 +139,7 @@ namespace Service.Test.Unit.Services
             var now = DateTime.UtcNow;
             EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
             EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = now.AddMinutes(-10) });
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync((EventHistory)null);
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
 
             var result = await Subject.GetOngoingTimeSummary(now.AddMinutes(-60)).ConfigureAwait(false);
 
@@ -160,7 +160,7 @@ namespace Service.Test.Unit.Services
             EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
             EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = now.AddMinutes(-10) });
 
-            EventHistoryRepository.SetupSequence(_ => _.GetLastHistory())
+            EventHistoryRepository.SetupSequence(_ => _.GetLastHistory(It.IsAny<bool>()))
                 .ReturnsAsync(new EventHistory { Timestamp = now.AddMinutes(-30) })
                 .ReturnsAsync(new EventHistory { Timestamp = now.AddMinutes(-30) });
 
@@ -173,19 +173,19 @@ namespace Service.Test.Unit.Services
         [Test]
         public async Task StartIdlingSessionShouldReturnFalseWhenIdlingSessionIsOngoing()
         {
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync(new EventHistory { EventType = EventType.Idling });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { EventType = EventType.Idling });
 
             var result = await Subject.StartIdlingSession().ConfigureAwait(false);
 
             Assert.IsFalse(result);
-            EventHistoryRepository.Verify(_ => _.GetLastHistory(), Times.Once);
+            EventHistoryRepository.Verify(_ => _.GetLastHistory(It.IsAny<bool>()), Times.Once);
             EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
         }
 
         [Test]
         public async Task StartIdlingSessionShouldReturnFalseWhenFailedToStartSession()
         {
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync((EventHistory)null);
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync((EventHistory)null);
 
             var result = await Subject.StartIdlingSession().ConfigureAwait(false);
@@ -201,7 +201,7 @@ namespace Service.Test.Unit.Services
         [Test]
         public async Task StartIdlingSessionShouldReturnTrueWhenSuccessfullyStartedSession()
         {
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync(new EventHistory { EventType = EventType.Task });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { EventType = EventType.Task });
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync(new EventHistory());
 
             var result = await Subject.StartIdlingSession().ConfigureAwait(false);
@@ -230,12 +230,12 @@ namespace Service.Test.Unit.Services
         public async Task StartInterruptionItemShouldReturnFalseWhenItemIsOngoing()
         {
             InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync(new EventHistory { ResourceId = 5, EventType = EventType.Interruption });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { ResourceId = 5, EventType = EventType.Interruption });
 
             var result = await Subject.StartInterruptionItem(5).ConfigureAwait(false);
 
             Assert.IsFalse(result);
-            EventHistoryRepository.Verify(_ => _.GetLastHistory(), Times.Once);
+            EventHistoryRepository.Verify(_ => _.GetLastHistory(It.IsAny<bool>()), Times.Once);
             EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
         }
 
@@ -243,7 +243,7 @@ namespace Service.Test.Unit.Services
         public async Task StartInterruptionItemShouldReturnFalseWhenFailedToStartItem()
         {
             InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync((EventHistory)null);
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync((EventHistory)null);
 
             var result = await Subject.StartInterruptionItem(5).ConfigureAwait(false);
@@ -260,7 +260,7 @@ namespace Service.Test.Unit.Services
         public async Task StartInterruptionItemShouldReturnTrueWhenSuccessfullyStartedItem()
         {
             InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync(new EventHistory { ResourceId = 6, EventType = EventType.Interruption });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { ResourceId = 6, EventType = EventType.Interruption });
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync(new EventHistory());
 
             var result = await Subject.StartInterruptionItem(5).ConfigureAwait(false);
@@ -289,12 +289,12 @@ namespace Service.Test.Unit.Services
         public async Task StartTaskItemShouldReturnFalseWhenItemIsOngoing()
         {
             TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new TaskItem());
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync(new EventHistory { ResourceId = 5, EventType = EventType.Task });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { ResourceId = 5, EventType = EventType.Task });
 
             var result = await Subject.StartTaskItem(5).ConfigureAwait(false);
 
             Assert.IsFalse(result);
-            EventHistoryRepository.Verify(_ => _.GetLastHistory(), Times.Once);
+            EventHistoryRepository.Verify(_ => _.GetLastHistory(It.IsAny<bool>()), Times.Once);
             EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
         }
 
@@ -302,7 +302,7 @@ namespace Service.Test.Unit.Services
         public async Task StartTaskItemShouldReturnFalseWhenFailedToStartItem()
         {
             TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new TaskItem());
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync((EventHistory)null);
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync((EventHistory)null);
 
             var result = await Subject.StartTaskItem(5).ConfigureAwait(false);
@@ -319,7 +319,7 @@ namespace Service.Test.Unit.Services
         public async Task StartTaskItemShouldReturnTrueWhenSuccessfullyStartedItem()
         {
             TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new TaskItem());
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync(new EventHistory { ResourceId = 6, EventType = EventType.Task });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { ResourceId = 6, EventType = EventType.Task });
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync(new EventHistory());
 
             var result = await Subject.StartTaskItem(5).ConfigureAwait(false);
@@ -352,12 +352,12 @@ namespace Service.Test.Unit.Services
         public async Task StartBreakSessionShouldReturnFalseWhenBreakSessionIsOngoing()
         {
             EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync(new EventPrompt());
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync(new EventHistory { EventType = EventType.Break });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { EventType = EventType.Break });
 
             var result = await Subject.StartBreakSession().ConfigureAwait(false);
 
             Assert.IsFalse(result);
-            EventHistoryRepository.Verify(_ => _.GetLastHistory(), Times.Once);
+            EventHistoryRepository.Verify(_ => _.GetLastHistory(It.IsAny<bool>()), Times.Once);
             EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
         }
 
@@ -365,7 +365,7 @@ namespace Service.Test.Unit.Services
         public async Task StartBreakSessionShouldReturnFalseWhenFailedToStartSession()
         {
             EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync(new EventPrompt());
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync((EventHistory)null);
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync((EventHistory)null);
 
             var result = await Subject.StartBreakSession().ConfigureAwait(false);
@@ -382,7 +382,7 @@ namespace Service.Test.Unit.Services
         public async Task StartBreakSessionShouldReturnTrueWhenSuccessfullyStartedSession()
         {
             EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync(new EventPrompt());
-            EventHistoryRepository.Setup(_ => _.GetLastHistory()).ReturnsAsync(new EventHistory { EventType = EventType.Interruption });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { EventType = EventType.Interruption });
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync(new EventHistory());
 
             var result = await Subject.StartBreakSession().ConfigureAwait(false);
