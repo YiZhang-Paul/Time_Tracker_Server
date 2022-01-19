@@ -24,15 +24,15 @@ namespace Service.Test.Integration.Repositories
         }
 
         [Test]
-        public async Task GetInterruptionItemSummariesShouldReturnEmptyCollectionWhenNoItemExists()
+        public async Task GetItemSummariesShouldReturnEmptyCollectionWhenNoItemExists()
         {
-            var result = await Subject.GetInterruptionItemSummaries().ConfigureAwait(false);
+            var result = await Subject.GetItemSummaries().ConfigureAwait(false);
 
             Assert.IsFalse(result.Any());
         }
 
         [Test]
-        public async Task GetInterruptionItemSummariesShouldReturnSummariesOfExistingItems()
+        public async Task GetItemSummariesShouldReturnSummariesOfExistingItems()
         {
             for (var i = 0; i < 3; ++i)
             {
@@ -43,12 +43,12 @@ namespace Service.Test.Integration.Repositories
                     Priority = Priority.Medium
                 };
 
-                await Subject.CreateInterruptionItem(payload).ConfigureAwait(false);
+                await Subject.CreateItem(payload).ConfigureAwait(false);
             }
 
-            await Subject.DeleteInterruptionItemById(2).ConfigureAwait(false);
+            await Subject.DeleteItemById(2).ConfigureAwait(false);
 
-            var result = await Subject.GetInterruptionItemSummaries().ConfigureAwait(false);
+            var result = await Subject.GetItemSummaries().ConfigureAwait(false);
 
             Assert.AreEqual(2, result.Count);
             Assert.AreEqual("name_0", result[0].Name);
@@ -56,50 +56,50 @@ namespace Service.Test.Integration.Repositories
         }
 
         [Test]
-        public async Task GetInterruptionItemByIdShouldReturnNullWhenItemDoesNotExist()
+        public async Task GetItemByIdShouldReturnNullWhenItemDoesNotExist()
         {
-            var result = await Subject.GetInterruptionItemById(1000).ConfigureAwait(false);
+            var result = await Subject.GetItemById(1000).ConfigureAwait(false);
 
             Assert.IsNull(result);
         }
 
         [Test]
-        public async Task GetInterruptionItemByIdShouldReturnNullWhenItemIsDeleted()
+        public async Task GetItemByIdShouldReturnNullWhenItemIsDeleted()
         {
             var payload = new InterruptionItemCreationDto { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateInterruptionItem(payload).ConfigureAwait(false);
-            await Subject.DeleteInterruptionItemById(1).ConfigureAwait(false);
+            await Subject.CreateItem(payload).ConfigureAwait(false);
+            await Subject.DeleteItemById(1).ConfigureAwait(false);
 
-            var result = await Subject.GetInterruptionItemById(1).ConfigureAwait(false);
+            var result = await Subject.GetItemById(1).ConfigureAwait(false);
 
             Assert.IsNull(result);
         }
 
         [Test]
-        public async Task GetInterruptionItemByIdShouldReturnDeletedItemWhenNotExcludingDeletedItem()
+        public async Task GetItemByIdShouldReturnDeletedItemWhenNotExcludingDeletedItem()
         {
             var payload = new InterruptionItemCreationDto { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateInterruptionItem(payload).ConfigureAwait(false);
-            await Subject.DeleteInterruptionItemById(1).ConfigureAwait(false);
+            await Subject.CreateItem(payload).ConfigureAwait(false);
+            await Subject.DeleteItemById(1).ConfigureAwait(false);
 
-            var result = await Subject.GetInterruptionItemById(1, false).ConfigureAwait(false);
+            var result = await Subject.GetItemById(1, false).ConfigureAwait(false);
 
             Assert.AreEqual(1, result.Id);
         }
 
         [Test]
-        public async Task GetInterruptionItemByIdShouldReturnItemFound()
+        public async Task GetItemByIdShouldReturnItemFound()
         {
             var payload = new InterruptionItemCreationDto { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateInterruptionItem(payload).ConfigureAwait(false);
+            await Subject.CreateItem(payload).ConfigureAwait(false);
 
-            var result = await Subject.GetInterruptionItemById(1).ConfigureAwait(false);
+            var result = await Subject.GetItemById(1).ConfigureAwait(false);
 
             Assert.AreEqual(1, result.Id);
         }
 
         [Test]
-        public async Task CreateInterruptionItemShouldReturnItemCreated()
+        public async Task CreateItemShouldReturnItemCreated()
         {
             var payload = new InterruptionItemCreationDto
             {
@@ -108,7 +108,7 @@ namespace Service.Test.Integration.Repositories
                 Priority = Priority.Medium
             };
 
-            var result = await Subject.CreateInterruptionItem(payload).ConfigureAwait(false);
+            var result = await Subject.CreateItem(payload).ConfigureAwait(false);
 
             Assert.AreEqual("item_name", result.Name);
             Assert.AreEqual("item_description", result.Description);
@@ -118,15 +118,15 @@ namespace Service.Test.Integration.Repositories
         }
 
         [Test]
-        public async Task UpdateInterruptionItemShouldReturnNullWhenItemDoesNotExist()
+        public async Task UpdateItemShouldReturnNullWhenItemDoesNotExist()
         {
-            var result = await Subject.UpdateInterruptionItem(new InterruptionItem { Id = 1000 }).ConfigureAwait(false);
+            var result = await Subject.UpdateItem(new InterruptionItem { Id = 1000 }).ConfigureAwait(false);
 
             Assert.IsNull(result);
         }
 
         [Test]
-        public async Task UpdateInterruptionItemShouldReturnItemUpdated()
+        public async Task UpdateItemShouldReturnItemUpdated()
         {
             var payload = new InterruptionItemCreationDto
             {
@@ -135,13 +135,13 @@ namespace Service.Test.Integration.Repositories
                 Priority = Priority.High
             };
 
-            await Subject.CreateInterruptionItem(payload).ConfigureAwait(false);
-            var item = await Subject.GetInterruptionItemById(1).ConfigureAwait(false);
+            await Subject.CreateItem(payload).ConfigureAwait(false);
+            var item = await Subject.GetItemById(1).ConfigureAwait(false);
             item.Name = "current_name";
             item.Description = "current_description";
             item.Priority = Priority.Medium;
 
-            var result = await Subject.UpdateInterruptionItem(item).ConfigureAwait(false);
+            var result = await Subject.UpdateItem(item).ConfigureAwait(false);
 
             Assert.AreEqual("current_name", result.Name);
             Assert.AreEqual("current_description", result.Description);
@@ -150,32 +150,32 @@ namespace Service.Test.Integration.Repositories
         }
 
         [Test]
-        public async Task DeleteInterruptionItemByIdShouldReturnFalseWhenItemDoesNotExist()
+        public async Task DeleteItemByIdShouldReturnFalseWhenItemDoesNotExist()
         {
-            var result = await Subject.DeleteInterruptionItemById(1000).ConfigureAwait(false);
+            var result = await Subject.DeleteItemById(1000).ConfigureAwait(false);
 
             Assert.IsFalse(result);
         }
 
         [Test]
-        public async Task DeleteInterruptionItemByIdShouldReturnFalseWhenItemIsAlreadyDeleted()
+        public async Task DeleteItemByIdShouldReturnFalseWhenItemIsAlreadyDeleted()
         {
             var payload = new InterruptionItemCreationDto { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateInterruptionItem(payload).ConfigureAwait(false);
-            await Subject.DeleteInterruptionItemById(1).ConfigureAwait(false);
+            await Subject.CreateItem(payload).ConfigureAwait(false);
+            await Subject.DeleteItemById(1).ConfigureAwait(false);
 
-            var result = await Subject.DeleteInterruptionItemById(1).ConfigureAwait(false);
+            var result = await Subject.DeleteItemById(1).ConfigureAwait(false);
 
             Assert.IsFalse(result);
         }
 
         [Test]
-        public async Task DeleteInterruptionItemByIdShouldReturnTrueWhenSuccessfullyDeletedItem()
+        public async Task DeleteItemByIdShouldReturnTrueWhenSuccessfullyDeletedItem()
         {
             var payload = new InterruptionItemCreationDto { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateInterruptionItem(payload).ConfigureAwait(false);
+            await Subject.CreateItem(payload).ConfigureAwait(false);
 
-            var result = await Subject.DeleteInterruptionItemById(1).ConfigureAwait(false);
+            var result = await Subject.DeleteItemById(1).ConfigureAwait(false);
 
             Assert.IsTrue(result);
         }

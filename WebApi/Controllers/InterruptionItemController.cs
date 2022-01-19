@@ -20,47 +20,47 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("summaries")]
-        public async Task<List<InterruptionItemSummaryDto>> GetInterruptionItemSummaries()
+        public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries()
         {
-            return await InterruptionItemRepository.GetInterruptionItemSummaries().ConfigureAwait(false);
+            return await InterruptionItemRepository.GetItemSummaries().ConfigureAwait(false);
         }
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<InterruptionItem> GetInterruptionItemById(long id)
+        public async Task<InterruptionItem> GetItemById(long id)
         {
-            return await InterruptionItemRepository.GetInterruptionItemById(id).ConfigureAwait(false);
+            return await InterruptionItemRepository.GetItemById(id).ConfigureAwait(false);
         }
 
         [HttpPost]
         [Route("")]
-        public async Task<InterruptionItem> CreateInterruptionItem([FromBody]InterruptionItemCreationDto item)
+        public async Task<InterruptionItem> CreateItem([FromBody]InterruptionItemCreationDto item)
         {
             if (string.IsNullOrWhiteSpace(item.Name))
             {
                 return null;
             }
 
-            return await InterruptionItemRepository.CreateInterruptionItem(item).ConfigureAwait(false);
+            return await InterruptionItemRepository.CreateItem(item).ConfigureAwait(false);
         }
 
         [HttpPut]
         [Route("")]
-        public async Task<InterruptionItem> UpdateInterruptionItem([FromBody]InterruptionItem item)
+        public async Task<InterruptionItem> UpdateItem([FromBody]InterruptionItem item)
         {
             if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
             {
                 return null;
             }
 
-            return await InterruptionItemRepository.UpdateInterruptionItem(item).ConfigureAwait(false);
+            return await InterruptionItemRepository.UpdateItem(item).ConfigureAwait(false);
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public async Task<bool> DeleteInterruptionItemById(long id)
+        public async Task<bool> DeleteItemById(long id)
         {
-            return await InterruptionItemRepository.DeleteInterruptionItemById(id).ConfigureAwait(false);
+            return await InterruptionItemRepository.DeleteItemById(id).ConfigureAwait(false);
         }
     }
 }

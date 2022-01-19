@@ -20,47 +20,47 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("summaries")]
-        public async Task<List<TaskItemSummaryDto>> GetTaskItemSummaries()
+        public async Task<List<TaskItemSummaryDto>> GetItemSummaries()
         {
-            return await TaskItemRepository.GetTaskItemSummaries().ConfigureAwait(false);
+            return await TaskItemRepository.GetItemSummaries().ConfigureAwait(false);
         }
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<TaskItem> GetTaskItemById(long id)
+        public async Task<TaskItem> GetItemById(long id)
         {
-            return await TaskItemRepository.GetTaskItemById(id).ConfigureAwait(false);
+            return await TaskItemRepository.GetItemById(id).ConfigureAwait(false);
         }
 
         [HttpPost]
         [Route("")]
-        public async Task<TaskItem> CreateTaskItem([FromBody]TaskItemCreationDto item)
+        public async Task<TaskItem> CreateItem([FromBody]TaskItemCreationDto item)
         {
             if (string.IsNullOrWhiteSpace(item.Name))
             {
                 return null;
             }
 
-            return await TaskItemRepository.CreateTaskItem(item).ConfigureAwait(false);
+            return await TaskItemRepository.CreateItem(item).ConfigureAwait(false);
         }
 
         [HttpPut]
         [Route("")]
-        public async Task<TaskItem> UpdateTaskItem([FromBody]TaskItem item)
+        public async Task<TaskItem> UpdateItem([FromBody]TaskItem item)
         {
             if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
             {
                 return null;
             }
 
-            return await TaskItemRepository.UpdateTaskItem(item).ConfigureAwait(false);
+            return await TaskItemRepository.UpdateItem(item).ConfigureAwait(false);
         }
 
         [HttpDelete]
         [Route("{id}")]
-        public async Task<bool> DeleteTaskItemById(long id)
+        public async Task<bool> DeleteItemById(long id)
         {
-            return await TaskItemRepository.DeleteTaskItemById(id).ConfigureAwait(false);
+            return await TaskItemRepository.DeleteItemById(id).ConfigureAwait(false);
         }
     }
 }

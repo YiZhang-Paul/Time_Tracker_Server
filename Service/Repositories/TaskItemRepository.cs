@@ -19,7 +19,7 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<List<TaskItemSummaryDto>> GetTaskItemSummaries()
+        public async Task<List<TaskItemSummaryDto>> GetItemSummaries()
         {
             var items = Context.TaskItem
                 .Where(_ => !_.IsDeleted)
@@ -28,7 +28,7 @@ namespace Service.Repositories
             return await items.ToListAsync().ConfigureAwait(false);
         }
 
-        public async Task<TaskItem> GetTaskItemById(long id, bool excludeDeleted = true)
+        public async Task<TaskItem> GetItemById(long id, bool excludeDeleted = true)
         {
             if (excludeDeleted)
             {
@@ -38,7 +38,7 @@ namespace Service.Repositories
             return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
-        public async Task<TaskItem> CreateTaskItem(TaskItemCreationDto item)
+        public async Task<TaskItem> CreateItem(TaskItemCreationDto item)
         {
             var now = DateTime.UtcNow;
 
@@ -56,9 +56,9 @@ namespace Service.Repositories
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? payload : null;
         }
 
-        public async Task<TaskItem> UpdateTaskItem(TaskItem item)
+        public async Task<TaskItem> UpdateItem(TaskItem item)
         {
-            var existing = await GetTaskItemById(item.Id).ConfigureAwait(false);
+            var existing = await GetItemById(item.Id).ConfigureAwait(false);
 
             if (existing == null)
             {
@@ -73,9 +73,9 @@ namespace Service.Repositories
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
         }
 
-        public async Task<bool> DeleteTaskItemById(long id)
+        public async Task<bool> DeleteItemById(long id)
         {
-            var existing = await GetTaskItemById(id).ConfigureAwait(false);
+            var existing = await GetItemById(id).ConfigureAwait(false);
 
             if (existing == null)
             {
