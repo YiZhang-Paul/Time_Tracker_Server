@@ -154,7 +154,7 @@ namespace Service.Services
         private async Task<EventHistory> GetUnconcludedTimeSummary(DateTime start)
         {
             var startTime = start.ToUniversalTime();
-            var history = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
+            var history = await EventHistoryRepository.GetLastHistory(true).ConfigureAwait(false);
             history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = startTime };
             history.Timestamp = history.Timestamp.ToUniversalTime() > startTime ? history.Timestamp.ToUniversalTime() : startTime;
 
