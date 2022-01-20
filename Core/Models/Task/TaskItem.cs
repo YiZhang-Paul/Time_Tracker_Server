@@ -13,9 +13,9 @@ namespace Core.Models.Task
         public string Name { get; set; }
         public string Description { get; set; }
         public int Effort { get; set; }
-        [Column(TypeName = "timestamp with time zone")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime CreationTime { get; set; }
-        [Column(TypeName = "timestamp with time zone")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime ModifiedTime { get; set; }
         public bool IsDeleted { get; set; }
     }

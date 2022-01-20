@@ -13,7 +13,7 @@ namespace Core.Models.Event
         public long ResourceId { get; set; }
         [Required]
         public EventType EventType { get; set; }
-        [Column(TypeName = "timestamp with time zone")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime Timestamp { get; set; }
     }
 }

@@ -13,7 +13,7 @@ namespace Core.Models.Event
         public PromptType PromptType { get; set; }
         [Required]
         public PromptConfirmType ConfirmType { get; set; }
-        [Column(TypeName = "timestamp with time zone")]
+        [Column(TypeName = "timestamp without time zone")]
         public DateTime Timestamp { get; set; }
     }
 }
