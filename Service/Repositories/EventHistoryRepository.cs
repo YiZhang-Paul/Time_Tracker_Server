@@ -32,10 +32,7 @@ namespace Service.Repositories
 
         public async Task<List<EventHistory>> GetHistories(DateTime start, DateTime end)
         {
-            var startTime = start.ToUniversalTime();
-            var endTime = end.ToUniversalTime();
-
-            return await Context.EventHistory.Where(_ => _.Timestamp >= startTime && _.Timestamp <= endTime).ToListAsync().ConfigureAwait(false);
+            return await Context.EventHistory.Where(_ => _.Timestamp >= start && _.Timestamp <= end).ToListAsync().ConfigureAwait(false);
         }
 
         public async Task<EventHistory> CreateHistory(EventHistory history)
