@@ -2,6 +2,7 @@ using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.Event;
+using Service.Extensions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -132,9 +133,7 @@ namespace Service.Services
         private async Task<EventTimeSummary> GetConcludedTimeSummary(DateTime start, DateTime end)
         {
             var summary = new EventTimeSummary();
-            var startTime = start.ToUniversalTime();
-            var endTime = end.ToUniversalTime();
-            var histories = await EventHistoryRepository.GetHistories(startTime, endTime).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(start, end).ConfigureAwait(false);
 
             if (!histories.Any())
             {
@@ -148,22 +147,21 @@ namespace Service.Services
             // record time between start time and first history
             var previous = await EventHistoryRepository.GetHistoryById(histories[0].Id - 1).ConfigureAwait(false);
 
-            return RecordTimeSummary(summary, previous?.EventType ?? EventType.Idling, startTime, histories[0].Timestamp);
+            return RecordTimeSummary(summary, previous?.EventType ?? EventType.Idling, start, histories[0].Timestamp);
         }
 
         private async Task<EventHistory> GetUnconcludedTimeSummary(DateTime start)
         {
-            var startTime = start.ToUniversalTime();
             var history = await EventHistoryRepository.GetLastHistory(true).ConfigureAwait(false);
-            history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = startTime };
-            history.Timestamp = history.Timestamp.ToUniversalTime() > startTime ? history.Timestamp.ToUniversalTime() : startTime;
+            history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = start };
+            history.Timestamp = (history.Timestamp > start ? history.Timestamp : start).SpecifyKindUtc();
 
             return history;
         }
 
         private static EventTimeSummary RecordTimeSummary(EventTimeSummary summary, EventType type, DateTime start, DateTime end)
         {
-            var elapsed = (int)(end.ToUniversalTime() - start.ToUniversalTime()).TotalMilliseconds;
+            var elapsed = (int)(end - start).TotalMilliseconds;
 
             if (type == EventType.Interruption || type == EventType.Task)
             {
