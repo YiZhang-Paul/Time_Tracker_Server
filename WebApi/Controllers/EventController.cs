@@ -47,14 +47,21 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Route("scheduled-break-prompts")]
-        public async Task<bool> ConfirmBreakSessionPrompt([FromBody]BreakSessionConfirmationDto confirmation)
+        public async Task<IActionResult> ConfirmBreakSessionPrompt([FromBody]BreakSessionConfirmationDto confirmation)
         {
-            if (confirmation.IsSkip)
+            try
             {
-                return await EventService.SkipBreakSession().ConfigureAwait(false);
-            }
+                if (confirmation.IsSkip)
+                {
+                    return Ok(await EventService.SkipBreakSession().ConfigureAwait(false));
+                }
 
-            return await EventService.StartBreakSession(confirmation.TargetDuration).ConfigureAwait(false);
+                return Ok(await EventService.StartBreakSession(confirmation.TargetDuration).ConfigureAwait(false));
+            }
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
+            }
         }
     }
 }

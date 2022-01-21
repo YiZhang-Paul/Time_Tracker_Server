@@ -109,7 +109,7 @@ namespace Service.Services
 
             if (duration < minDuration)
             {
-                throw new ArgumentException($"Duration must be no less than {minDuration} milliseconds.");
+                throw new ArgumentException($"Duration cannot be less than {minDuration} milliseconds.");
             }
 
             var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
