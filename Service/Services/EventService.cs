@@ -102,8 +102,15 @@ namespace Service.Services
             return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
         }
 
-        public async Task<bool> StartBreakSession()
+        public async Task<bool> StartBreakSession(int duration)
         {
+            var minDuration = 1000 * 60 * 5;
+
+            if (duration < minDuration)
+            {
+                throw new ArgumentException($"Duration must be no less than {minDuration} milliseconds.");
+            }
+
             var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
 
             if (await EventPromptRepository.CreatePrompt(prompt).ConfigureAwait(false) == null)
@@ -118,7 +125,7 @@ namespace Service.Services
                 return false;
             }
 
-            var history = new EventHistory { ResourceId = -1, EventType = EventType.Break };
+            var history = new EventHistory { ResourceId = -1, EventType = EventType.Break, TargetDuration = duration };
 
             return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
         }

@@ -10,7 +10,7 @@ namespace Core.Interfaces.Services
         Task<bool> StartIdlingSession();
         Task<bool> StartInterruptionItem(long id);
         Task<bool> StartTaskItem(long id);
-        Task<bool> StartBreakSession();
+        Task<bool> StartBreakSession(int duration);
         Task<bool> SkipBreakSession();
     }
 }

@@ -1,3 +1,4 @@
+using Core.Dtos;
 using Core.Interfaces.Services;
 using Core.Models.Event;
 using Microsoft.AspNetCore.Mvc;
@@ -45,16 +46,16 @@ namespace WebApi.Controllers
             return await EventService.StartTaskItem(id).ConfigureAwait(false);
         }
 
-        [HttpPut]
+        [HttpPost]
         [Route("scheduled-break-prompts")]
-        public async Task<bool> ConfirmBreakSessionPrompt([FromQuery]bool skip = false)
+        public async Task<bool> ConfirmBreakSessionPrompt([FromBody]BreakSessionConfirmationDto confirmation)
         {
-            if (skip)
+            if (confirmation.IsSkip)
             {
                 return await EventService.SkipBreakSession().ConfigureAwait(false);
             }
 
-            return await EventService.StartBreakSession().ConfigureAwait(false);
+            return await EventService.StartBreakSession(confirmation.TargetDuration).ConfigureAwait(false);
         }
     }
 }

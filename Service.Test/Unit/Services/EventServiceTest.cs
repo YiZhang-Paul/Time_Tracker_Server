@@ -335,11 +335,20 @@ namespace Service.Test.Unit.Services
         }
 
         [Test]
+        [TestCase(-1)]
+        [TestCase(0)]
+        [TestCase(299999)]
+        public void StartBreakSessionShouldThrowWhenTargetDurationIsInvalid(int duration)
+        {
+            Assert.ThrowsAsync<ArgumentException>(async() => await Subject.StartBreakSession(duration).ConfigureAwait(false));
+        }
+
+        [Test]
         public async Task StartBreakSessionShouldReturnFalseWhenFailedToRecordEventPrompt()
         {
             EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync((EventPrompt)null);
 
-            var result = await Subject.StartBreakSession().ConfigureAwait(false);
+            var result = await Subject.StartBreakSession(300000).ConfigureAwait(false);
 
             Assert.IsFalse(result);
             EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
@@ -356,7 +365,7 @@ namespace Service.Test.Unit.Services
             EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync(new EventPrompt());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { EventType = EventType.Break });
 
-            var result = await Subject.StartBreakSession().ConfigureAwait(false);
+            var result = await Subject.StartBreakSession(300000).ConfigureAwait(false);
 
             Assert.IsFalse(result);
             EventHistoryRepository.Verify(_ => _.GetLastHistory(It.IsAny<bool>()), Times.Once);
@@ -370,13 +379,15 @@ namespace Service.Test.Unit.Services
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync((EventHistory)null);
 
-            var result = await Subject.StartBreakSession().ConfigureAwait(false);
+            var result = await Subject.StartBreakSession(300000).ConfigureAwait(false);
 
             Assert.IsFalse(result);
 
             EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
             (
-                history => history.ResourceId == -1 && history.EventType == EventType.Break
+                history => history.ResourceId == -1 &&
+                           history.EventType == EventType.Break &&
+                           history.TargetDuration == 300000
             )), Times.Once);
         }
 
@@ -387,13 +398,15 @@ namespace Service.Test.Unit.Services
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<bool>())).ReturnsAsync(new EventHistory { EventType = EventType.Interruption });
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync(new EventHistory());
 
-            var result = await Subject.StartBreakSession().ConfigureAwait(false);
+            var result = await Subject.StartBreakSession(300000).ConfigureAwait(false);
 
             Assert.IsTrue(result);
 
             EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
             (
-                history => history.ResourceId == -1 && history.EventType == EventType.Break
+                history => history.ResourceId == -1 &&
+                           history.EventType == EventType.Break &&
+                           history.TargetDuration == 300000
             )), Times.Once);
         }
 
