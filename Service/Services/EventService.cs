@@ -1,3 +1,4 @@
+using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
@@ -30,14 +31,14 @@ namespace Service.Services
             EventPromptRepository = eventPromptRepository;
         }
 
-        public async Task<OngoingEventTimeSummary> GetOngoingTimeSummary(DateTime start)
+        public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
         {
             var lastPrompt = await EventPromptRepository.GetLastPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
             var startTime = start.ToUniversalTime();
             var promptTime = lastPrompt?.Timestamp ?? startTime;
             var endTime = DateTime.UtcNow;
 
-            return new OngoingEventTimeSummary
+            return new OngoingEventTimeSummaryDto
             {
                 ConcludedSinceStart = await GetConcludedTimeSummary(startTime, endTime).ConfigureAwait(false),
                 ConcludedSinceLastBreakPrompt = await GetConcludedTimeSummary(promptTime, endTime).ConfigureAwait(false),

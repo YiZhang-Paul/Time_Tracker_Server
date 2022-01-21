@@ -1,6 +1,5 @@
 using Core.Dtos;
 using Core.Interfaces.Services;
-using Core.Models.Event;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -20,7 +19,7 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("time-summary/{start}")]
-        public async Task<OngoingEventTimeSummary> GetOngoingTimeSummary(DateTime start)
+        public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
         {
             return await EventService.GetOngoingTimeSummary(start).ConfigureAwait(false);
         }

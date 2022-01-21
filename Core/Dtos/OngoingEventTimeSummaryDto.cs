@@ -1,6 +1,8 @@
-namespace Core.Models.Event
+using Core.Models.Event;
+
+namespace Core.Dtos
 {
-    public class OngoingEventTimeSummary
+    public class OngoingEventTimeSummaryDto
     {
         public EventTimeSummary ConcludedSinceStart { get; set; } = new EventTimeSummary();
         public EventTimeSummary ConcludedSinceLastBreakPrompt { get; set; } = new EventTimeSummary();
