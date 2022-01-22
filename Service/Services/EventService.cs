@@ -1,3 +1,4 @@
+using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
@@ -30,14 +31,14 @@ namespace Service.Services
             EventPromptRepository = eventPromptRepository;
         }
 
-        public async Task<OngoingEventTimeSummary> GetOngoingTimeSummary(DateTime start)
+        public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
         {
             var lastPrompt = await EventPromptRepository.GetLastPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
             var startTime = start.ToUniversalTime();
             var promptTime = lastPrompt?.Timestamp ?? startTime;
             var endTime = DateTime.UtcNow;
 
-            return new OngoingEventTimeSummary
+            return new OngoingEventTimeSummaryDto
             {
                 ConcludedSinceStart = await GetConcludedTimeSummary(startTime, endTime).ConfigureAwait(false),
                 ConcludedSinceLastBreakPrompt = await GetConcludedTimeSummary(promptTime, endTime).ConfigureAwait(false),
@@ -102,8 +103,15 @@ namespace Service.Services
             return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
         }
 
-        public async Task<bool> StartBreakSession()
+        public async Task<bool> StartBreakSession(int duration)
         {
+            var minDuration = 1000 * 60 * 5;
+
+            if (duration < minDuration)
+            {
+                throw new ArgumentException($"Duration cannot be less than {minDuration} milliseconds.");
+            }
+
             var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
 
             if (await EventPromptRepository.CreatePrompt(prompt).ConfigureAwait(false) == null)
@@ -118,7 +126,7 @@ namespace Service.Services
                 return false;
             }
 
-            var history = new EventHistory { ResourceId = -1, EventType = EventType.Break };
+            var history = new EventHistory { ResourceId = -1, EventType = EventType.Break, TargetDuration = duration };
 
             return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
         }

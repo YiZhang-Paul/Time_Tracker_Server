@@ -1,5 +1,5 @@
+using Core.Dtos;
 using Core.Interfaces.Services;
-using Core.Models.Event;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -19,7 +19,7 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("time-summary/{start}")]
-        public async Task<OngoingEventTimeSummary> GetOngoingTimeSummary(DateTime start)
+        public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
         {
             return await EventService.GetOngoingTimeSummary(start).ConfigureAwait(false);
         }
@@ -45,16 +45,23 @@ namespace WebApi.Controllers
             return await EventService.StartTaskItem(id).ConfigureAwait(false);
         }
 
-        [HttpPut]
+        [HttpPost]
         [Route("scheduled-break-prompts")]
-        public async Task<bool> ConfirmBreakSessionPrompt([FromQuery]bool skip = false)
+        public async Task<IActionResult> ConfirmBreakSessionPrompt([FromBody]BreakSessionConfirmationDto confirmation)
         {
-            if (skip)
+            try
             {
-                return await EventService.SkipBreakSession().ConfigureAwait(false);
-            }
+                if (confirmation.IsSkip)
+                {
+                    return Ok(await EventService.SkipBreakSession().ConfigureAwait(false));
+                }
 
-            return await EventService.StartBreakSession().ConfigureAwait(false);
+                return Ok(await EventService.StartBreakSession(confirmation.TargetDuration).ConfigureAwait(false));
+            }
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
+            }
         }
     }
 }

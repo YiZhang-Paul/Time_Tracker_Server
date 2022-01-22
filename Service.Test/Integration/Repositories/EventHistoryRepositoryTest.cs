@@ -98,6 +98,7 @@ namespace Service.Test.Integration.Repositories
             var result = await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
 
             Assert.AreEqual(1, result.Id);
+            Assert.AreEqual(-1, result.TargetDuration);
             Assert.IsTrue((DateTime.UtcNow - result.Timestamp).Duration().TotalMilliseconds < 1000);
         }
 
