@@ -34,26 +34,26 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Route("")]
-        public async Task<TaskItem> CreateItem([FromBody]TaskItemCreationDto item)
+        public async Task<IActionResult> CreateItem([FromBody]TaskItemCreationDto item)
         {
             if (string.IsNullOrWhiteSpace(item.Name))
             {
-                return null;
+                return BadRequest("Name must not be null.");
             }
 
-            return await TaskItemRepository.CreateItem(item).ConfigureAwait(false);
+            return Ok(await TaskItemRepository.CreateItem(item).ConfigureAwait(false));
         }
 
         [HttpPut]
         [Route("")]
-        public async Task<TaskItem> UpdateItem([FromBody]TaskItem item)
+        public async Task<IActionResult> UpdateItem([FromBody]TaskItem item)
         {
             if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
             {
-                return null;
+                return BadRequest("Name must not be null.");
             }
 
-            return await TaskItemRepository.UpdateItem(item).ConfigureAwait(false);
+            return Ok(await TaskItemRepository.UpdateItem(item).ConfigureAwait(false));
         }
 
         [HttpDelete]
