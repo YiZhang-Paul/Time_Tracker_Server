@@ -5,6 +5,7 @@
 bin
 obj
 coverage
+TestResults
 
 appsettings.Local.json
 appsettings.Test.json
