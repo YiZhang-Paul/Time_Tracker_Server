@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 namespace Service.Test.Integration.Repositories
 {
     [TestFixture]
+    [Category("Integration")]
     public class InterruptionItemRepositoryTest
     {
         private TimeTrackerDbContext Context { get; set; }
