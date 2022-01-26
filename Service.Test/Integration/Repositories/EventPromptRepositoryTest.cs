@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace Service.Test.Integration.Repositories
 {
     [TestFixture]
+    [Category("Integration")]
     public class EventPromptRepositoryTest
     {
         private TimeTrackerDbContext Context { get; set; }
