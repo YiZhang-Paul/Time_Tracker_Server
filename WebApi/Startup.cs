@@ -45,6 +45,7 @@ namespace WebApi
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
             services.AddScoped<IEventHistoryRepository, EventHistoryRepository>();
             services.AddScoped<IEventPromptRepository, EventPromptRepository>();
+            services.AddScoped<IInterruptionItemService, InterruptionItemService>();
             services.AddScoped<IEventService, EventService>();
         }
 
