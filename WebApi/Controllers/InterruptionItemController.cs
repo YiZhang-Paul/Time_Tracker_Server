@@ -1,7 +1,9 @@
 using Core.Dtos;
+using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Models.Interruption;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -46,14 +48,21 @@ namespace WebApi.Controllers
 
         [HttpPut]
         [Route("")]
-        public async Task<IActionResult> UpdateItem([FromBody]InterruptionItem item)
+        public async Task<IActionResult> UpdateItem([FromBody]InterruptionItem item, [FromQuery]ResolveAction resolve = ResolveAction.None)
         {
-            if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
+            try
             {
-                return BadRequest("Name must not be null.");
-            }
+                if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
+                {
+                    return BadRequest("Name must not be null.");
+                }
 
-            return Ok(await InterruptionItemRepository.UpdateItem(item).ConfigureAwait(false));
+                return Ok(await InterruptionItemRepository.UpdateItem(item, resolve).ConfigureAwait(false));
+            }
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
+            }
         }
 
         [HttpDelete]

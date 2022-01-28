@@ -1,5 +1,6 @@
 using Core.DbContexts;
 using Core.Dtos;
+using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Models.Interruption;
 using Microsoft.EntityFrameworkCore;
@@ -56,7 +57,7 @@ namespace Service.Repositories
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? payload : null;
         }
 
-        public async Task<InterruptionItem> UpdateItem(InterruptionItem item)
+        public async Task<InterruptionItem> UpdateItem(InterruptionItem item, ResolveAction action = ResolveAction.None)
         {
             var existing = await GetItemById(item.Id).ConfigureAwait(false);
 
@@ -69,6 +70,7 @@ namespace Service.Repositories
             existing.Description = item.Description;
             existing.Priority = item.Priority;
             existing.ModifiedTime = DateTime.UtcNow;
+            SetResolvedTime(existing, action);
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
         }
@@ -86,6 +88,26 @@ namespace Service.Repositories
             existing.ModifiedTime = DateTime.UtcNow;
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1;
+        }
+
+        private void SetResolvedTime(InterruptionItem item, ResolveAction action)
+        {
+            if (action == ResolveAction.None)
+            {
+                return;
+            }
+
+            if (action == ResolveAction.Resolve && item.ResolvedTime.HasValue)
+            {
+                throw new ArgumentException("Item is already resolved.");
+            }
+
+            if (action == ResolveAction.Unresolve && !item.ResolvedTime.HasValue)
+            {
+                throw new ArgumentException("Item is not resolved yet.");
+            }
+
+            item.ResolvedTime = action == ResolveAction.Resolve ? DateTime.UtcNow : (DateTime?)null;
         }
     }
 }
