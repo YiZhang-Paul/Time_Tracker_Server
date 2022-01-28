@@ -36,7 +36,7 @@ namespace WebApi.Test.Unit
         }
 
         [Test]
-        public async Task GetItemSummariesShouldReturnSummaries()
+        public async Task GetUnresolvedItemSummariesShouldReturnSummaries()
         {
             var summaries = new List<InterruptionItemSummaryDto>
             {
@@ -45,14 +45,14 @@ namespace WebApi.Test.Unit
                 new InterruptionItemSummaryDto()
             };
 
-            InterruptionItemRepository.Setup(_ => _.GetItemSummaries()).ReturnsAsync(summaries);
+            InterruptionItemRepository.Setup(_ => _.GetUnresolvedItemSummaries()).ReturnsAsync(summaries);
 
-            var response = await HttpClient.GetAsync($"{ApiBase}/summaries").ConfigureAwait(false);
+            var response = await HttpClient.GetAsync($"{ApiBase}/unresolved-summaries").ConfigureAwait(false);
             var result = await response.Content.ReadFromJsonAsync<List<InterruptionItemSummaryDto>>().ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual(3, result.Count);
-            InterruptionItemRepository.Verify(_ => _.GetItemSummaries(), Times.Once);
+            InterruptionItemRepository.Verify(_ => _.GetUnresolvedItemSummaries(), Times.Once);
         }
 
         [Test]

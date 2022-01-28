@@ -24,10 +24,10 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("summaries")]
-        public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries()
+        [Route("unresolved-summaries")]
+        public async Task<List<InterruptionItemSummaryDto>> GetUnresolvedItemSummaries()
         {
-            return await InterruptionItemRepository.GetItemSummaries().ConfigureAwait(false);
+            return await InterruptionItemRepository.GetUnresolvedItemSummaries().ConfigureAwait(false);
         }
 
         [HttpGet]

@@ -7,7 +7,7 @@ namespace Core.Interfaces.Repositories
 {
     public interface IInterruptionItemRepository
     {
-        Task<List<InterruptionItemSummaryDto>> GetItemSummaries();
+        Task<List<InterruptionItemSummaryDto>> GetUnresolvedItemSummaries();
         Task<InterruptionItem> GetItemById(long id, bool excludeDeleted = true);
         Task<InterruptionItem> CreateItem(InterruptionItemCreationDto item);
         Task<InterruptionItem> UpdateItem(InterruptionItem item);
