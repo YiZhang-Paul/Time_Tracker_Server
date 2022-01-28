@@ -1,6 +1,7 @@
 using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.Services;
 using Core.Models.Interruption;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -14,10 +15,12 @@ namespace WebApi.Controllers
     public class InterruptionItemController : ControllerBase
     {
         private IInterruptionItemRepository InterruptionItemRepository { get; }
+        private IInterruptionItemService InterruptionItemService { get; }
 
-        public InterruptionItemController(IInterruptionItemRepository interruptionItemRepository)
+        public InterruptionItemController(IInterruptionItemRepository interruptionItemRepository, IInterruptionItemService interruptionItemService)
         {
             InterruptionItemRepository = interruptionItemRepository;
+            InterruptionItemService = interruptionItemService;
         }
 
         [HttpGet]
@@ -40,7 +43,7 @@ namespace WebApi.Controllers
         {
             if (string.IsNullOrWhiteSpace(item.Name))
             {
-                return BadRequest("Name must not be null.");
+                return BadRequest("Name must not be null or empty.");
             }
 
             return Ok(await InterruptionItemRepository.CreateItem(item).ConfigureAwait(false));
@@ -52,12 +55,7 @@ namespace WebApi.Controllers
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
-                {
-                    return BadRequest("Name must not be null.");
-                }
-
-                return Ok(await InterruptionItemRepository.UpdateItem(item, resolve).ConfigureAwait(false));
+                return Ok(await InterruptionItemService.UpdateItem(item, resolve).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {
