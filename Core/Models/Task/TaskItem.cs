@@ -17,6 +17,8 @@ namespace Core.Models.Task
         public DateTime CreationTime { get; set; }
         [Column(TypeName = "timestamp without time zone")]
         public DateTime ModifiedTime { get; set; }
+        [Column(TypeName = "timestamp without time zone")]
+        public DateTime? ResolvedTime { get; set; }
         public bool IsDeleted { get; set; }
     }
 }
