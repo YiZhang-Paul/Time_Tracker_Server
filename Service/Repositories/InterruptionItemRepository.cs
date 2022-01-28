@@ -58,10 +58,18 @@ namespace Service.Repositories
 
         public async Task<InterruptionItem> UpdateItem(InterruptionItem item)
         {
-            item.Name = item.Name;
-            item.Description = item.Description;
-            item.Priority = item.Priority;
-            item.ModifiedTime = DateTime.UtcNow;
+            var existing = await GetItemById(item.Id).ConfigureAwait(false);
+
+            if (existing == null)
+            {
+                return null;
+            }
+
+            existing.Name = item.Name;
+            existing.Description = item.Description;
+            existing.Priority = item.Priority;
+            existing.ResolvedTime = item.ResolvedTime;
+            existing.ModifiedTime = DateTime.UtcNow;
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? item : null;
         }

@@ -23,23 +23,6 @@ namespace Service.Services
                 throw new ArgumentException("Name must not be null or empty.");
             }
 
-            var existing = await InterruptionItemRepository.GetItemById(item.Id).ConfigureAwait(false);
-
-            if (existing == null)
-            {
-                return null;
-            }
-
-            return await InterruptionItemRepository.UpdateItem(SetResolvedTime(existing, action)).ConfigureAwait(false);
-        }
-
-        private InterruptionItem SetResolvedTime(InterruptionItem item, ResolveAction action)
-        {
-            if (action == ResolveAction.None)
-            {
-                return item;
-            }
-
             if (action == ResolveAction.Resolve && item.ResolvedTime.HasValue)
             {
                 throw new ArgumentException("Item is already resolved.");
@@ -50,9 +33,12 @@ namespace Service.Services
                 throw new ArgumentException("Item is not resolved yet.");
             }
 
-            item.ResolvedTime = action == ResolveAction.Resolve ? DateTime.UtcNow : (DateTime?)null;
+            if (action != ResolveAction.None)
+            {
+                item.ResolvedTime = action == ResolveAction.Resolve ? DateTime.UtcNow : (DateTime?)null;
+            }
 
-            return item;
+            return await InterruptionItemRepository.UpdateItem(item).ConfigureAwait(false);
         }
     }
 }
