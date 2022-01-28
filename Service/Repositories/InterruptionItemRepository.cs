@@ -71,7 +71,7 @@ namespace Service.Repositories
             existing.ResolvedTime = item.ResolvedTime;
             existing.ModifiedTime = DateTime.UtcNow;
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? item : null;
+            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
         }
 
         public async Task<bool> DeleteItemById(long id)
