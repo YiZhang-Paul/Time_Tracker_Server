@@ -68,6 +68,7 @@ namespace Service.Repositories
             existing.Name = item.Name;
             existing.Description = item.Description;
             existing.Effort = item.Effort;
+            existing.ResolvedTime = item.ResolvedTime;
             existing.ModifiedTime = DateTime.UtcNow;
 
             return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
