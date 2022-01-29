@@ -5,7 +5,6 @@ using Core.Interfaces.Services;
 using Core.Models.Task;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -24,10 +23,10 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("summaries")]
-        public async Task<List<TaskItemSummaryDto>> GetItemSummaries()
+        [Route("summaries/{start}")]
+        public async Task<ItemSummariesDto<TaskItemSummaryDto>> GetItemSummaries(DateTime start)
         {
-            return await TaskItemRepository.GetItemSummaries().ConfigureAwait(false);
+            return await TaskItemService.GetItemSummaries(start).ConfigureAwait(false);
         }
 
         [HttpGet]
@@ -43,7 +42,7 @@ namespace WebApi.Controllers
         {
             if (string.IsNullOrWhiteSpace(item.Name))
             {
-                return BadRequest("Name must not be null.");
+                return BadRequest("Name must not be null or empty.");
             }
 
             return Ok(await TaskItemRepository.CreateItem(item).ConfigureAwait(false));

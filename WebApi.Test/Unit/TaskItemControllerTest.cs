@@ -6,6 +6,7 @@ using Core.Models.Task;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -38,21 +39,31 @@ namespace WebApi.Test.Unit
         [Test]
         public async Task GetItemSummariesShouldReturnSummaries()
         {
-            var summaries = new List<TaskItemSummaryDto>
+            var summaries = new ItemSummariesDto<TaskItemSummaryDto>
             {
-                new TaskItemSummaryDto(),
-                new TaskItemSummaryDto(),
-                new TaskItemSummaryDto()
+                Resolved = new List<TaskItemSummaryDto>
+                {
+                    new TaskItemSummaryDto(),
+                    new TaskItemSummaryDto()
+                },
+                Unresolved = new List<TaskItemSummaryDto>
+                {
+                    new TaskItemSummaryDto(),
+                    new TaskItemSummaryDto(),
+                    new TaskItemSummaryDto()
+                }
             };
 
-            TaskItemRepository.Setup(_ => _.GetItemSummaries()).ReturnsAsync(summaries);
+            var time = DateTime.Now.AddHours(-10);
+            TaskItemService.Setup(_ => _.GetItemSummaries(It.IsAny<DateTime>())).ReturnsAsync(summaries);
 
-            var response = await HttpClient.GetAsync($"{ApiBase}/summaries").ConfigureAwait(false);
-            var result = await response.Content.ReadFromJsonAsync<List<TaskItemSummaryDto>>().ConfigureAwait(false);
+            var response = await HttpClient.GetAsync($"{ApiBase}/summaries/{time:o}").ConfigureAwait(false);
+            var result = await response.Content.ReadFromJsonAsync<ItemSummariesDto<TaskItemSummaryDto>>().ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-            Assert.AreEqual(3, result.Count);
-            TaskItemRepository.Verify(_ => _.GetItemSummaries(), Times.Once);
+            Assert.AreEqual(2, result.Resolved.Count);
+            Assert.AreEqual(3, result.Unresolved.Count);
+            TaskItemService.Verify(_ => _.GetItemSummaries(time), Times.Once);
         }
 
         [Test]

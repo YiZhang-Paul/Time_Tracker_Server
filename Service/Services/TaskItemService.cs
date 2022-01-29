@@ -1,3 +1,4 @@
+using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
@@ -14,6 +15,15 @@ namespace Service.Services
         public TaskItemService(ITaskItemRepository taskItemRepository)
         {
             TaskItemRepository = taskItemRepository;
+        }
+
+        public async Task<ItemSummariesDto<TaskItemSummaryDto>> GetItemSummaries(DateTime start)
+        {
+            return new ItemSummariesDto<TaskItemSummaryDto>
+            {
+                Resolved = await TaskItemRepository.GetResolvedItemSummaries(start).ConfigureAwait(false),
+                Unresolved = await TaskItemRepository.GetUnresolvedItemSummaries().ConfigureAwait(false)
+            };
         }
 
         public async Task<TaskItem> UpdateItem(TaskItem item, ResolveAction action = ResolveAction.None)

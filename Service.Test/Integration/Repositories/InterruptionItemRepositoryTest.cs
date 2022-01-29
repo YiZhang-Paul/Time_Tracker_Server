@@ -25,17 +25,17 @@ namespace Service.Test.Integration.Repositories
         }
 
         [Test]
-        public async Task GetItemSummariesShouldReturnEmptyCollectionWhenNoItemExists()
+        public async Task GetUnresolvedItemSummariesShouldReturnEmptyCollectionWhenNoItemExists()
         {
-            var result = await Subject.GetItemSummaries().ConfigureAwait(false);
+            var result = await Subject.GetUnresolvedItemSummaries().ConfigureAwait(false);
 
             Assert.IsFalse(result.Any());
         }
 
         [Test]
-        public async Task GetItemSummariesShouldReturnSummariesOfExistingItems()
+        public async Task GetUnresolvedItemSummariesShouldReturnSummariesOfUnresolvedItems()
         {
-            for (var i = 0; i < 3; ++i)
+            for (var i = 0; i < 5; ++i)
             {
                 var payload = new InterruptionItemCreationDto
                 {
@@ -44,16 +44,22 @@ namespace Service.Test.Integration.Repositories
                     Priority = Priority.Medium
                 };
 
-                await Subject.CreateItem(payload).ConfigureAwait(false);
+                var created = await Subject.CreateItem(payload).ConfigureAwait(false);
+
+                if (i == 0 || i == 3)
+                {
+                    created.ResolvedTime = DateTime.UtcNow;
+                    await Subject.UpdateItem(created).ConfigureAwait(false);
+                }
             }
 
             await Subject.DeleteItemById(2).ConfigureAwait(false);
 
-            var result = await Subject.GetItemSummaries().ConfigureAwait(false);
+            var result = await Subject.GetUnresolvedItemSummaries().ConfigureAwait(false);
 
             Assert.AreEqual(2, result.Count);
-            Assert.AreEqual("name_0", result[0].Name);
-            Assert.AreEqual("name_2", result[1].Name);
+            Assert.AreEqual("name_2", result[0].Name);
+            Assert.AreEqual("name_4", result[1].Name);
         }
 
         [Test]

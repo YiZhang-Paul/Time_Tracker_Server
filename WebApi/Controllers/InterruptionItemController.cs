@@ -5,7 +5,6 @@ using Core.Interfaces.Services;
 using Core.Models.Interruption;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -24,10 +23,10 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
-        [Route("summaries")]
-        public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries()
+        [Route("summaries/{start}")]
+        public async Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start)
         {
-            return await InterruptionItemRepository.GetItemSummaries().ConfigureAwait(false);
+            return await InterruptionItemService.GetItemSummaries(start).ConfigureAwait(false);
         }
 
         [HttpGet]

@@ -19,10 +19,19 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries()
+        public async Task<List<InterruptionItemSummaryDto>> GetResolvedItemSummaries(DateTime start)
         {
             var items = Context.InterruptionItem
-                .Where(_ => !_.IsDeleted)
+                .Where(_ => !_.IsDeleted && _.ResolvedTime >= start)
+                .Select(_ => new InterruptionItemSummaryDto { Id = _.Id, Name = _.Name, Priority = _.Priority });
+
+            return await items.ToListAsync().ConfigureAwait(false);
+        }
+
+        public async Task<List<InterruptionItemSummaryDto>> GetUnresolvedItemSummaries()
+        {
+            var items = Context.InterruptionItem
+                .Where(_ => !_.IsDeleted && _.ResolvedTime == null)
                 .Select(_ => new InterruptionItemSummaryDto { Id = _.Id, Name = _.Name, Priority = _.Priority });
 
             return await items.ToListAsync().ConfigureAwait(false);
