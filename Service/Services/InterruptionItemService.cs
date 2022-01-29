@@ -1,3 +1,4 @@
+using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
@@ -14,6 +15,15 @@ namespace Service.Services
         public InterruptionItemService(IInterruptionItemRepository interruptionItemRepository)
         {
             InterruptionItemRepository = interruptionItemRepository;
+        }
+
+        public async Task<ItemSummariesDto> GetItemSummaries(DateTime start)
+        {
+            return new ItemSummariesDto
+            {
+                Resolved = await InterruptionItemRepository.GetResolvedItemSummaries(start).ConfigureAwait(false),
+                Unresolved = await InterruptionItemRepository.GetUnresolvedItemSummaries().ConfigureAwait(false)
+            };
         }
 
         public async Task<InterruptionItem> UpdateItem(InterruptionItem item, ResolveAction action = ResolveAction.None)

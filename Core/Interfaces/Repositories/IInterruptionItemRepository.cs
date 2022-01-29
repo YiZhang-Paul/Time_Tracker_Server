@@ -1,5 +1,6 @@
 using Core.Dtos;
 using Core.Models.Interruption;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -7,6 +8,7 @@ namespace Core.Interfaces.Repositories
 {
     public interface IInterruptionItemRepository
     {
+        Task<List<InterruptionItemSummaryDto>> GetResolvedItemSummaries(DateTime start);
         Task<List<InterruptionItemSummaryDto>> GetUnresolvedItemSummaries();
         Task<InterruptionItem> GetItemById(long id, bool excludeDeleted = true);
         Task<InterruptionItem> CreateItem(InterruptionItemCreationDto item);

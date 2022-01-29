@@ -43,7 +43,7 @@ namespace WebApi.Controllers
         {
             if (string.IsNullOrWhiteSpace(item.Name))
             {
-                return BadRequest("Name must not be null.");
+                return BadRequest("Name must not be null or empty.");
             }
 
             return Ok(await TaskItemRepository.CreateItem(item).ConfigureAwait(false));

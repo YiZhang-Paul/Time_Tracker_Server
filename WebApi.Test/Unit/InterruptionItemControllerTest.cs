@@ -6,6 +6,7 @@ using Core.Models.Interruption;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -38,21 +39,31 @@ namespace WebApi.Test.Unit
         [Test]
         public async Task GetUnresolvedItemSummariesShouldReturnSummaries()
         {
-            var summaries = new List<InterruptionItemSummaryDto>
+            var summaries = new ItemSummariesDto
             {
-                new InterruptionItemSummaryDto(),
-                new InterruptionItemSummaryDto(),
-                new InterruptionItemSummaryDto()
+                Resolved = new List<InterruptionItemSummaryDto>
+                {
+                    new InterruptionItemSummaryDto(),
+                    new InterruptionItemSummaryDto()
+                },
+                Unresolved = new List<InterruptionItemSummaryDto>
+                {
+                    new InterruptionItemSummaryDto(),
+                    new InterruptionItemSummaryDto(),
+                    new InterruptionItemSummaryDto()
+                }
             };
 
-            InterruptionItemRepository.Setup(_ => _.GetUnresolvedItemSummaries()).ReturnsAsync(summaries);
+            var time = DateTime.Now.AddHours(-10);
+            InterruptionItemService.Setup(_ => _.GetItemSummaries(It.IsAny<DateTime>())).ReturnsAsync(summaries);
 
-            var response = await HttpClient.GetAsync($"{ApiBase}/unresolved-summaries").ConfigureAwait(false);
-            var result = await response.Content.ReadFromJsonAsync<List<InterruptionItemSummaryDto>>().ConfigureAwait(false);
+            var response = await HttpClient.GetAsync($"{ApiBase}/summaries/{time:o}").ConfigureAwait(false);
+            var result = await response.Content.ReadFromJsonAsync<ItemSummariesDto>().ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-            Assert.AreEqual(3, result.Count);
-            InterruptionItemRepository.Verify(_ => _.GetUnresolvedItemSummaries(), Times.Once);
+            Assert.AreEqual(2, result.Resolved.Count);
+            Assert.AreEqual(3, result.Unresolved.Count);
+            InterruptionItemService.Verify(_ => _.GetItemSummaries(time), Times.Once);
         }
 
         [Test]
