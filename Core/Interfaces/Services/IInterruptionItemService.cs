@@ -8,7 +8,7 @@ namespace Core.Interfaces.Services
 {
     public interface IInterruptionItemService
     {
-        Task<ItemSummariesDto> GetItemSummaries(DateTime start);
+        Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start);
         Task<InterruptionItem> UpdateItem(InterruptionItem item, ResolveAction action = ResolveAction.None);
     }
 }

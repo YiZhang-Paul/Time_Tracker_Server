@@ -39,7 +39,7 @@ namespace WebApi.Test.Unit
         [Test]
         public async Task GetItemSummariesShouldReturnSummaries()
         {
-            var summaries = new ItemSummariesDto
+            var summaries = new ItemSummariesDto<InterruptionItemSummaryDto>
             {
                 Resolved = new List<InterruptionItemSummaryDto>
                 {
@@ -58,7 +58,7 @@ namespace WebApi.Test.Unit
             InterruptionItemService.Setup(_ => _.GetItemSummaries(It.IsAny<DateTime>())).ReturnsAsync(summaries);
 
             var response = await HttpClient.GetAsync($"{ApiBase}/summaries/{time:o}").ConfigureAwait(false);
-            var result = await response.Content.ReadFromJsonAsync<ItemSummariesDto>().ConfigureAwait(false);
+            var result = await response.Content.ReadFromJsonAsync<ItemSummariesDto<InterruptionItemSummaryDto>>().ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual(2, result.Resolved.Count);

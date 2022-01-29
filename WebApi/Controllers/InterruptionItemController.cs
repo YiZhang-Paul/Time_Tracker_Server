@@ -24,7 +24,7 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("summaries/{start}")]
-        public async Task<ItemSummariesDto> GetItemSummaries(DateTime start)
+        public async Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start)
         {
             return await InterruptionItemService.GetItemSummaries(start).ConfigureAwait(false);
         }

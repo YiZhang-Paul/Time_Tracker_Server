@@ -19,6 +19,15 @@ namespace Service.Repositories
             Context = context;
         }
 
+        public async Task<List<TaskItemSummaryDto>> GetResolvedItemSummaries(DateTime start)
+        {
+            var items = Context.TaskItem
+                .Where(_ => !_.IsDeleted && _.ResolvedTime >= start)
+                .Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name, Effort = _.Effort });
+
+            return await items.ToListAsync().ConfigureAwait(false);
+        }
+
         public async Task<List<TaskItemSummaryDto>> GetUnresolvedItemSummaries()
         {
             var items = Context.TaskItem

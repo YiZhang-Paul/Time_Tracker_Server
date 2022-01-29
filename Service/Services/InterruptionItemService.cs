@@ -17,9 +17,9 @@ namespace Service.Services
             InterruptionItemRepository = interruptionItemRepository;
         }
 
-        public async Task<ItemSummariesDto> GetItemSummaries(DateTime start)
+        public async Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start)
         {
-            return new ItemSummariesDto
+            return new ItemSummariesDto<InterruptionItemSummaryDto>
             {
                 Resolved = await InterruptionItemRepository.GetResolvedItemSummaries(start).ConfigureAwait(false),
                 Unresolved = await InterruptionItemRepository.GetUnresolvedItemSummaries().ConfigureAwait(false)
