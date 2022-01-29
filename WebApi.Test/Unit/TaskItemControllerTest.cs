@@ -1,5 +1,7 @@
 using Core.Dtos;
+using Core.Enums;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.Services;
 using Core.Models.Task;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -17,13 +19,20 @@ namespace WebApi.Test.Unit
     {
         private const string ApiBase = "api/v1/task-items";
         private Mock<ITaskItemRepository> TaskItemRepository { get; set; }
+        private Mock<ITaskItemService> TaskItemService { get; set; }
         private HttpClient HttpClient { get; set; }
 
         [SetUp]
         public async Task Setup()
         {
             TaskItemRepository = new Mock<ITaskItemRepository>();
-            HttpClient = await new ControllerTestUtility().SetupTestHttpClient(_ => _.AddSingleton(TaskItemRepository.Object)).ConfigureAwait(false);
+            TaskItemService = new Mock<ITaskItemService>();
+
+            HttpClient = await new ControllerTestUtility().SetupTestHttpClient
+            (
+                _ => _.AddSingleton(TaskItemRepository.Object)
+                      .AddSingleton(TaskItemService.Object)
+            ).ConfigureAwait(false);
         }
 
         [Test]
@@ -89,42 +98,15 @@ namespace WebApi.Test.Unit
         }
 
         [Test]
-        public async Task UpdateItemShouldReturnBadRequestWhenItemNameIsNull()
-        {
-            var response = await HttpClient.PutAsJsonAsync(ApiBase, new TaskItem { Id = 1, Name = null }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            TaskItemRepository.Verify(_ => _.UpdateItem(It.IsAny<TaskItem>()), Times.Never);
-        }
-
-        [Test]
-        public async Task UpdateItemShouldReturnBadRequestWhenItemNameIsEmpty()
-        {
-            var response = await HttpClient.PutAsJsonAsync(ApiBase, new TaskItem { Id = 1, Name = " " }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            TaskItemRepository.Verify(_ => _.UpdateItem(It.IsAny<TaskItem>()), Times.Never);
-        }
-
-        [Test]
-        public async Task UpdateItemShouldReturnBadRequestWhenItemIdIsInvalid()
-        {
-            var response = await HttpClient.PutAsJsonAsync(ApiBase, new TaskItem { Id = -1, Name = "item_name" }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            TaskItemRepository.Verify(_ => _.UpdateItem(It.IsAny<TaskItem>()), Times.Never);
-        }
-
-        [Test]
         public async Task UpdateItemShouldReturnItemUpdated()
         {
-            TaskItemRepository.Setup(_ => _.UpdateItem(It.IsAny<TaskItem>())).ReturnsAsync(new TaskItem());
+            TaskItemService.Setup(_ => _.UpdateItem(It.IsAny<TaskItem>(), It.IsAny<ResolveAction>())).ReturnsAsync(new TaskItem());
 
-            var response = await HttpClient.PutAsJsonAsync(ApiBase, new TaskItem { Id = 1, Name = "item_name" }).ConfigureAwait(false);
+            var response = await HttpClient.PutAsJsonAsync($"{ApiBase}?resolve={ResolveAction.Unresolve}", new TaskItem { Id = 1, Name = "item_name" }).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<TaskItem>().ConfigureAwait(false));
-            TaskItemRepository.Verify(_ => _.UpdateItem(It.IsAny<TaskItem>()), Times.Once);
+            TaskItemService.Verify(_ => _.UpdateItem(It.IsAny<TaskItem>(), ResolveAction.Unresolve), Times.Once);
         }
 
         [Test]

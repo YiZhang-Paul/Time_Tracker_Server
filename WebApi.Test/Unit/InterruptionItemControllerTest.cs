@@ -1,5 +1,7 @@
 using Core.Dtos;
+using Core.Enums;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.Services;
 using Core.Models.Interruption;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -17,13 +19,20 @@ namespace WebApi.Test.Unit
     {
         private const string ApiBase = "api/v1/interruption-items";
         private Mock<IInterruptionItemRepository> InterruptionItemRepository { get; set; }
+        private Mock<IInterruptionItemService> InterruptionItemService { get; set; }
         private HttpClient HttpClient { get; set; }
 
         [SetUp]
         public async Task Setup()
         {
             InterruptionItemRepository = new Mock<IInterruptionItemRepository>();
-            HttpClient = await new ControllerTestUtility().SetupTestHttpClient(_ => _.AddSingleton(InterruptionItemRepository.Object)).ConfigureAwait(false);
+            InterruptionItemService = new Mock<IInterruptionItemService>();
+
+            HttpClient = await new ControllerTestUtility().SetupTestHttpClient
+            (
+                _ => _.AddSingleton(InterruptionItemRepository.Object)
+                      .AddSingleton(InterruptionItemService.Object)
+            ).ConfigureAwait(false);
         }
 
         [Test]
@@ -89,42 +98,15 @@ namespace WebApi.Test.Unit
         }
 
         [Test]
-        public async Task UpdateItemShouldReturnBadRequestWhenItemNameIsNull()
-        {
-            var response = await HttpClient.PutAsJsonAsync(ApiBase, new InterruptionItem { Id = 1, Name = null }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            InterruptionItemRepository.Verify(_ => _.UpdateItem(It.IsAny<InterruptionItem>()), Times.Never);
-        }
-
-        [Test]
-        public async Task UpdateItemShouldReturnBadRequestWhenItemNameIsEmpty()
-        {
-            var response = await HttpClient.PutAsJsonAsync(ApiBase, new InterruptionItem { Id = 1, Name = " " }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            InterruptionItemRepository.Verify(_ => _.UpdateItem(It.IsAny<InterruptionItem>()), Times.Never);
-        }
-
-        [Test]
-        public async Task UpdateItemShouldReturnBadRequestWhenItemIdIsInvalid()
-        {
-            var response = await HttpClient.PutAsJsonAsync(ApiBase, new InterruptionItem { Id = -1, Name = "item_name" }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            InterruptionItemRepository.Verify(_ => _.UpdateItem(It.IsAny<InterruptionItem>()), Times.Never);
-        }
-
-        [Test]
         public async Task UpdateItemShouldReturnItemUpdated()
         {
-            InterruptionItemRepository.Setup(_ => _.UpdateItem(It.IsAny<InterruptionItem>())).ReturnsAsync(new InterruptionItem());
+            InterruptionItemService.Setup(_ => _.UpdateItem(It.IsAny<InterruptionItem>(), It.IsAny<ResolveAction>())).ReturnsAsync(new InterruptionItem());
 
-            var response = await HttpClient.PutAsJsonAsync(ApiBase, new InterruptionItem { Id = 1, Name = "item_name" }).ConfigureAwait(false);
+            var response = await HttpClient.PutAsJsonAsync($"{ApiBase}?resolve={ResolveAction.Resolve}", new InterruptionItem { Id = 1, Name = "item_name" }).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<InterruptionItem>().ConfigureAwait(false));
-            InterruptionItemRepository.Verify(_ => _.UpdateItem(It.IsAny<InterruptionItem>()), Times.Once);
+            InterruptionItemService.Verify(_ => _.UpdateItem(It.IsAny<InterruptionItem>(), ResolveAction.Resolve), Times.Once);
         }
 
         [Test]

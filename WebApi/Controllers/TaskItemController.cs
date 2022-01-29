@@ -1,7 +1,10 @@
 using Core.Dtos;
+using Core.Enums;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.Services;
 using Core.Models.Task;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,10 +15,12 @@ namespace WebApi.Controllers
     public class TaskItemController : ControllerBase
     {
         private ITaskItemRepository TaskItemRepository { get; }
+        private ITaskItemService TaskItemService { get; }
 
-        public TaskItemController(ITaskItemRepository taskItemRepository)
+        public TaskItemController(ITaskItemRepository taskItemRepository, ITaskItemService taskItemService)
         {
             TaskItemRepository = taskItemRepository;
+            TaskItemService = taskItemService;
         }
 
         [HttpGet]
@@ -46,14 +51,16 @@ namespace WebApi.Controllers
 
         [HttpPut]
         [Route("")]
-        public async Task<IActionResult> UpdateItem([FromBody]TaskItem item)
+        public async Task<IActionResult> UpdateItem([FromBody]TaskItem item, [FromQuery]ResolveAction resolve = ResolveAction.None)
         {
-            if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
+            try
             {
-                return BadRequest("Name must not be null.");
+                return Ok(await TaskItemService.UpdateItem(item, resolve).ConfigureAwait(false));
             }
-
-            return Ok(await TaskItemRepository.UpdateItem(item).ConfigureAwait(false));
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
+            }
         }
 
         [HttpDelete]

@@ -1,7 +1,10 @@
 using Core.Dtos;
+using Core.Enums;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.Services;
 using Core.Models.Interruption;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -12,10 +15,12 @@ namespace WebApi.Controllers
     public class InterruptionItemController : ControllerBase
     {
         private IInterruptionItemRepository InterruptionItemRepository { get; }
+        private IInterruptionItemService InterruptionItemService { get; }
 
-        public InterruptionItemController(IInterruptionItemRepository interruptionItemRepository)
+        public InterruptionItemController(IInterruptionItemRepository interruptionItemRepository, IInterruptionItemService interruptionItemService)
         {
             InterruptionItemRepository = interruptionItemRepository;
+            InterruptionItemService = interruptionItemService;
         }
 
         [HttpGet]
@@ -38,7 +43,7 @@ namespace WebApi.Controllers
         {
             if (string.IsNullOrWhiteSpace(item.Name))
             {
-                return BadRequest("Name must not be null.");
+                return BadRequest("Name must not be null or empty.");
             }
 
             return Ok(await InterruptionItemRepository.CreateItem(item).ConfigureAwait(false));
@@ -46,14 +51,16 @@ namespace WebApi.Controllers
 
         [HttpPut]
         [Route("")]
-        public async Task<IActionResult> UpdateItem([FromBody]InterruptionItem item)
+        public async Task<IActionResult> UpdateItem([FromBody]InterruptionItem item, [FromQuery]ResolveAction resolve = ResolveAction.None)
         {
-            if (string.IsNullOrWhiteSpace(item.Name) || item.Id < 0)
+            try
             {
-                return BadRequest("Name must not be null.");
+                return Ok(await InterruptionItemService.UpdateItem(item, resolve).ConfigureAwait(false));
             }
-
-            return Ok(await InterruptionItemRepository.UpdateItem(item).ConfigureAwait(false));
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
+            }
         }
 
         [HttpDelete]
