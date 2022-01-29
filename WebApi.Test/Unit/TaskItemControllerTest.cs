@@ -45,14 +45,14 @@ namespace WebApi.Test.Unit
                 new TaskItemSummaryDto()
             };
 
-            TaskItemRepository.Setup(_ => _.GetItemSummaries()).ReturnsAsync(summaries);
+            TaskItemRepository.Setup(_ => _.GetUnresolvedItemSummaries()).ReturnsAsync(summaries);
 
             var response = await HttpClient.GetAsync($"{ApiBase}/summaries").ConfigureAwait(false);
             var result = await response.Content.ReadFromJsonAsync<List<TaskItemSummaryDto>>().ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual(3, result.Count);
-            TaskItemRepository.Verify(_ => _.GetItemSummaries(), Times.Once);
+            TaskItemRepository.Verify(_ => _.GetUnresolvedItemSummaries(), Times.Once);
         }
 
         [Test]

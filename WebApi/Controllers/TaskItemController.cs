@@ -27,7 +27,7 @@ namespace WebApi.Controllers
         [Route("summaries")]
         public async Task<List<TaskItemSummaryDto>> GetItemSummaries()
         {
-            return await TaskItemRepository.GetItemSummaries().ConfigureAwait(false);
+            return await TaskItemRepository.GetUnresolvedItemSummaries().ConfigureAwait(false);
         }
 
         [HttpGet]

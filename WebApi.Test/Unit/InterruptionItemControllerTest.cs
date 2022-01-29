@@ -37,7 +37,7 @@ namespace WebApi.Test.Unit
         }
 
         [Test]
-        public async Task GetUnresolvedItemSummariesShouldReturnSummaries()
+        public async Task GetItemSummariesShouldReturnSummaries()
         {
             var summaries = new ItemSummariesDto
             {
