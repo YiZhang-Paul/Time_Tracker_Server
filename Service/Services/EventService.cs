@@ -5,6 +5,7 @@ using Core.Interfaces.Services;
 using Core.Models.Event;
 using Service.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ namespace Service.Services
         private IInterruptionItemRepository InterruptionItemRepository { get; }
         private ITaskItemRepository TaskItemRepository { get; }
         private IEventHistoryRepository EventHistoryRepository { get; }
+        private IEventHistorySummaryRepository EventHistorySummaryRepository { get; }
         private IEventPromptRepository EventPromptRepository { get; }
 
         public EventService
@@ -22,12 +24,14 @@ namespace Service.Services
             IInterruptionItemRepository interruptionItemRepository,
             ITaskItemRepository taskItemRepository,
             IEventHistoryRepository eventHistoryRepository,
+            IEventHistorySummaryRepository eventHistorySummaryRepository,
             IEventPromptRepository eventPromptRepository
         )
         {
             InterruptionItemRepository = interruptionItemRepository;
             TaskItemRepository = taskItemRepository;
             EventHistoryRepository = eventHistoryRepository;
+            EventHistorySummaryRepository = eventHistorySummaryRepository;
             EventPromptRepository = eventPromptRepository;
         }
 
@@ -45,6 +49,27 @@ namespace Service.Services
                 UnconcludedSinceStart = await GetUnconcludedTimeSummary(startTime).ConfigureAwait(false),
                 UnconcludedSinceLastBreakPrompt = await GetUnconcludedTimeSummary(promptTime).ConfigureAwait(false)
             };
+        }
+
+        public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
+        {
+            var startTime = start.ToUniversalTime();
+            var summaries = await EventHistorySummaryRepository.GetSummaries(startTime, startTime.AddDays(1)).ConfigureAwait(false);
+
+            if (!summaries.Any() || summaries[0].Timestamp == startTime)
+            {
+                return summaries;
+            }
+
+            var previous = await EventHistorySummaryRepository.GetSummaryById(summaries[0].Id - 1).ConfigureAwait(false);
+
+            if (previous != null)
+            {
+                previous.Timestamp = startTime;
+                summaries.Insert(0, previous);
+            }
+
+            return summaries;
         }
 
         public async Task<bool> StartIdlingSession()
