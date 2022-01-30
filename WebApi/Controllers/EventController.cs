@@ -27,6 +27,13 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [Route("time-breakdown/{start}")]
+        public async Task<EventTimeBreakdownDto> GetTimeBreakdownByDay(DateTime start)
+        {
+            return await EventService.GetTimeBreakdownByDay(start).ConfigureAwait(false);
+        }
+
+        [HttpGet]
         [Route("event-summaries/{start}")]
         public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
         {

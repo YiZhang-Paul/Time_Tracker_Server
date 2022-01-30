@@ -51,6 +51,30 @@ namespace Service.Services
             };
         }
 
+        public async Task<EventTimeBreakdownDto> GetTimeBreakdownByDay(DateTime start)
+        {
+            var startTime = start.ToUniversalTime();
+            var endTime = startTime.AddDays(1);
+
+            if (startTime > DateTime.UtcNow)
+            {
+                return new EventTimeBreakdownDto();
+            }
+
+            var breakdown = new EventTimeBreakdownDto();
+            var histories = await EventHistoryRepository.GetHistories(startTime, endTime).ConfigureAwait(false);
+            var previous = await EventHistoryRepository.GetLastHistory(startTime, true).ConfigureAwait(false) ?? new EventHistory { EventType = EventType.Idling };
+            previous.Timestamp = startTime;
+            histories.Insert(0, previous);
+            // record time between histories
+            for (var i = 0; i < histories.Count - 1; ++i)
+            {
+                breakdown = RecordTimeBreakdown(breakdown, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
+            }
+            // record time between last history and end time
+            return RecordTimeBreakdown(breakdown, histories.Last().EventType, histories.Last().Timestamp, endTime);
+        }
+
         public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
         {
             var startTime = start.ToUniversalTime();
@@ -212,6 +236,30 @@ namespace Service.Services
             }
 
             return summary;
+        }
+
+        private static EventTimeBreakdownDto RecordTimeBreakdown(EventTimeBreakdownDto breakdown, EventType type, DateTime start, DateTime end)
+        {
+            var elapsed = (int)(end - start).TotalMilliseconds;
+
+            if (type == EventType.Idling)
+            {
+                breakdown.Idling += elapsed;
+            }
+            else if (type == EventType.Break)
+            {
+                breakdown.Break += elapsed;
+            }
+            else if (type == EventType.Interruption)
+            {
+                breakdown.Interruption += elapsed;
+            }
+            else if (type == EventType.Task)
+            {
+                breakdown.Task += elapsed;
+            }
+
+            return breakdown;
         }
     }
 }

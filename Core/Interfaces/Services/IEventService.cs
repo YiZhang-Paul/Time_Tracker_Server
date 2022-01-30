@@ -9,6 +9,7 @@ namespace Core.Interfaces.Services
     public interface IEventService
     {
         Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start);
+        Task<EventTimeBreakdownDto> GetTimeBreakdownByDay(DateTime start);
         Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start);
         Task<bool> StartIdlingSession();
         Task<bool> StartInterruptionItem(long id);
