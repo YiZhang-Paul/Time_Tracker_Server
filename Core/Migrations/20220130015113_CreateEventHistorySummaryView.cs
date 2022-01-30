@@ -26,9 +26,7 @@ namespace Core.Migrations
 
                 SELECT {baseFields}, t.""Name"", t.""IsDeleted""
                 FROM ""EventHistory"" e
-                JOIN ""TaskItem"" t ON e.""EventType"" = {(int)EventType.Task} AND e.""ResourceId"" = t.""Id""
-
-                ORDER BY ""Id"";
+                JOIN ""TaskItem"" t ON e.""EventType"" = {(int)EventType.Task} AND e.""ResourceId"" = t.""Id"";
             ");
         }
 
