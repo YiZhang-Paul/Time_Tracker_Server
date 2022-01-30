@@ -19,7 +19,7 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<EventHistorySummary> GetLastSummary(DateTime? end)
+        public async Task<EventHistorySummary> GetLastSummary(DateTime? end = null)
         {
             var endTime = end ?? DateTime.UtcNow;
 
