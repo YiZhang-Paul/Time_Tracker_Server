@@ -191,7 +191,7 @@ namespace Service.Services
 
         private async Task<EventHistory> GetUnconcludedTimeSummary(DateTime start)
         {
-            var history = await EventHistoryRepository.GetLastHistory(true).ConfigureAwait(false);
+            var history = await EventHistoryRepository.GetLastHistory(null, true).ConfigureAwait(false);
             history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = start };
             history.Timestamp = (history.Timestamp > start ? history.Timestamp : start).SpecifyKindUtc();
 

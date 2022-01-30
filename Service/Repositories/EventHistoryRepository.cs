@@ -18,11 +18,12 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<EventHistory> GetLastHistory(bool isReadonly = false)
+        public async Task<EventHistory> GetLastHistory(DateTime? end = null, bool isReadonly = false)
         {
+            var endTime = end ?? DateTime.UtcNow;
             var query = isReadonly ? Context.EventHistory.AsNoTracking() : Context.EventHistory;
 
-            return await query.OrderByDescending(_ => _.Id).FirstOrDefaultAsync().ConfigureAwait(false);
+            return await query.OrderByDescending(_ => _.Timestamp).FirstOrDefaultAsync(_ => _.Timestamp <= endTime).ConfigureAwait(false);
         }
 
         public async Task<EventHistory> GetHistoryById(long id)
