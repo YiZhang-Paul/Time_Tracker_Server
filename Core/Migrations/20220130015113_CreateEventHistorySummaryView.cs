@@ -12,7 +12,7 @@ namespace Core.Migrations
             migrationBuilder.Sql($@"
                 CREATE VIEW ""EventHistorySummary"" AS
 
-                SELECT {baseFields}, NULL::character varying AS ""Name"", NULL::boolean AS ""IsDeleted""
+                SELECT {baseFields}, NULL::character varying AS ""Name"", false AS ""IsDeleted""
                 FROM ""EventHistory"" e
                 WHERE e.""EventType"" <> {(int)EventType.Interruption} AND e.""EventType"" <> {(int)EventType.Task}
 
