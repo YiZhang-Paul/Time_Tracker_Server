@@ -54,9 +54,15 @@ namespace Service.Services
         public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
         {
             var startTime = start.ToUniversalTime();
+
+            if (startTime > DateTime.UtcNow)
+            {
+                return new List<EventHistorySummary>();
+            }
+
             var summaries = await EventHistorySummaryRepository.GetSummaries(startTime, startTime.AddDays(1)).ConfigureAwait(false);
 
-            if (!summaries.Any() || summaries[0].Timestamp == startTime)
+            if (summaries.Any() && summaries[0].Timestamp == startTime)
             {
                 return summaries;
             }
