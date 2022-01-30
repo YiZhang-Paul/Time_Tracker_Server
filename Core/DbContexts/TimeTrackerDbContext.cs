@@ -13,6 +13,7 @@ namespace Core.DbContexts
         public virtual DbSet<InterruptionItem> InterruptionItem { get; set; }
         public virtual DbSet<TaskItem> TaskItem { get; set; }
         public virtual DbSet<EventHistory> EventHistory { get; set; }
+        public virtual DbSet<EventHistorySummary> EventHistorySummary { get; set; }
         public virtual DbSet<EventPrompt> EventPrompt { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
