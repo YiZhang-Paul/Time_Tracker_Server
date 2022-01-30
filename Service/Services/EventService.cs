@@ -61,7 +61,7 @@ namespace Service.Services
                 return summaries;
             }
 
-            var previous = await EventHistorySummaryRepository.GetSummaryById(summaries[0].Id - 1).ConfigureAwait(false);
+            var previous = await EventHistorySummaryRepository.GetLastSummary(startTime).ConfigureAwait(false);
 
             if (previous != null)
             {

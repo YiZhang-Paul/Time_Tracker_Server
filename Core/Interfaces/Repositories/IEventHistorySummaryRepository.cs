@@ -7,7 +7,7 @@ namespace Core.Interfaces.Repositories
 {
     public interface IEventHistorySummaryRepository
     {
-        Task<EventHistorySummary> GetSummaryById(long id);
+        Task<EventHistorySummary> GetLastSummary(DateTime? end);
         Task<List<EventHistorySummary>> GetSummaries(DateTime start, DateTime end);
     }
 }

@@ -19,14 +19,17 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<EventHistorySummary> GetSummaryById(long id)
+        public async Task<EventHistorySummary> GetLastSummary(DateTime? end)
         {
-            return await Context.EventHistorySummary.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
+            var endTime = end ?? DateTime.UtcNow;
+
+            return await Context.EventHistorySummary.OrderByDescending(_ => _.Timestamp).FirstOrDefaultAsync(_ => _.Timestamp <= endTime).ConfigureAwait(false);
         }
 
         public async Task<List<EventHistorySummary>> GetSummaries(DateTime start, DateTime end)
         {
-            var summaries = await Context.EventHistorySummary.Where(_ => _.Timestamp >= start && _.Timestamp <= end).ToListAsync().ConfigureAwait(false);
+            var query = Context.EventHistorySummary.Where(_ => _.Timestamp >= start && _.Timestamp <= end).OrderBy(_ => _.Timestamp);
+            var summaries = await query.ToListAsync().ConfigureAwait(false);
             summaries.ForEach(_ => _.Timestamp = _.Timestamp.SpecifyKindUtc());
 
             return summaries;
