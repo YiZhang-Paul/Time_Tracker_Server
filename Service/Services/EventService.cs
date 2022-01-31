@@ -54,7 +54,7 @@ namespace Service.Services
         public async Task<EventTimeBreakdownDto> GetTimeBreakdownByDay(DateTime start)
         {
             var startTime = start.ToUniversalTime();
-            var endTime = startTime.AddDays(1);
+            var endTime = startTime.AddDays(1) < DateTime.UtcNow ? startTime.AddDays(1) : DateTime.UtcNow;
 
             if (startTime > DateTime.UtcNow)
             {
