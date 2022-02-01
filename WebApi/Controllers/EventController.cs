@@ -1,7 +1,9 @@
 using Core.Dtos;
 using Core.Interfaces.Services;
+using Core.Models.Event;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -22,6 +24,20 @@ namespace WebApi.Controllers
         public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
         {
             return await EventService.GetOngoingTimeSummary(start).ConfigureAwait(false);
+        }
+
+        [HttpGet]
+        [Route("time-breakdown/{start}")]
+        public async Task<EventTimeBreakdownDto> GetTimeBreakdownByDay(DateTime start)
+        {
+            return await EventService.GetTimeBreakdownByDay(start).ConfigureAwait(false);
+        }
+
+        [HttpGet]
+        [Route("event-summaries/{start}")]
+        public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
+        {
+            return await EventService.GetEventHistorySummariesByDay(start).ConfigureAwait(false);
         }
 
         [HttpPost]

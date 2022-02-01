@@ -5,6 +5,7 @@ using Core.Interfaces.Services;
 using Core.Models.Event;
 using Service.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ namespace Service.Services
         private IInterruptionItemRepository InterruptionItemRepository { get; }
         private ITaskItemRepository TaskItemRepository { get; }
         private IEventHistoryRepository EventHistoryRepository { get; }
+        private IEventHistorySummaryRepository EventHistorySummaryRepository { get; }
         private IEventPromptRepository EventPromptRepository { get; }
 
         public EventService
@@ -22,12 +24,14 @@ namespace Service.Services
             IInterruptionItemRepository interruptionItemRepository,
             ITaskItemRepository taskItemRepository,
             IEventHistoryRepository eventHistoryRepository,
+            IEventHistorySummaryRepository eventHistorySummaryRepository,
             IEventPromptRepository eventPromptRepository
         )
         {
             InterruptionItemRepository = interruptionItemRepository;
             TaskItemRepository = taskItemRepository;
             EventHistoryRepository = eventHistoryRepository;
+            EventHistorySummaryRepository = eventHistorySummaryRepository;
             EventPromptRepository = eventPromptRepository;
         }
 
@@ -45,6 +49,57 @@ namespace Service.Services
                 UnconcludedSinceStart = await GetUnconcludedTimeSummary(startTime).ConfigureAwait(false),
                 UnconcludedSinceLastBreakPrompt = await GetUnconcludedTimeSummary(promptTime).ConfigureAwait(false)
             };
+        }
+
+        public async Task<EventTimeBreakdownDto> GetTimeBreakdownByDay(DateTime start)
+        {
+            var startTime = start.ToUniversalTime();
+            var endTime = startTime.AddDays(1) < DateTime.UtcNow ? startTime.AddDays(1) : DateTime.UtcNow;
+
+            if (startTime > DateTime.UtcNow)
+            {
+                return new EventTimeBreakdownDto();
+            }
+
+            var breakdown = new EventTimeBreakdownDto();
+            var histories = await EventHistoryRepository.GetHistories(startTime, endTime).ConfigureAwait(false);
+            var previous = await EventHistoryRepository.GetLastHistory(startTime, true).ConfigureAwait(false) ?? new EventHistory { EventType = EventType.Idling };
+            previous.Timestamp = startTime;
+            histories.Insert(0, previous);
+            // record time between histories
+            for (var i = 0; i < histories.Count - 1; ++i)
+            {
+                breakdown = RecordTimeBreakdown(breakdown, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
+            }
+            // record time between last history and end time
+            return RecordTimeBreakdown(breakdown, histories.Last().EventType, histories.Last().Timestamp, endTime);
+        }
+
+        public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
+        {
+            var startTime = start.ToUniversalTime();
+
+            if (startTime > DateTime.UtcNow)
+            {
+                return new List<EventHistorySummary>();
+            }
+
+            var summaries = await EventHistorySummaryRepository.GetSummaries(startTime, startTime.AddDays(1)).ConfigureAwait(false);
+
+            if (summaries.Any() && summaries[0].Timestamp == startTime)
+            {
+                return summaries;
+            }
+
+            var previous = await EventHistorySummaryRepository.GetLastSummary(startTime).ConfigureAwait(false);
+
+            if (previous != null)
+            {
+                previous.Timestamp = startTime;
+                summaries.Insert(0, previous);
+            }
+
+            return summaries;
         }
 
         public async Task<bool> StartIdlingSession()
@@ -160,7 +215,7 @@ namespace Service.Services
 
         private async Task<EventHistory> GetUnconcludedTimeSummary(DateTime start)
         {
-            var history = await EventHistoryRepository.GetLastHistory(true).ConfigureAwait(false);
+            var history = await EventHistoryRepository.GetLastHistory(null, true).ConfigureAwait(false);
             history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = start };
             history.Timestamp = (history.Timestamp > start ? history.Timestamp : start).SpecifyKindUtc();
 
@@ -181,6 +236,30 @@ namespace Service.Services
             }
 
             return summary;
+        }
+
+        private static EventTimeBreakdownDto RecordTimeBreakdown(EventTimeBreakdownDto breakdown, EventType type, DateTime start, DateTime end)
+        {
+            var elapsed = (int)(end - start).TotalMilliseconds;
+
+            if (type == EventType.Idling)
+            {
+                breakdown.Idling += elapsed;
+            }
+            else if (type == EventType.Break)
+            {
+                breakdown.Break += elapsed;
+            }
+            else if (type == EventType.Interruption)
+            {
+                breakdown.Interruption += elapsed;
+            }
+            else if (type == EventType.Task)
+            {
+                breakdown.Task += elapsed;
+            }
+
+            return breakdown;
         }
     }
 }
