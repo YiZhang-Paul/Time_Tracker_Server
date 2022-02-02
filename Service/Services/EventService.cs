@@ -51,53 +51,29 @@ namespace Service.Services
             };
         }
 
-        public async Task<EventTimeBreakdownDto> GetTimeBreakdownByDay(DateTime start)
+        public async Task<EventSummariesDto> GetEventSummariesByDay(DateTime start)
         {
             var startTime = start.ToUniversalTime();
             var endTime = startTime.AddDays(1) < DateTime.UtcNow ? startTime.AddDays(1) : DateTime.UtcNow;
 
             if (startTime > DateTime.UtcNow)
             {
-                return new EventTimeBreakdownDto();
+                return new EventSummariesDto();
             }
 
-            var breakdown = new EventTimeBreakdownDto();
-            var histories = await EventHistoryRepository.GetHistories(startTime, endTime).ConfigureAwait(false);
-            var previous = await EventHistoryRepository.GetLastHistory(startTime, true).ConfigureAwait(false) ?? new EventHistory { EventType = EventType.Idling };
-            previous.Timestamp = startTime;
-            histories.Insert(0, previous);
-            // record time between histories
-            for (var i = 0; i < histories.Count - 1; ++i)
+            var histories = await GetEventHistorySummariesByDay(startTime).ConfigureAwait(false);
+            var summaries = new EventSummariesDto { Timeline = histories.Select(EventTimelineDto.Convert).ToList() };
+            // record time between timeline events
+            for (var i = 0; i < summaries.Timeline.Count - 1; ++i)
             {
-                breakdown = RecordTimeBreakdown(breakdown, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
+                summaries = RecordEventDuration(summaries, summaries.Timeline[i], summaries.Timeline[i + 1].StartTime);
             }
-            // record time between last history and end time
-            return RecordTimeBreakdown(breakdown, histories.Last().EventType, histories.Last().Timestamp, endTime);
-        }
-
-        public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
-        {
-            var startTime = start.ToUniversalTime();
-
-            if (startTime > DateTime.UtcNow)
-            {
-                return new List<EventHistorySummary>();
-            }
-
-            var summaries = await EventHistorySummaryRepository.GetSummaries(startTime, startTime.AddDays(1)).ConfigureAwait(false);
-
-            if (summaries.Any() && summaries[0].Timestamp == startTime)
-            {
-                return summaries;
-            }
-
-            var previous = await EventHistorySummaryRepository.GetLastSummary(startTime).ConfigureAwait(false);
-
-            if (previous != null)
-            {
-                previous.Timestamp = startTime;
-                summaries.Insert(0, previous);
-            }
+            // record time between last timeline event and end time
+            summaries = RecordEventDuration(summaries, summaries.Timeline.Last(), endTime);
+            summaries.Idling = summaries.Idling.OrderByDescending(_ => _.Duration).ToList();
+            summaries.Break = summaries.Break.OrderByDescending(_ => _.Duration).ToList();
+            summaries.Interruption = summaries.Interruption.OrderByDescending(_ => _.Duration).ToList();
+            summaries.Task = summaries.Task.OrderByDescending(_ => _.Duration).ToList();
 
             return summaries;
         }
@@ -222,6 +198,21 @@ namespace Service.Services
             return history;
         }
 
+        private async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
+        {
+            var summaries = await EventHistorySummaryRepository.GetSummaries(start, start.AddDays(1)).ConfigureAwait(false);
+            var previous = await EventHistorySummaryRepository.GetLastSummary(start).ConfigureAwait(false);
+            var includePrevious = !summaries.Any() || summaries[0].Timestamp != start;
+
+            if (includePrevious && previous != null)
+            {
+                previous.Timestamp = start;
+                summaries.Insert(0, previous);
+            }
+
+            return summaries;
+        }
+
         private static EventTimeSummary RecordTimeSummary(EventTimeSummary summary, EventType type, DateTime start, DateTime end)
         {
             var elapsed = (int)(end - start).TotalMilliseconds;
@@ -238,28 +229,40 @@ namespace Service.Services
             return summary;
         }
 
-        private static EventTimeBreakdownDto RecordTimeBreakdown(EventTimeBreakdownDto breakdown, EventType type, DateTime start, DateTime end)
+        private static EventSummariesDto RecordEventDuration(EventSummariesDto summaries, EventTimelineDto timeline, DateTime end)
         {
-            var elapsed = (int)(end - start).TotalMilliseconds;
+            var durations = new List<EventDurationDto>();
 
-            if (type == EventType.Idling)
+            if (timeline.EventType == EventType.Idling)
             {
-                breakdown.Idling += elapsed;
+                durations = summaries.Idling;
             }
-            else if (type == EventType.Break)
+            else if (timeline.EventType == EventType.Break)
             {
-                breakdown.Break += elapsed;
+                durations = summaries.Break;
             }
-            else if (type == EventType.Interruption)
+            else if (timeline.EventType == EventType.Interruption)
             {
-                breakdown.Interruption += elapsed;
+                durations = summaries.Interruption;
             }
-            else if (type == EventType.Task)
+            else if (timeline.EventType == EventType.Task)
             {
-                breakdown.Task += elapsed;
+                durations = summaries.Task;
             }
 
-            return breakdown;
+            var elapsed = (int)(end - timeline.StartTime).TotalMilliseconds;
+            var existing = durations.Find(_ => _.Id == timeline.Id);
+
+            if (existing != null)
+            {
+                existing.Duration += elapsed;
+            }
+            else
+            {
+                durations.Add(EventDurationDto.Convert(timeline, elapsed));
+            }
+
+            return summaries;
         }
     }
 }
