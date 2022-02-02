@@ -78,26 +78,6 @@ namespace Service.Services
             return summaries;
         }
 
-        public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
-        {
-            var summaries = await EventHistorySummaryRepository.GetSummaries(start, start.AddDays(1)).ConfigureAwait(false);
-
-            if (summaries.Any() && summaries[0].Timestamp == start)
-            {
-                return summaries;
-            }
-
-            var previous = await EventHistorySummaryRepository.GetLastSummary(start).ConfigureAwait(false);
-
-            if (previous != null)
-            {
-                previous.Timestamp = start;
-                summaries.Insert(0, previous);
-            }
-
-            return summaries;
-        }
-
         public async Task<bool> StartIdlingSession()
         {
             var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
@@ -216,6 +196,21 @@ namespace Service.Services
             history.Timestamp = (history.Timestamp > start ? history.Timestamp : start).SpecifyKindUtc();
 
             return history;
+        }
+
+        private async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
+        {
+            var summaries = await EventHistorySummaryRepository.GetSummaries(start, start.AddDays(1)).ConfigureAwait(false);
+            var previous = await EventHistorySummaryRepository.GetLastSummary(start).ConfigureAwait(false);
+            var includePrevious = !summaries.Any() || summaries[0].Timestamp != start;
+
+            if (includePrevious && previous != null)
+            {
+                previous.Timestamp = start;
+                summaries.Insert(0, previous);
+            }
+
+            return summaries;
         }
 
         private static EventTimeSummary RecordTimeSummary(EventTimeSummary summary, EventType type, DateTime start, DateTime end)

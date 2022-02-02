@@ -1,9 +1,7 @@
 using Core.Dtos;
 using Core.Interfaces.Services;
-using Core.Models.Event;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -28,9 +26,9 @@ namespace WebApi.Controllers
 
         [HttpGet]
         [Route("event-summaries/{start}")]
-        public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
+        public async Task<EventSummariesDto> GetEventSummariesByDay(DateTime start)
         {
-            return await EventService.GetEventHistorySummariesByDay(start).ConfigureAwait(false);
+            return await EventService.GetEventSummariesByDay(start).ConfigureAwait(false);
         }
 
         [HttpPost]
