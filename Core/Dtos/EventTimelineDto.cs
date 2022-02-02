@@ -1,4 +1,5 @@
 using Core.Enums;
+using Core.Models.Event;
 using System;
 
 namespace Core.Dtos
@@ -10,5 +11,22 @@ namespace Core.Dtos
         public DateTime StartTime { get; set; }
         public string Name { get; set; }
         public bool IsDeleted { get; set; }
+
+        public static EventTimelineDto Convert(EventHistorySummary summary)
+        {
+            if (summary == null)
+            {
+                return null;
+            }
+
+            return new EventTimelineDto
+            {
+                Id = summary.ResourceId,
+                EventType = summary.EventType,
+                StartTime = summary.Timestamp,
+                Name = summary.Name,
+                IsDeleted = summary.IsDeleted
+            };
+        }
     }
 }

@@ -51,6 +51,33 @@ namespace Service.Services
             };
         }
 
+        public async Task<EventSummariesDto> GetEventSummariesByDay(DateTime start)
+        {
+            var startTime = start.ToUniversalTime();
+            var endTime = startTime.AddDays(1) < DateTime.UtcNow ? startTime.AddDays(1) : DateTime.UtcNow;
+
+            if (startTime > DateTime.UtcNow)
+            {
+                return new EventSummariesDto();
+            }
+
+            var histories = await GetEventHistorySummariesByDay(startTime).ConfigureAwait(false);
+            var summaries = new EventSummariesDto { Timeline = histories.Select(EventTimelineDto.Convert).ToList() };
+            // record time between timeline events
+            for (var i = 0; i < summaries.Timeline.Count - 1; ++i)
+            {
+                summaries = RecordEventDuration(summaries, summaries.Timeline[i], summaries.Timeline[i + 1].StartTime);
+            }
+            // record time between last timeline event and end time
+            summaries = RecordEventDuration(summaries, summaries.Timeline.Last(), endTime);
+            summaries.Idling = summaries.Idling.OrderByDescending(_ => _.Duration).ToList();
+            summaries.Break = summaries.Break.OrderByDescending(_ => _.Duration).ToList();
+            summaries.Interruption = summaries.Interruption.OrderByDescending(_ => _.Duration).ToList();
+            summaries.Task = summaries.Task.OrderByDescending(_ => _.Duration).ToList();
+
+            return summaries;
+        }
+
         public async Task<EventTimeBreakdownDto> GetTimeBreakdownByDay(DateTime start)
         {
             var startTime = start.ToUniversalTime();
@@ -77,25 +104,18 @@ namespace Service.Services
 
         public async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
         {
-            var startTime = start.ToUniversalTime();
+            var summaries = await EventHistorySummaryRepository.GetSummaries(start, start.AddDays(1)).ConfigureAwait(false);
 
-            if (startTime > DateTime.UtcNow)
-            {
-                return new List<EventHistorySummary>();
-            }
-
-            var summaries = await EventHistorySummaryRepository.GetSummaries(startTime, startTime.AddDays(1)).ConfigureAwait(false);
-
-            if (summaries.Any() && summaries[0].Timestamp == startTime)
+            if (summaries.Any() && summaries[0].Timestamp == start)
             {
                 return summaries;
             }
 
-            var previous = await EventHistorySummaryRepository.GetLastSummary(startTime).ConfigureAwait(false);
+            var previous = await EventHistorySummaryRepository.GetLastSummary(start).ConfigureAwait(false);
 
             if (previous != null)
             {
-                previous.Timestamp = startTime;
+                previous.Timestamp = start;
                 summaries.Insert(0, previous);
             }
 
@@ -260,6 +280,42 @@ namespace Service.Services
             }
 
             return breakdown;
+        }
+
+        private static EventSummariesDto RecordEventDuration(EventSummariesDto summaries, EventTimelineDto timeline, DateTime end)
+        {
+            var durations = new List<EventDurationDto>();
+
+            if (timeline.EventType == EventType.Idling)
+            {
+                durations = summaries.Idling;
+            }
+            else if (timeline.EventType == EventType.Break)
+            {
+                durations = summaries.Break;
+            }
+            else if (timeline.EventType == EventType.Interruption)
+            {
+                durations = summaries.Interruption;
+            }
+            else if (timeline.EventType == EventType.Task)
+            {
+                durations = summaries.Task;
+            }
+
+            var elapsed = (int)(end - timeline.StartTime).TotalMilliseconds;
+            var existing = durations.Find(_ => _.Id == timeline.Id);
+
+            if (existing != null)
+            {
+                existing.Duration += elapsed;
+            }
+            else
+            {
+                durations.Add(EventDurationDto.Convert(timeline, elapsed));
+            }
+
+            return summaries;
         }
     }
 }
