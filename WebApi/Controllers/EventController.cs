@@ -2,7 +2,6 @@ using Core.Dtos;
 using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,6 +30,16 @@ namespace WebApi.Controllers
         public async Task<EventSummariesDto> GetEventSummariesByDay(DateTime start)
         {
             return await EventService.GetEventSummariesByDay(start).ConfigureAwait(false);
+        }
+
+        [HttpGet]
+        [Route("timesheets/{start}")]
+        public async Task<IActionResult> GetTimesheetsByDay(DateTime start)
+        {
+            var timesheets = await EventService.GetTimesheetsByDay(start).ConfigureAwait(false);
+            var file = Encoding.UTF8.GetBytes(string.Join("\n", timesheets));
+
+            return File(file, "text/plain", $"timesheets_{DateTime.UtcNow:dd_MM_yyyy}");
         }
 
         [HttpPost]
