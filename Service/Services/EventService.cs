@@ -62,6 +62,12 @@ namespace Service.Services
             }
 
             var histories = await GetEventHistorySummariesByDay(startTime).ConfigureAwait(false);
+
+            if (!histories.Any())
+            {
+                return new EventSummariesDto();
+            }
+
             var summaries = new EventSummariesDto { Timeline = histories.Select(EventTimelineDto.Convert).ToList() };
             // record time between timeline events
             for (var i = 0; i < summaries.Timeline.Count - 1; ++i)
@@ -73,6 +79,20 @@ namespace Service.Services
             summaries.Duration = summaries.Duration.OrderByDescending(_ => _.Duration).ToList();
 
             return summaries;
+        }
+
+        public async Task<List<string>> GetTimesheetsByDay(DateTime start)
+        {
+            var summaries = await GetEventSummariesByDay(start).ConfigureAwait(false);
+            var durations = summaries.Duration.Where(_ => _.EventType != EventType.Idling && _.EventType != EventType.Break);
+
+            return durations.Select(_ =>
+            {
+                var time = TimeSpan.FromMilliseconds(_.Duration);
+                var total = time.TotalMinutes < 1 ? "<1m" : $"{Math.Round(time.TotalMinutes)}m";
+
+                return $"{time.Hours}h {time.Minutes}m ({total}) - {_.Name}";
+            }).ToList();
         }
 
         public async Task<bool> StartIdlingSession()
