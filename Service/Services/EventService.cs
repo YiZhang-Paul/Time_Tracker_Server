@@ -89,7 +89,7 @@ namespace Service.Services
             return durations.Select(_ =>
             {
                 var time = TimeSpan.FromMilliseconds(_.Duration);
-                var total = time.TotalMinutes < 1 ? "<1m" : $"{Math.Round(time.TotalMinutes)}";
+                var total = time.TotalMinutes < 1 ? "<1m" : $"{Math.Round(time.TotalMinutes)}m";
 
                 return $"{time.Hours}h {time.Minutes}m ({total}) - {_.Name}";
             }).ToList();
