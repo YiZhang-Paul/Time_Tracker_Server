@@ -70,10 +70,7 @@ namespace Service.Services
             }
             // record time between last timeline event and end time
             summaries = RecordEventDuration(summaries, summaries.Timeline.Last(), endTime);
-            summaries.Idling = summaries.Idling.OrderByDescending(_ => _.Duration).ToList();
-            summaries.Break = summaries.Break.OrderByDescending(_ => _.Duration).ToList();
-            summaries.Interruption = summaries.Interruption.OrderByDescending(_ => _.Duration).ToList();
-            summaries.Task = summaries.Task.OrderByDescending(_ => _.Duration).ToList();
+            summaries.Duration = summaries.Duration.OrderByDescending(_ => _.Duration).ToList();
 
             return summaries;
         }
@@ -231,27 +228,8 @@ namespace Service.Services
 
         private static EventSummariesDto RecordEventDuration(EventSummariesDto summaries, EventTimelineDto timeline, DateTime end)
         {
-            var durations = new List<EventDurationDto>();
-
-            if (timeline.EventType == EventType.Idling)
-            {
-                durations = summaries.Idling;
-            }
-            else if (timeline.EventType == EventType.Break)
-            {
-                durations = summaries.Break;
-            }
-            else if (timeline.EventType == EventType.Interruption)
-            {
-                durations = summaries.Interruption;
-            }
-            else if (timeline.EventType == EventType.Task)
-            {
-                durations = summaries.Task;
-            }
-
             var elapsed = (int)(end - timeline.StartTime).TotalMilliseconds;
-            var existing = durations.Find(_ => _.Id == timeline.Id);
+            var existing = summaries.Duration.Find(_ => _.EventType == timeline.EventType && _.Id == timeline.Id);
 
             if (existing != null)
             {
@@ -259,7 +237,7 @@ namespace Service.Services
             }
             else
             {
-                durations.Add(EventDurationDto.Convert(timeline, elapsed));
+                summaries.Duration.Add(EventDurationDto.Convert(timeline, elapsed));
             }
 
             return summaries;
