@@ -86,7 +86,13 @@ namespace Service.Services
             var summaries = await GetEventSummariesByDay(start).ConfigureAwait(false);
             var durations = summaries.Duration.Where(_ => _.EventType != EventType.Idling && _.EventType != EventType.Break);
 
-            return durations.Select(_ => $"{_.Duration} - {_.Name}").ToList();
+            return durations.Select(_ =>
+            {
+                var time = TimeSpan.FromMilliseconds(_.Duration);
+                var total = time.TotalMinutes < 1 ? "<1m" : $"{Math.Round(time.TotalMinutes)}";
+
+                return $"{time.Hours}h {time.Minutes}m ({total}) - {_.Name}";
+            }).ToList();
         }
 
         public async Task<bool> StartIdlingSession()
