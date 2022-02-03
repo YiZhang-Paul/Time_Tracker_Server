@@ -81,6 +81,14 @@ namespace Service.Services
             return summaries;
         }
 
+        public async Task<List<string>> GetTimesheetsByDay(DateTime start)
+        {
+            var summaries = await GetEventSummariesByDay(start).ConfigureAwait(false);
+            var durations = summaries.Duration.Where(_ => _.EventType != EventType.Idling && _.EventType != EventType.Break);
+
+            return durations.Select(_ => $"{_.Duration} - {_.Name}").ToList();
+        }
+
         public async Task<bool> StartIdlingSession()
         {
             var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
