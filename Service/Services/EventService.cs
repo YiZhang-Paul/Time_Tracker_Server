@@ -62,6 +62,12 @@ namespace Service.Services
             }
 
             var histories = await GetEventHistorySummariesByDay(startTime).ConfigureAwait(false);
+
+            if (!histories.Any())
+            {
+                return new EventSummariesDto();
+            }
+
             var summaries = new EventSummariesDto { Timeline = histories.Select(EventTimelineDto.Convert).ToList() };
             // record time between timeline events
             for (var i = 0; i < summaries.Timeline.Count - 1; ++i)
