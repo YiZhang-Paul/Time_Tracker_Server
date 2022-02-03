@@ -34,7 +34,8 @@ namespace WebApi
                     _.SetIsOriginAllowedToAllowWildcardSubdomains()
                         .WithOrigins("http://localhost:8080", "https://*.yizhang-paul.com")
                         .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowAnyMethod()
+                        .WithExposedHeaders("Content-Disposition");
                 });
             });
 
