@@ -1,5 +1,8 @@
 using Core.Dtos;
+using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Models.Interruption;
+using Core.Models.Task;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -15,14 +18,30 @@ namespace WebApi.Test.Unit
     public class EventControllerTest
     {
         private const string ApiBase = "api/v1/events";
+        private Mock<IInterruptionItemRepository> InterruptionItemRepository { get; set; }
+        private Mock<ITaskItemRepository> TaskItemRepository { get; set; }
+        private Mock<IInterruptionItemService> InterruptionItemService { get; set; }
+        private Mock<ITaskItemService> TaskItemService { get; set; }
         private Mock<IEventService> EventService { get; set; }
         private HttpClient HttpClient { get; set; }
 
         [SetUp]
         public async Task Setup()
         {
+            InterruptionItemRepository = new Mock<IInterruptionItemRepository>();
+            TaskItemRepository = new Mock<ITaskItemRepository>();
+            InterruptionItemService = new Mock<IInterruptionItemService>();
+            TaskItemService = new Mock<ITaskItemService>();
             EventService = new Mock<IEventService>();
-            HttpClient = await new ControllerTestUtility().SetupTestHttpClient(_ => _.AddSingleton(EventService.Object)).ConfigureAwait(false);
+
+            HttpClient = await new ControllerTestUtility().SetupTestHttpClient
+            (
+                _ => _.AddSingleton(InterruptionItemRepository.Object)
+                      .AddSingleton(TaskItemRepository.Object)
+                      .AddSingleton(InterruptionItemService.Object)
+                      .AddSingleton(TaskItemService.Object)
+                      .AddSingleton(EventService.Object)
+            ).ConfigureAwait(false);
         }
 
         [Test]
@@ -51,26 +70,56 @@ namespace WebApi.Test.Unit
         }
 
         [Test]
+        public async Task StartInterruptionItemShouldReturnFalseWhenItemDoesNotExist()
+        {
+            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync((InterruptionItem)null);
+
+            var response = await HttpClient.PostAsync($"{ApiBase}/interruption-items/5", null).ConfigureAwait(false);
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            Assert.AreEqual("false", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            InterruptionItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
+            EventService.Verify(_ => _.StartInterruptionItem(It.IsAny<long>()), Times.Never);
+        }
+
+        [Test]
         public async Task StartInterruptionItemShouldStartInterruptionItem()
         {
+            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
             EventService.Setup(_ => _.StartInterruptionItem(It.IsAny<long>())).ReturnsAsync(true);
 
             var response = await HttpClient.PostAsync($"{ApiBase}/interruption-items/5", null).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            InterruptionItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
             EventService.Verify(_ => _.StartInterruptionItem(5), Times.Once);
+        }
+
+        [Test]
+        public async Task StartTaskItemShouldReturnFalseWhenItemDoesNotExist()
+        {
+            TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync((TaskItem)null);
+
+            var response = await HttpClient.PostAsync($"{ApiBase}/task-items/5", null).ConfigureAwait(false);
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            Assert.AreEqual("false", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            TaskItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
+            EventService.Verify(_ => _.StartTaskItem(It.IsAny<long>()), Times.Never);
         }
 
         [Test]
         public async Task StartTaskItemShouldStartTaskItem()
         {
+            TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new TaskItem());
             EventService.Setup(_ => _.StartTaskItem(It.IsAny<long>())).ReturnsAsync(true);
 
             var response = await HttpClient.PostAsync($"{ApiBase}/task-items/5", null).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+            TaskItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
             EventService.Verify(_ => _.StartTaskItem(5), Times.Once);
         }
 

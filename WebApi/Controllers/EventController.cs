@@ -1,4 +1,6 @@
 using Core.Dtos;
+using Core.Enums;
+using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -11,10 +13,25 @@ namespace WebApi.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
+        private IInterruptionItemRepository InterruptionItemRepository { get; }
+        private ITaskItemRepository TaskItemRepository { get; }
+        private IInterruptionItemService InterruptionItemService { get; }
+        private ITaskItemService TaskItemService { get; }
         private IEventService EventService { get; }
 
-        public EventController(IEventService eventService)
+        public EventController
+        (
+            IInterruptionItemRepository interruptionItemRepository,
+            ITaskItemRepository taskItemRepository,
+            IInterruptionItemService interruptionItemService,
+            ITaskItemService taskItemService,
+            IEventService eventService
+        )
         {
+            InterruptionItemRepository = interruptionItemRepository;
+            TaskItemRepository = taskItemRepository;
+            InterruptionItemService = interruptionItemService;
+            TaskItemService = taskItemService;
             EventService = eventService;
         }
 
@@ -53,6 +70,18 @@ namespace WebApi.Controllers
         [Route("interruption-items/{id}")]
         public async Task<bool> StartInterruptionItem(long id)
         {
+            var item = await InterruptionItemRepository.GetItemById(id).ConfigureAwait(false);
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            if (item.ResolvedTime != null && await InterruptionItemService.UpdateItem(item, ResolveAction.Unresolve).ConfigureAwait(false) == null)
+            {
+                return false;
+            }
+
             return await EventService.StartInterruptionItem(id).ConfigureAwait(false);
         }
 
@@ -60,6 +89,18 @@ namespace WebApi.Controllers
         [Route("task-items/{id}")]
         public async Task<bool> StartTaskItem(long id)
         {
+            var item = await TaskItemRepository.GetItemById(id).ConfigureAwait(false);
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            if (item.ResolvedTime != null && await TaskItemService.UpdateItem(item, ResolveAction.Unresolve).ConfigureAwait(false) == null)
+            {
+                return false;
+            }
+
             return await EventService.StartTaskItem(id).ConfigureAwait(false);
         }
 

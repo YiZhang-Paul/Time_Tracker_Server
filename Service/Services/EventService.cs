@@ -13,23 +13,17 @@ namespace Service.Services
 {
     public class EventService : IEventService
     {
-        private IInterruptionItemRepository InterruptionItemRepository { get; }
-        private ITaskItemRepository TaskItemRepository { get; }
         private IEventHistoryRepository EventHistoryRepository { get; }
         private IEventHistorySummaryRepository EventHistorySummaryRepository { get; }
         private IEventPromptRepository EventPromptRepository { get; }
 
         public EventService
         (
-            IInterruptionItemRepository interruptionItemRepository,
-            ITaskItemRepository taskItemRepository,
             IEventHistoryRepository eventHistoryRepository,
             IEventHistorySummaryRepository eventHistorySummaryRepository,
             IEventPromptRepository eventPromptRepository
         )
         {
-            InterruptionItemRepository = interruptionItemRepository;
-            TaskItemRepository = taskItemRepository;
             EventHistoryRepository = eventHistoryRepository;
             EventHistorySummaryRepository = eventHistorySummaryRepository;
             EventPromptRepository = eventPromptRepository;
@@ -111,13 +105,6 @@ namespace Service.Services
 
         public async Task<bool> StartInterruptionItem(long id)
         {
-            var item = await InterruptionItemRepository.GetItemById(id).ConfigureAwait(false);
-
-            if (item == null)
-            {
-                return false;
-            }
-
             var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
 
             if (last != null && last.EventType == EventType.Interruption && last.ResourceId == id)
@@ -132,13 +119,6 @@ namespace Service.Services
 
         public async Task<bool> StartTaskItem(long id)
         {
-            var item = await TaskItemRepository.GetItemById(id).ConfigureAwait(false);
-
-            if (item == null)
-            {
-                return false;
-            }
-
             var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
 
             if (last != null && last.EventType == EventType.Task && last.ResourceId == id)
