@@ -1,5 +1,4 @@
 using Core.DbContexts;
-using Core.Extensions;
 using Core.Interfaces.Repositories;
 using Core.Models.Event;
 using Microsoft.EntityFrameworkCore;
@@ -29,10 +28,8 @@ namespace Service.Repositories
         public async Task<List<EventHistorySummary>> GetSummaries(DateTime start, DateTime end)
         {
             var query = Context.EventHistorySummary.Where(_ => _.Timestamp >= start && _.Timestamp <= end).OrderBy(_ => _.Timestamp);
-            var summaries = await query.ToListAsync().ConfigureAwait(false);
-            summaries.ForEach(_ => _.Timestamp = _.Timestamp.ToKindUtc());
 
-            return summaries;
+            return await query.ToListAsync().ConfigureAwait(false);
         }
     }
 }
