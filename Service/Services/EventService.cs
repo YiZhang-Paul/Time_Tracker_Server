@@ -1,9 +1,9 @@
 using Core.Dtos;
 using Core.Enums;
+using Core.Extensions;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.Event;
-using Service.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -190,7 +190,7 @@ namespace Service.Services
         {
             var history = await EventHistoryRepository.GetLastHistory(null, true).ConfigureAwait(false);
             history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = start };
-            history.Timestamp = (history.Timestamp > start ? history.Timestamp : start).SpecifyKindUtc();
+            history.Timestamp = (history.Timestamp > start ? history.Timestamp : start).ToKindUtc();
 
             return history;
         }
