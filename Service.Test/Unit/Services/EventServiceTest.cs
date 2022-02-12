@@ -1,8 +1,6 @@
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Models.Event;
-using Core.Models.Interruption;
-using Core.Models.Task;
 using Moq;
 using NUnit.Framework;
 using Service.Services;
@@ -15,8 +13,6 @@ namespace Service.Test.Unit.Services
     [TestFixture]
     public class EventServiceTest
     {
-        private Mock<IInterruptionItemRepository> InterruptionItemRepository { get; set; }
-        private Mock<ITaskItemRepository> TaskItemRepository { get; set; }
         private Mock<IEventHistoryRepository> EventHistoryRepository { get; set; }
         private Mock<IEventHistorySummaryRepository> EventHistorySummaryRepository { get; set; }
         private Mock<IEventPromptRepository> EventPromptRepository { get; set; }
@@ -25,16 +21,12 @@ namespace Service.Test.Unit.Services
         [SetUp]
         public void Setup()
         {
-            InterruptionItemRepository = new Mock<IInterruptionItemRepository>();
-            TaskItemRepository = new Mock<ITaskItemRepository>();
             EventHistoryRepository = new Mock<IEventHistoryRepository>();
             EventHistorySummaryRepository = new Mock<IEventHistorySummaryRepository>();
             EventPromptRepository = new Mock<IEventPromptRepository>();
 
             Subject = new EventService
             (
-                InterruptionItemRepository.Object,
-                TaskItemRepository.Object,
                 EventHistoryRepository.Object,
                 EventHistorySummaryRepository.Object,
                 EventPromptRepository.Object
@@ -222,22 +214,9 @@ namespace Service.Test.Unit.Services
         }
 
         [Test]
-        public async Task StartInterruptionItemShouldReturnFalseWhenItemDoesNotExist()
-        {
-            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync((InterruptionItem)null);
-
-            var result = await Subject.StartInterruptionItem(5).ConfigureAwait(false);
-
-            Assert.IsFalse(result);
-            InterruptionItemRepository.Verify(_ => _.GetItemById(It.IsAny<long>(), true), Times.Once);
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
-        }
-
-        [Test]
         public async Task StartInterruptionItemShouldReturnFalseWhenItemIsOngoing()
         {
             var history = new EventHistory { ResourceId = 5, EventType = EventType.Interruption };
-            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync(history);
 
             var result = await Subject.StartInterruptionItem(5).ConfigureAwait(false);
@@ -250,7 +229,6 @@ namespace Service.Test.Unit.Services
         [Test]
         public async Task StartInterruptionItemShouldReturnFalseWhenFailedToStartItem()
         {
-            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync((EventHistory)null);
 
@@ -268,7 +246,6 @@ namespace Service.Test.Unit.Services
         public async Task StartInterruptionItemShouldReturnTrueWhenSuccessfullyStartedItem()
         {
             var history = new EventHistory { ResourceId = 6, EventType = EventType.Interruption };
-            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync(history);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync(new EventHistory());
 
@@ -283,22 +260,9 @@ namespace Service.Test.Unit.Services
         }
 
         [Test]
-        public async Task StartTaskItemShouldReturnFalseWhenItemDoesNotExist()
-        {
-            TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync((TaskItem)null);
-
-            var result = await Subject.StartTaskItem(5).ConfigureAwait(false);
-
-            Assert.IsFalse(result);
-            TaskItemRepository.Verify(_ => _.GetItemById(It.IsAny<long>(), true), Times.Once);
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
-        }
-
-        [Test]
         public async Task StartTaskItemShouldReturnFalseWhenItemIsOngoing()
         {
             var history = new EventHistory { ResourceId = 5, EventType = EventType.Task };
-            TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new TaskItem());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync(history);
 
             var result = await Subject.StartTaskItem(5).ConfigureAwait(false);
@@ -311,7 +275,6 @@ namespace Service.Test.Unit.Services
         [Test]
         public async Task StartTaskItemShouldReturnFalseWhenFailedToStartItem()
         {
-            TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new TaskItem());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync((EventHistory)null);
 
@@ -329,7 +292,6 @@ namespace Service.Test.Unit.Services
         public async Task StartTaskItemShouldReturnTrueWhenSuccessfullyStartedItem()
         {
             var history = new EventHistory { ResourceId = 6, EventType = EventType.Task };
-            TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new TaskItem());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync(history);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync(new EventHistory());
 
