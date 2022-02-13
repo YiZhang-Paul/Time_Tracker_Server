@@ -4,6 +4,7 @@ using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.WorkItem;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Service.Services
@@ -26,12 +27,16 @@ namespace Service.Services
             };
         }
 
+        public async Task<InterruptionItem> CreateItem(InterruptionItemBase item)
+        {
+            ValidateItem(item);
+
+            return await InterruptionItemRepository.CreateItem(item).ConfigureAwait(false);
+        }
+
         public async Task<InterruptionItem> UpdateItem(InterruptionItem item, ResolveAction action = ResolveAction.None)
         {
-            if (string.IsNullOrWhiteSpace(item.Name))
-            {
-                throw new ArgumentException("Name must not be null or empty.");
-            }
+            ValidateItem(item);
 
             if (action == ResolveAction.Resolve && item.ResolvedTime.HasValue)
             {
@@ -49,6 +54,19 @@ namespace Service.Services
             }
 
             return await InterruptionItemRepository.UpdateItem(item).ConfigureAwait(false);
+        }
+
+        private void ValidateItem(InterruptionItemBase item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name))
+            {
+                throw new ArgumentException("Name must not be null or empty.");
+            }
+
+            if (item.Checklists.Any(_ => string.IsNullOrWhiteSpace(_.Description)))
+            {
+                throw new ArgumentException("Checklist description must not be null or empty.");
+            }
         }
     }
 }
