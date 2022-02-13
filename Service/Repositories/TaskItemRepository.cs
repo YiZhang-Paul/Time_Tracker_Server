@@ -49,7 +49,7 @@ namespace Service.Repositories
             return await query.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
-        public async Task<TaskItem> CreateItem(TaskItemCreationDto item)
+        public async Task<TaskItem> CreateItem(TaskItemBase item)
         {
             var now = DateTime.UtcNow;
 
