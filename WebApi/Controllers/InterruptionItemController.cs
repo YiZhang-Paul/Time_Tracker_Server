@@ -2,7 +2,7 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
-using Core.Models.Interruption;
+using Core.Models.WorkItem;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -38,14 +38,16 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Route("")]
-        public async Task<IActionResult> CreateItem([FromBody]InterruptionItemCreationDto item)
+        public async Task<IActionResult> CreateItem([FromBody]InterruptionItemBase item)
         {
-            if (string.IsNullOrWhiteSpace(item.Name))
+            try
             {
-                return BadRequest("Name must not be null or empty.");
+                return Ok(await InterruptionItemService.CreateItem(item).ConfigureAwait(false));
             }
-
-            return Ok(await InterruptionItemRepository.CreateItem(item).ConfigureAwait(false));
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
+            }
         }
 
         [HttpPut]

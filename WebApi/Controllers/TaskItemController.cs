@@ -2,7 +2,7 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
-using Core.Models.Task;
+using Core.Models.WorkItem;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -38,14 +38,16 @@ namespace WebApi.Controllers
 
         [HttpPost]
         [Route("")]
-        public async Task<IActionResult> CreateItem([FromBody]TaskItemCreationDto item)
+        public async Task<IActionResult> CreateItem([FromBody]TaskItemBase item)
         {
-            if (string.IsNullOrWhiteSpace(item.Name))
+            try
             {
-                return BadRequest("Name must not be null or empty.");
+                return Ok(await TaskItemService.CreateItem(item).ConfigureAwait(false));
             }
-
-            return Ok(await TaskItemRepository.CreateItem(item).ConfigureAwait(false));
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
+            }
         }
 
         [HttpPut]

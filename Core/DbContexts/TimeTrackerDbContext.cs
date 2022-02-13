@@ -1,6 +1,5 @@
 using Core.Models.Event;
-using Core.Models.Interruption;
-using Core.Models.Task;
+using Core.Models.WorkItem;
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.DbContexts

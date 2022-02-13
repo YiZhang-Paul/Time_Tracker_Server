@@ -1,7 +1,7 @@
 using Core.DbContexts;
 using Core.Dtos;
 using Core.Interfaces.Repositories;
-using Core.Models.Task;
+using Core.Models.WorkItem;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -39,15 +39,17 @@ namespace Service.Repositories
 
         public async Task<TaskItem> GetItemById(long id, bool excludeDeleted = true)
         {
+            var query = Context.TaskItem.Include(_ => _.Checklists);
+
             if (excludeDeleted)
             {
-                return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id && !_.IsDeleted).ConfigureAwait(false);
+                return await query.FirstOrDefaultAsync(_ => _.Id == id && !_.IsDeleted).ConfigureAwait(false);
             }
 
-            return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
+            return await query.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
-        public async Task<TaskItem> CreateItem(TaskItemCreationDto item)
+        public async Task<TaskItem> CreateItem(TaskItemBase item)
         {
             var now = DateTime.UtcNow;
 
@@ -56,13 +58,14 @@ namespace Service.Repositories
                 Name = item.Name,
                 Description = item.Description,
                 Effort = item.Effort,
+                Checklists = item.Checklists,
                 CreationTime = now,
                 ModifiedTime = now
             };
 
             Context.TaskItem.Add(payload);
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? payload : null;
+            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0 ? payload : null;
         }
 
         public async Task<TaskItem> UpdateItem(TaskItem item)
@@ -77,10 +80,11 @@ namespace Service.Repositories
             existing.Name = item.Name;
             existing.Description = item.Description;
             existing.Effort = item.Effort;
+            existing.Checklists = item.Checklists;
             existing.ResolvedTime = item.ResolvedTime;
             existing.ModifiedTime = DateTime.UtcNow;
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? existing : null;
+            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0 ? existing : null;
         }
 
         public async Task<bool> DeleteItemById(long id)
@@ -95,7 +99,7 @@ namespace Service.Repositories
             existing.IsDeleted = true;
             existing.ModifiedTime = DateTime.UtcNow;
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1;
+            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0;
         }
     }
 }

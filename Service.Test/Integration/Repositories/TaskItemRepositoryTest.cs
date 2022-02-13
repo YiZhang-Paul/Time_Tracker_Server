@@ -1,6 +1,5 @@
 using Core.DbContexts;
-using Core.Dtos;
-using Core.Models.Task;
+using Core.Models.WorkItem;
 using NUnit.Framework;
 using Service.Repositories;
 using System;
@@ -36,7 +35,7 @@ namespace Service.Test.Integration.Repositories
         {
             for (var i = 0; i < 5; ++i)
             {
-                var payload = new TaskItemCreationDto
+                var payload = new TaskItemBase
                 {
                     Name = $"name_{i}",
                     Description = $"description_{i}",
@@ -72,7 +71,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetItemByIdShouldReturnNullWhenItemIsDeleted()
         {
-            var payload = new TaskItemCreationDto { Name = "name", Description = "description", Effort = 5 };
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
             await Subject.CreateItem(payload).ConfigureAwait(false);
             await Subject.DeleteItemById(1).ConfigureAwait(false);
 
@@ -84,7 +83,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetItemByIdShouldReturnDeletedItemWhenNotExcludingDeletedItem()
         {
-            var payload = new TaskItemCreationDto { Name = "name", Description = "description", Effort = 5 };
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
             await Subject.CreateItem(payload).ConfigureAwait(false);
             await Subject.DeleteItemById(1).ConfigureAwait(false);
 
@@ -96,7 +95,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetItemByIdShouldReturnItemFound()
         {
-            var payload = new TaskItemCreationDto { Name = "name", Description = "description", Effort = 5 };
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
             await Subject.CreateItem(payload).ConfigureAwait(false);
 
             var result = await Subject.GetItemById(1).ConfigureAwait(false);
@@ -107,7 +106,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            var payload = new TaskItemCreationDto
+            var payload = new TaskItemBase
             {
                 Name = "item_name",
                 Description = "item_description",
@@ -134,7 +133,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task UpdateItemShouldReturnItemUpdated()
         {
-            var payload = new TaskItemCreationDto
+            var payload = new TaskItemBase
             {
                 Name = "previous_name",
                 Description = "previous_description",
@@ -166,7 +165,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task DeleteItemByIdShouldReturnFalseWhenItemIsAlreadyDeleted()
         {
-            var payload = new TaskItemCreationDto { Name = "name", Description = "description", Effort = 5 };
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
             await Subject.CreateItem(payload).ConfigureAwait(false);
             await Subject.DeleteItemById(1).ConfigureAwait(false);
 
@@ -178,7 +177,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task DeleteItemByIdShouldReturnTrueWhenSuccessfullyDeletedItem()
         {
-            var payload = new TaskItemCreationDto { Name = "name", Description = "description", Effort = 5 };
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
             await Subject.CreateItem(payload).ConfigureAwait(false);
 
             var result = await Subject.DeleteItemById(1).ConfigureAwait(false);

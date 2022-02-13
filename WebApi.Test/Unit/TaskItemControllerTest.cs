@@ -2,7 +2,7 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
-using Core.Models.Task;
+using Core.Models.WorkItem;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
@@ -79,33 +79,15 @@ namespace WebApi.Test.Unit
         }
 
         [Test]
-        public async Task CreateItemShouldReturnBadRequestWhenItemNameIsNull()
-        {
-            var response = await HttpClient.PostAsJsonAsync(ApiBase, new TaskItemCreationDto { Name = null }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            TaskItemRepository.Verify(_ => _.CreateItem(It.IsAny<TaskItemCreationDto>()), Times.Never);
-        }
-
-        [Test]
-        public async Task CreateItemShouldReturnBadRequestWhenItemNameIsEmpty()
-        {
-            var response = await HttpClient.PostAsJsonAsync(ApiBase, new TaskItemCreationDto { Name = " " }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            TaskItemRepository.Verify(_ => _.CreateItem(It.IsAny<TaskItemCreationDto>()), Times.Never);
-        }
-
-        [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            TaskItemRepository.Setup(_ => _.CreateItem(It.IsAny<TaskItemCreationDto>())).ReturnsAsync(new TaskItem());
+            TaskItemService.Setup(_ => _.CreateItem(It.IsAny<TaskItemBase>())).ReturnsAsync(new TaskItem());
 
-            var response = await HttpClient.PostAsJsonAsync(ApiBase, new TaskItemCreationDto { Name = "item_name" }).ConfigureAwait(false);
+            var response = await HttpClient.PostAsJsonAsync(ApiBase, new TaskItemBase { Name = "item_name" }).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<TaskItem>().ConfigureAwait(false));
-            TaskItemRepository.Verify(_ => _.CreateItem(It.IsAny<TaskItemCreationDto>()), Times.Once);
+            TaskItemService.Verify(_ => _.CreateItem(It.IsAny<TaskItemBase>()), Times.Once);
         }
 
         [Test]

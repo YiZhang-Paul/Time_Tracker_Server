@@ -2,8 +2,9 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
-using Core.Models.Task;
+using Core.Models.WorkItem;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Service.Services
@@ -26,12 +27,16 @@ namespace Service.Services
             };
         }
 
+        public async Task<TaskItem> CreateItem(TaskItemBase item)
+        {
+            ValidateItem(item);
+
+            return await TaskItemRepository.CreateItem(item).ConfigureAwait(false);
+        }
+
         public async Task<TaskItem> UpdateItem(TaskItem item, ResolveAction action = ResolveAction.None)
         {
-            if (string.IsNullOrWhiteSpace(item.Name))
-            {
-                throw new ArgumentException("Name must not be null or empty.");
-            }
+            ValidateItem(item);
 
             if (action == ResolveAction.Resolve && item.ResolvedTime.HasValue)
             {
@@ -49,6 +54,19 @@ namespace Service.Services
             }
 
             return await TaskItemRepository.UpdateItem(item).ConfigureAwait(false);
+        }
+
+        private void ValidateItem(TaskItemBase item)
+        {
+            if (string.IsNullOrWhiteSpace(item.Name))
+            {
+                throw new ArgumentException("Name must not be null or empty.");
+            }
+
+            if (item.Checklists.Any(_ => string.IsNullOrWhiteSpace(_.Description)))
+            {
+                throw new ArgumentException("Checklist description must not be null or empty.");
+            }
         }
     }
 }

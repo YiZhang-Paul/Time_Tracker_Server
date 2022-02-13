@@ -3,17 +3,12 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Core.Models.Task
+namespace Core.Models.WorkItem
 {
-    public partial class TaskItem
+    public partial class TaskItem : TaskItemBase
     {
         [Key]
         public long Id { get; set; }
-        [Required]
-        [StringLength(140)]
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public int Effort { get; set; }
         [Column(TypeName = "timestamp without time zone")]
         public DateTime CreationTime { get => _creationTime.ToKindUtc(); set => _creationTime = value; }
         [Column(TypeName = "timestamp without time zone")]

@@ -1,20 +1,14 @@
-using Core.Enums;
 using Core.Extensions;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Core.Models.Interruption
+namespace Core.Models.WorkItem
 {
-    public partial class InterruptionItem
+    public partial class InterruptionItem : InterruptionItemBase
     {
         [Key]
         public long Id { get; set; }
-        [Required]
-        [StringLength(140)]
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public Priority Priority { get; set; }
         [Column(TypeName = "timestamp without time zone")]
         public DateTime CreationTime { get => _creationTime.ToKindUtc(); set => _creationTime = value; }
         [Column(TypeName = "timestamp without time zone")]
