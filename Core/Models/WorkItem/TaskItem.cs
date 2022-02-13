@@ -1,5 +1,6 @@
 using Core.Extensions;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,6 +22,8 @@ namespace Core.Models.WorkItem
         [Column(TypeName = "timestamp without time zone")]
         public DateTime? ResolvedTime { get => _resolvedTime.ToKindUtc(); set => _resolvedTime = value; }
         public bool IsDeleted { get; set; }
+        // relationships and navigations
+        public List<TaskChecklistEntry> Checklists { get; set; } = new List<TaskChecklistEntry>();
         private DateTime _creationTime;
         private DateTime _modifiedTime;
         private DateTime? _resolvedTime;
