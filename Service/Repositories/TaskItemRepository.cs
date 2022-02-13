@@ -39,12 +39,14 @@ namespace Service.Repositories
 
         public async Task<TaskItem> GetItemById(long id, bool excludeDeleted = true)
         {
+            var query = Context.TaskItem.Include(_ => _.Checklists);
+
             if (excludeDeleted)
             {
-                return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id && !_.IsDeleted).ConfigureAwait(false);
+                return await query.FirstOrDefaultAsync(_ => _.Id == id && !_.IsDeleted).ConfigureAwait(false);
             }
 
-            return await Context.TaskItem.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
+            return await query.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
         public async Task<TaskItem> CreateItem(TaskItemCreationDto item)
