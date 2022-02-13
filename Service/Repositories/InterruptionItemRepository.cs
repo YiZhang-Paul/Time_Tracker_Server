@@ -1,7 +1,7 @@
 using Core.DbContexts;
 using Core.Dtos;
 using Core.Interfaces.Repositories;
-using Core.Models.Interruption;
+using Core.Models.WorkItem;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

@@ -2,7 +2,7 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
-using Core.Models.Task;
+using Core.Models.WorkItem;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;

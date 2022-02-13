@@ -1,6 +1,6 @@
 using Core.DbContexts;
 using Core.Dtos;
-using Core.Models.Task;
+using Core.Models.WorkItem;
 using NUnit.Framework;
 using Service.Repositories;
 using System;

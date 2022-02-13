@@ -1,7 +1,7 @@
 using Core.DbContexts;
 using Core.Dtos;
 using Core.Enums;
-using Core.Models.Interruption;
+using Core.Models.WorkItem;
 using NUnit.Framework;
 using Service.Repositories;
 using System;

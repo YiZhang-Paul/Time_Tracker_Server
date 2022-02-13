@@ -2,7 +2,7 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
-using Core.Models.Interruption;
+using Core.Models.WorkItem;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;

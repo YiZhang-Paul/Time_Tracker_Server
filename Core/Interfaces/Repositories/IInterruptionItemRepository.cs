@@ -1,5 +1,5 @@
 using Core.Dtos;
-using Core.Models.Interruption;
+using Core.Models.WorkItem;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
