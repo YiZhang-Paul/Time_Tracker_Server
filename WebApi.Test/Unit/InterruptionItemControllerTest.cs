@@ -79,33 +79,15 @@ namespace WebApi.Test.Unit
         }
 
         [Test]
-        public async Task CreateItemShouldReturnBadRequestWhenItemNameIsNull()
-        {
-            var response = await HttpClient.PostAsJsonAsync(ApiBase, new InterruptionItemBase { Name = null }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            InterruptionItemRepository.Verify(_ => _.CreateItem(It.IsAny<InterruptionItemBase>()), Times.Never);
-        }
-
-        [Test]
-        public async Task CreateItemShouldReturnBadRequestWhenItemNameIsEmpty()
-        {
-            var response = await HttpClient.PostAsJsonAsync(ApiBase, new InterruptionItemBase { Name = " " }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            InterruptionItemRepository.Verify(_ => _.CreateItem(It.IsAny<InterruptionItemBase>()), Times.Never);
-        }
-
-        [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            InterruptionItemRepository.Setup(_ => _.CreateItem(It.IsAny<InterruptionItemBase>())).ReturnsAsync(new InterruptionItem());
+            InterruptionItemService.Setup(_ => _.CreateItem(It.IsAny<InterruptionItemBase>())).ReturnsAsync(new InterruptionItem());
 
             var response = await HttpClient.PostAsJsonAsync(ApiBase, new InterruptionItemBase { Name = "item_name" }).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<InterruptionItem>().ConfigureAwait(false));
-            InterruptionItemRepository.Verify(_ => _.CreateItem(It.IsAny<InterruptionItemBase>()), Times.Once);
+            InterruptionItemService.Verify(_ => _.CreateItem(It.IsAny<InterruptionItemBase>()), Times.Once);
         }
 
         [Test]

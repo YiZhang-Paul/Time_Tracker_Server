@@ -79,33 +79,15 @@ namespace WebApi.Test.Unit
         }
 
         [Test]
-        public async Task CreateItemShouldReturnBadRequestWhenItemNameIsNull()
-        {
-            var response = await HttpClient.PostAsJsonAsync(ApiBase, new TaskItemBase { Name = null }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            TaskItemRepository.Verify(_ => _.CreateItem(It.IsAny<TaskItemBase>()), Times.Never);
-        }
-
-        [Test]
-        public async Task CreateItemShouldReturnBadRequestWhenItemNameIsEmpty()
-        {
-            var response = await HttpClient.PostAsJsonAsync(ApiBase, new TaskItemBase { Name = " " }).ConfigureAwait(false);
-
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-            TaskItemRepository.Verify(_ => _.CreateItem(It.IsAny<TaskItemBase>()), Times.Never);
-        }
-
-        [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            TaskItemRepository.Setup(_ => _.CreateItem(It.IsAny<TaskItemBase>())).ReturnsAsync(new TaskItem());
+            TaskItemService.Setup(_ => _.CreateItem(It.IsAny<TaskItemBase>())).ReturnsAsync(new TaskItem());
 
             var response = await HttpClient.PostAsJsonAsync(ApiBase, new TaskItemBase { Name = "item_name" }).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<TaskItem>().ConfigureAwait(false));
-            TaskItemRepository.Verify(_ => _.CreateItem(It.IsAny<TaskItemBase>()), Times.Once);
+            TaskItemService.Verify(_ => _.CreateItem(It.IsAny<TaskItemBase>()), Times.Once);
         }
 
         [Test]
