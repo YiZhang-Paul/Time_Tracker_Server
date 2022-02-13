@@ -58,6 +58,7 @@ namespace Service.Repositories
                 Name = item.Name,
                 Description = item.Description,
                 Priority = item.Priority,
+                Checklists = item.Checklists,
                 CreationTime = now,
                 ModifiedTime = now
             };

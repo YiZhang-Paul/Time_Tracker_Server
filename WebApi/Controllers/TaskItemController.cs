@@ -5,6 +5,7 @@ using Core.Interfaces.Services;
 using Core.Models.WorkItem;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -43,6 +44,11 @@ namespace WebApi.Controllers
             if (string.IsNullOrWhiteSpace(item.Name))
             {
                 return BadRequest("Name must not be null or empty.");
+            }
+
+            if (item.Checklists.Any(_ => string.IsNullOrWhiteSpace(_.Description)))
+            {
+                return BadRequest("Checklist description must not be null or empty.");
             }
 
             return Ok(await TaskItemRepository.CreateItem(item).ConfigureAwait(false));
