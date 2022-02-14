@@ -23,7 +23,8 @@ namespace Service.Repositories
         {
             var items = Context.TaskItem
                 .Where(_ => !_.IsDeleted && _.ResolvedTime >= start)
-                .Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name, Effort = _.Effort });
+                .Include(_ => _.Checklists)
+                .Select(_ => TaskItemSummaryDto.Convert(_));
 
             return await items.ToListAsync().ConfigureAwait(false);
         }
@@ -32,7 +33,8 @@ namespace Service.Repositories
         {
             var items = Context.TaskItem
                 .Where(_ => !_.IsDeleted && _.ResolvedTime == null)
-                .Select(_ => new TaskItemSummaryDto { Id = _.Id, Name = _.Name, Effort = _.Effort });
+                .Include(_ => _.Checklists)
+                .Select(_ => TaskItemSummaryDto.Convert(_));
 
             return await items.ToListAsync().ConfigureAwait(false);
         }

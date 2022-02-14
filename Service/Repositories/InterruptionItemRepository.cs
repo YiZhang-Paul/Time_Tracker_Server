@@ -23,7 +23,8 @@ namespace Service.Repositories
         {
             var items = Context.InterruptionItem
                 .Where(_ => !_.IsDeleted && _.ResolvedTime >= start)
-                .Select(_ => new InterruptionItemSummaryDto { Id = _.Id, Name = _.Name, Priority = _.Priority });
+                .Include(_ => _.Checklists)
+                .Select(_ => InterruptionItemSummaryDto.Convert(_));
 
             return await items.ToListAsync().ConfigureAwait(false);
         }
@@ -32,7 +33,8 @@ namespace Service.Repositories
         {
             var items = Context.InterruptionItem
                 .Where(_ => !_.IsDeleted && _.ResolvedTime == null)
-                .Select(_ => new InterruptionItemSummaryDto { Id = _.Id, Name = _.Name, Priority = _.Priority });
+                .Include(_ => _.Checklists)
+                .Select(_ => InterruptionItemSummaryDto.Convert(_));
 
             return await items.ToListAsync().ConfigureAwait(false);
         }
