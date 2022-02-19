@@ -16,7 +16,7 @@ namespace Core.Models.Event
         public EventType EventType { get; set; }
         [Required]
         public int TargetDuration { get; set; } = -1;
-        [Column(TypeName = "timestamp without time zone")]
+        [Column(TypeName = "timestamp with time zone")]
         public DateTime Timestamp { get => _timestamp.ToKindUtc(); set => _timestamp = value; }
         private DateTime _timestamp;
     }

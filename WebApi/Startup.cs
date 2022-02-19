@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 using Service.Repositories;
 using Service.Services;
+using System.Text.Json;
 
 namespace WebApi
 {
@@ -39,7 +39,7 @@ namespace WebApi
                 });
             });
 
-            services.AddControllers().AddNewtonsoftJson(_ => _.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+            services.AddControllers();
             services.AddDbContext<TimeTrackerDbContext>(_ => _.UseNpgsql(Configuration["TimeTrackerDbConnectionString"]));
             services.AddScoped<TimeTrackerDbContext, TimeTrackerDbContext>();
             services.AddScoped<IInterruptionItemRepository, InterruptionItemRepository>();
@@ -65,7 +65,7 @@ namespace WebApi
                 var exception = context.Features.Get<IExceptionHandlerPathFeature>().Error;
                 var payload = new { Error = $"{exception.Message} {exception.StackTrace}" };
                 context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(payload));
+                await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
             }));
 
             app.UseHttpsRedirection();

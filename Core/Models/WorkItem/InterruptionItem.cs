@@ -9,11 +9,11 @@ namespace Core.Models.WorkItem
     {
         [Key]
         public long Id { get; set; }
-        [Column(TypeName = "timestamp without time zone")]
+        [Column(TypeName = "timestamp with time zone")]
         public DateTime CreationTime { get => _creationTime.ToKindUtc(); set => _creationTime = value; }
-        [Column(TypeName = "timestamp without time zone")]
+        [Column(TypeName = "timestamp with time zone")]
         public DateTime ModifiedTime { get => _modifiedTime.ToKindUtc(); set => _modifiedTime = value; }
-        [Column(TypeName = "timestamp without time zone")]
+        [Column(TypeName = "timestamp with time zone")]
         public DateTime? ResolvedTime { get => _resolvedTime.ToKindUtc(); set => _resolvedTime = value; }
         public bool IsDeleted { get; set; }
         private DateTime _creationTime;

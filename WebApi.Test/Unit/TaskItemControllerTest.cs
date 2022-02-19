@@ -54,7 +54,7 @@ namespace WebApi.Test.Unit
                 }
             };
 
-            var time = DateTime.Now.AddHours(-10);
+            var time = DateTime.UtcNow.AddHours(-10);
             TaskItemService.Setup(_ => _.GetItemSummaries(It.IsAny<DateTime>())).ReturnsAsync(summaries);
 
             var response = await HttpClient.GetAsync($"{ApiBase}/summaries/{time:o}").ConfigureAwait(false);

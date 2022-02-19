@@ -46,7 +46,7 @@ namespace WebApi.Test.Unit
         [Test]
         public async Task GetOngoingTimeSummaryShouldReturnSummary()
         {
-            var time = DateTime.Now.AddHours(-10);
+            var time = DateTime.UtcNow.AddHours(-10);
             EventService.Setup(_ => _.GetOngoingTimeSummary(It.IsAny<DateTime>())).ReturnsAsync(new OngoingEventTimeSummaryDto());
 
             var response = await HttpClient.GetAsync($"{ApiBase}/time-summary/{time:o}").ConfigureAwait(false);
