@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Service.Repositories;
 using Service.Services;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WebApi
 {
@@ -39,7 +40,7 @@ namespace WebApi
                 });
             });
 
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(_ => _.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
             services.AddDbContext<TimeTrackerDbContext>(_ => _.UseNpgsql(Configuration["TimeTrackerDbConnectionString"]));
             services.AddScoped<TimeTrackerDbContext, TimeTrackerDbContext>();
             services.AddScoped<IInterruptionItemRepository, InterruptionItemRepository>();

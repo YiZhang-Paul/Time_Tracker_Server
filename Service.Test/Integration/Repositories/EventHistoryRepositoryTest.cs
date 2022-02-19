@@ -61,6 +61,7 @@ namespace Service.Test.Integration.Repositories
             var result = await Subject.GetHistoryById(5).ConfigureAwait(false);
 
             Assert.AreEqual(5, result.Id);
+            Assert.AreEqual(DateTimeKind.Utc, result.Timestamp.Kind);
         }
 
         [Test]
@@ -91,6 +92,7 @@ namespace Service.Test.Integration.Repositories
             var result = await Subject.GetHistories(now.AddMinutes(-5), now.AddMinutes(5)).ConfigureAwait(false);
 
             Assert.AreEqual(3, result.Count);
+            Assert.IsTrue(result.All(_ => _.Timestamp.Kind == DateTimeKind.Utc));
         }
 
         [Test]

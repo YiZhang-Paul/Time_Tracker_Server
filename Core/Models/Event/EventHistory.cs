@@ -1,5 +1,4 @@
 using Core.Enums;
-using Core.Extensions;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -17,7 +16,6 @@ namespace Core.Models.Event
         [Required]
         public int TargetDuration { get; set; } = -1;
         [Column(TypeName = "timestamp with time zone")]
-        public DateTime Timestamp { get => _timestamp.ToKindUtc(); set => _timestamp = value; }
-        private DateTime _timestamp;
+        public DateTime Timestamp { get; set; }
     }
 }
