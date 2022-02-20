@@ -3,12 +3,11 @@ version: 0.2
 env:
     variables:
         ENTRY: ./WebApi/WebApi.csproj
-        DOTNET_CORE_RUNTIME: 3.1
 
 phases:
     install:
-        runtime-versions:
-            dotnet: ${DOTNET_CORE_RUNTIME}
+        commands:
+            - /usr/local/bin/dotnet-install.sh --channel LTS
 
     pre_build:
         commands:
