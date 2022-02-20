@@ -71,6 +71,7 @@ namespace Service.Test.Integration.Repositories
 
             Assert.AreEqual(3, result.Id);
             Assert.AreEqual(PromptType.ScheduledBreak, result.PromptType);
+            Assert.AreEqual(DateTimeKind.Utc, result.Timestamp.Kind);
         }
 
         [Test]

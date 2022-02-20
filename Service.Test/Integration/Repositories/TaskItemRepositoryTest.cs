@@ -101,6 +101,8 @@ namespace Service.Test.Integration.Repositories
             var result = await Subject.GetItemById(1).ConfigureAwait(false);
 
             Assert.AreEqual(1, result.Id);
+            Assert.AreEqual(DateTimeKind.Utc, result.CreationTime.Kind);
+            Assert.AreEqual(DateTimeKind.Utc, result.ModifiedTime.Kind);
         }
 
         [Test]
@@ -119,6 +121,7 @@ namespace Service.Test.Integration.Repositories
             Assert.AreEqual("item_description", result.Description);
             Assert.AreEqual(5, result.Effort);
             Assert.AreEqual(result.CreationTime, result.ModifiedTime);
+            Assert.IsNull(result.ResolvedTime);
             Assert.IsTrue((DateTime.UtcNow - result.CreationTime).Duration().TotalMilliseconds < 1000);
         }
 

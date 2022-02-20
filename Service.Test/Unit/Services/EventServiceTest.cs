@@ -156,15 +156,13 @@ namespace Service.Test.Unit.Services
             EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = now.AddMinutes(-10) });
 
             EventHistoryRepository.SetupSequence(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>()))
-                .ReturnsAsync(new EventHistory { Timestamp = DateTime.SpecifyKind(now.AddMinutes(-30), DateTimeKind.Unspecified) })
-                .ReturnsAsync(new EventHistory { Timestamp = DateTime.SpecifyKind(now.AddMinutes(-30), DateTimeKind.Unspecified) });
+                .ReturnsAsync(new EventHistory { Timestamp = now.AddMinutes(-30) })
+                .ReturnsAsync(new EventHistory { Timestamp = now.AddMinutes(-30) });
 
             var result = await Subject.GetOngoingTimeSummary(now.AddMinutes(-60)).ConfigureAwait(false);
 
             Assert.AreEqual(now.AddMinutes(-30), result.UnconcludedSinceStart.Timestamp);
             Assert.AreEqual(now.AddMinutes(-10), result.UnconcludedSinceLastBreakPrompt.Timestamp);
-            Assert.AreEqual(DateTimeKind.Utc, result.UnconcludedSinceStart.Timestamp.Kind);
-            Assert.AreEqual(DateTimeKind.Utc, result.UnconcludedSinceLastBreakPrompt.Timestamp.Kind);
         }
 
         [Test]
