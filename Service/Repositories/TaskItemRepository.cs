@@ -41,7 +41,7 @@ namespace Service.Repositories
 
         public async Task<TaskItem> GetItemById(long id, bool excludeDeleted = true)
         {
-            var query = Context.TaskItem.Include(_ => _.Checklists);
+            var query = Context.TaskItem.Include(_ => _.Checklists.OrderBy(entry => entry.Rank));
 
             if (excludeDeleted)
             {
