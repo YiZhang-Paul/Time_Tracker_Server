@@ -11,6 +11,7 @@ namespace Core.Dtos
         public DateTime StartTime { get; set; }
         public string Name { get; set; }
         public bool IsDeleted { get; set; }
+        public bool IsResolved { get; set; }
 
         public static EventTimelineDto Convert(EventHistorySummary summary)
         {
@@ -25,7 +26,8 @@ namespace Core.Dtos
                 EventType = summary.EventType,
                 StartTime = summary.Timestamp,
                 Name = summary.Name,
-                IsDeleted = summary.IsDeleted
+                IsDeleted = summary.IsDeleted,
+                IsResolved = summary.IsResolved
             };
         }
     }

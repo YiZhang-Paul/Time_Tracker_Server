@@ -15,5 +15,6 @@ namespace Core.Models.Event
         public DateTime Timestamp { get; set; }
         public string Name { get; set; } = string.Empty;
         public bool IsDeleted { get; set; }
+        public bool IsResolved { get; set; }
     }
 }
