@@ -56,7 +56,7 @@ namespace WebApi.Controllers
             var timesheets = await EventService.GetTimesheetsByDay(start).ConfigureAwait(false);
             var file = Encoding.UTF8.GetBytes(string.Join("\n", timesheets));
 
-            return File(file, "text/plain", $"timesheets_{DateTime.UtcNow:dd_MM_yyyy}");
+            return File(file, "text/plain", $"timesheets_{start:dd_MM_yyyy}");
         }
 
         [HttpPost]
