@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.Event;
+using Core.Models.Generic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -227,17 +228,16 @@ namespace Service.Services
 
         private static EventSummariesDto RecordEventDuration(EventSummariesDto summaries, EventTimelineDto timeline, DateTime end)
         {
-            var elapsed = (int)(end - timeline.StartTime).TotalMilliseconds;
             var existing = summaries.Duration.Find(_ => _.EventType == timeline.EventType && _.Id == timeline.Id);
 
-            if (existing != null)
+            if (existing == null)
             {
-                existing.Duration += elapsed;
+                existing = EventDurationDto.Convert(timeline);
+                summaries.Duration.Add(existing);
             }
-            else
-            {
-                summaries.Duration.Add(EventDurationDto.Convert(timeline, elapsed));
-            }
+
+            existing.Duration += (int)(end - timeline.StartTime).TotalMilliseconds;
+            existing.Periods.Add(new TimePeriod { Start = timeline.StartTime, End = end });
 
             return summaries;
         }

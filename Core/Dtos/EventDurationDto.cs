@@ -1,4 +1,6 @@
 using Core.Enums;
+using Core.Models.Generic;
+using System.Collections.Generic;
 
 namespace Core.Dtos
 {
@@ -10,8 +12,9 @@ namespace Core.Dtos
         public string Name { get; set; }
         public bool IsDeleted { get; set; }
         public bool IsResolved { get; set; }
+        public List<TimePeriod> Periods { get; set; } = new List<TimePeriod>();
 
-        public static EventDurationDto Convert(EventTimelineDto timeline, int duration)
+        public static EventDurationDto Convert(EventTimelineDto timeline)
         {
             if (timeline == null)
             {
@@ -22,7 +25,6 @@ namespace Core.Dtos
             {
                 Id = timeline.Id,
                 EventType = timeline.EventType,
-                Duration = duration,
                 Name = timeline.Name,
                 IsDeleted = timeline.IsDeleted,
                 IsResolved = timeline.IsResolved
