@@ -26,6 +26,7 @@ namespace Core.DbContexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.UseSerialColumns();
+            modelBuilder.Entity<EventHistorySummary>().ToView("EventHistorySummary");
             OnModelCreatingPartial(modelBuilder);
         }
 
