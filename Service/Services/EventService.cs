@@ -198,11 +198,10 @@ namespace Service.Services
         private async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
         {
             var summaries = await EventHistorySummaryRepository.GetSummaries(start, start.AddDays(1)).ConfigureAwait(false);
-            var previous = await EventHistorySummaryRepository.GetLastSummary(start).ConfigureAwait(false);
-            var includePrevious = !summaries.Any() || summaries[0].Timestamp != start;
 
-            if (includePrevious && previous != null)
+            if (!summaries.Any() || summaries[0].Timestamp != start)
             {
+                var previous = await EventHistorySummaryRepository.GetLastSummary(start).ConfigureAwait(false);
                 previous.Timestamp = start;
                 summaries.Insert(0, previous);
             }
