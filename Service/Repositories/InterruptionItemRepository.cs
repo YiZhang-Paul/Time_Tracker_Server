@@ -22,7 +22,7 @@ namespace Service.Repositories
         public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries(string searchText)
         {
             var query = Context.InterruptionItem
-                .Where(_ => _.Name.Contains(searchText))
+                .Where(_ => _.Name.ToLower().Contains(searchText.ToLower()))
                 .Select(_ => InterruptionItemSummaryDto.Convert(_));
 
             return await query.ToListAsync().ConfigureAwait(false);

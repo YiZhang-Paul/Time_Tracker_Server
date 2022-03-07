@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Core.Migrations
 {
     [DbContext(typeof(TimeTrackerDbContext))]
-    [Migration("20220130015113_CreateEventHistorySummaryView")]
+    [Migration("20220307025030_CreateEventHistorySummaryView")]
     partial class CreateEventHistorySummaryView
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

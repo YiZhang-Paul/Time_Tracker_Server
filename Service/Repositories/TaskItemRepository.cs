@@ -22,7 +22,7 @@ namespace Service.Repositories
         public async Task<List<TaskItemSummaryDto>> GetItemSummaries(string searchText)
         {
             var query = Context.TaskItem
-                .Where(_ => _.Name.Contains(searchText))
+                .Where(_ => _.Name.ToLower().Contains(searchText.ToLower()))
                 .Select(_ => TaskItemSummaryDto.Convert(_));
 
             return await query.ToListAsync().ConfigureAwait(false);
