@@ -4,7 +4,6 @@ using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.Event;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Service.Repositories;
@@ -20,6 +19,7 @@ namespace Service.Test.Integration.Services
     public class EventServiceTest
     {
         private TimeTrackerDbContext Context { get; set; }
+        private IEventHistoryRepository EventHistoryRepository { get; set; }
         private IEventService Subject { get; set; }
 
         [SetUp]
@@ -35,6 +35,7 @@ namespace Service.Test.Integration.Services
                 .AddTransient<IEventService, EventService>()
                 .BuildServiceProvider();
 
+            EventHistoryRepository = provider.GetService<IEventHistoryRepository>();
             Subject = provider.GetService<IEventService>();
         }
 
@@ -62,9 +63,10 @@ namespace Service.Test.Integration.Services
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, await Context.EventHistory.ToListAsync().ConfigureAwait(false));
+            AreEqual(expected, histories);
         }
 
         [Test]
@@ -91,9 +93,10 @@ namespace Service.Test.Integration.Services
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, await Context.EventHistory.ToListAsync().ConfigureAwait(false));
+            AreEqual(expected, histories);
         }
 
         [Test]
@@ -120,9 +123,10 @@ namespace Service.Test.Integration.Services
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, await Context.EventHistory.ToListAsync().ConfigureAwait(false));
+            AreEqual(expected, histories);
         }
 
         [Test]
@@ -147,9 +151,10 @@ namespace Service.Test.Integration.Services
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, await Context.EventHistory.ToListAsync().ConfigureAwait(false));
+            AreEqual(expected, histories);
         }
 
         [Test]
@@ -179,9 +184,10 @@ namespace Service.Test.Integration.Services
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, await Context.EventHistory.ToListAsync().ConfigureAwait(false));
+            AreEqual(expected, histories);
         }
 
         [Test]
@@ -209,9 +215,10 @@ namespace Service.Test.Integration.Services
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, await Context.EventHistory.ToListAsync().ConfigureAwait(false));
+            AreEqual(expected, histories);
         }
 
         [Test]
@@ -237,9 +244,10 @@ namespace Service.Test.Integration.Services
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, await Context.EventHistory.ToListAsync().ConfigureAwait(false));
+            AreEqual(expected, histories);
         }
 
         [Test]
@@ -264,9 +272,10 @@ namespace Service.Test.Integration.Services
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, await Context.EventHistory.ToListAsync().ConfigureAwait(false));
+            AreEqual(expected, histories);
         }
 
         [TearDown]
