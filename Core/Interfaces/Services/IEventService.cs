@@ -15,5 +15,6 @@ namespace Core.Interfaces.Services
         Task<bool> StartTaskItem(long id);
         Task<bool> StartBreakSession(int duration);
         Task<bool> SkipBreakSession();
+        Task<bool> UpdateTimeRange(EventTimeRangeDto range);
     }
 }
