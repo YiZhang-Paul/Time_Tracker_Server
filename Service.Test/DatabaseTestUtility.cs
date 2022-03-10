@@ -19,6 +19,7 @@ namespace Service.Test
             var connection = config.GetSection("TimeTrackerTestDbConnectionString").Value;
             var builder = new DbContextOptionsBuilder<TimeTrackerDbContext>().UseNpgsql(connection);
             var context = new TimeTrackerDbContext(builder.Options);
+            await context.Database.EnsureDeletedAsync().ConfigureAwait(false);
 
             return await context.Database.EnsureCreatedAsync().ConfigureAwait(false) ? context : null;
         }
