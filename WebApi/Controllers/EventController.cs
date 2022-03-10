@@ -122,5 +122,19 @@ namespace WebApi.Controllers
                 return BadRequest(exception.Message);
             }
         }
+
+        [HttpPut]
+        [Route("time-range")]
+        public async Task<IActionResult> UpdateTimeRange([FromBody]EventTimeRangeDto range)
+        {
+            try
+            {
+                return Ok(await EventService.UpdateTimeRange(range).ConfigureAwait(false));
+            }
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
+            }
+        }
     }
 }
