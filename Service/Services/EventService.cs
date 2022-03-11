@@ -48,14 +48,15 @@ namespace Service.Services
         public async Task<EventSummariesDto> GetEventSummariesByDay(DateTime start)
         {
             var startTime = start.ToUniversalTime();
-            var endTime = startTime.AddDays(1) < DateTime.UtcNow ? startTime.AddDays(1) : DateTime.UtcNow;
+            var endOfDay = startTime.AddDays(1).AddTicks(-1000);
+            var endTime = endOfDay < DateTime.UtcNow ? endOfDay : DateTime.UtcNow;
 
             if (startTime > DateTime.UtcNow)
             {
                 return new EventSummariesDto();
             }
 
-            var histories = await GetEventHistorySummariesByDay(startTime).ConfigureAwait(false);
+            var histories = await GetEventHistorySummaries(startTime, endTime).ConfigureAwait(false);
 
             if (!histories.Any())
             {
@@ -223,9 +224,9 @@ namespace Service.Services
             return history;
         }
 
-        private async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
+        private async Task<List<EventHistorySummary>> GetEventHistorySummaries(DateTime start, DateTime end)
         {
-            var summaries = await EventHistorySummaryRepository.GetSummaries(start, start.AddDays(1)).ConfigureAwait(false);
+            var summaries = await EventHistorySummaryRepository.GetSummaries(start, end).ConfigureAwait(false);
 
             if (!summaries.Any() || summaries[0].Timestamp != start)
             {
