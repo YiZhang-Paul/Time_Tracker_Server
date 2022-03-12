@@ -28,7 +28,9 @@ namespace Core.DbContexts
         {
             modelBuilder.UseSerialColumns();
             new InterruptionItemEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionItem>());
+            new InterruptionChecklistEntryEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionChecklistEntry>());
             new TaskItemEntityTypeConfiguration().Configure(modelBuilder.Entity<TaskItem>());
+            new TaskChecklistEntryEntityTypeConfiguration().Configure(modelBuilder.Entity<TaskChecklistEntry>());
             new EventHistoryEntityTypeConfiguration().Configure(modelBuilder.Entity<EventHistory>());
             new EventHistorySummaryEntityTypeConfiguration().Configure(modelBuilder.Entity<EventHistorySummary>());
             new EventPromptEntityTypeConfiguration().Configure(modelBuilder.Entity<EventPrompt>());
