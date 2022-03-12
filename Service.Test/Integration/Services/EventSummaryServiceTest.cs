@@ -16,11 +16,11 @@ namespace Service.Test.Integration.Services
 {
     [TestFixture]
     [Category("Integration")]
-    public class EventServiceTest
+    public class EventSummaryServiceTest
     {
         private TimeTrackerDbContext Context { get; set; }
         private IEventHistoryRepository EventHistoryRepository { get; set; }
-        private IEventService Subject { get; set; }
+        private IEventSummaryService Subject { get; set; }
 
         [SetUp]
         public async Task Setup()
@@ -32,11 +32,11 @@ namespace Service.Test.Integration.Services
                 .AddTransient<IEventHistoryRepository, EventHistoryRepository>()
                 .AddTransient<IEventHistorySummaryRepository, EventHistorySummaryRepository>()
                 .AddTransient<IEventPromptRepository, EventPromptRepository>()
-                .AddTransient<IEventService, EventService>()
+                .AddTransient<IEventSummaryService, EventSummaryService>()
                 .BuildServiceProvider();
 
             EventHistoryRepository = provider.GetService<IEventHistoryRepository>();
-            Subject = provider.GetService<IEventService>();
+            Subject = provider.GetService<IEventSummaryService>();
         }
 
         [Test]

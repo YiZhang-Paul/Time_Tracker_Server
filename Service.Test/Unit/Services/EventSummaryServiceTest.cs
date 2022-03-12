@@ -11,12 +11,12 @@ using System.Threading.Tasks;
 namespace Service.Test.Unit.Services
 {
     [TestFixture]
-    public class EventServiceTest
+    public class EventSummaryServiceTest
     {
         private Mock<IEventHistoryRepository> EventHistoryRepository { get; set; }
         private Mock<IEventHistorySummaryRepository> EventHistorySummaryRepository { get; set; }
         private Mock<IEventPromptRepository> EventPromptRepository { get; set; }
-        private EventService Subject { get; set; }
+        private EventSummaryService Subject { get; set; }
 
         [SetUp]
         public void Setup()
@@ -25,7 +25,7 @@ namespace Service.Test.Unit.Services
             EventHistorySummaryRepository = new Mock<IEventHistorySummaryRepository>();
             EventPromptRepository = new Mock<IEventPromptRepository>();
 
-            Subject = new EventService
+            Subject = new EventSummaryService
             (
                 EventHistoryRepository.Object,
                 EventHistorySummaryRepository.Object,

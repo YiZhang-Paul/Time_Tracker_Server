@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Core.Interfaces.Services
 {
-    public interface IEventService
+    public interface IEventSummaryService
     {
         Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start);
         Task<EventSummariesDto> GetEventSummariesByDay(DateTime start);

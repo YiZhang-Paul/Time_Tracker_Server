@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace Service.Services
 {
-    public class EventService : IEventService
+    public class EventSummaryService : IEventSummaryService
     {
         private IEventHistoryRepository EventHistoryRepository { get; }
         private IEventHistorySummaryRepository EventHistorySummaryRepository { get; }
         private IEventPromptRepository EventPromptRepository { get; }
 
-        public EventService
+        public EventSummaryService
         (
             IEventHistoryRepository eventHistoryRepository,
             IEventHistorySummaryRepository eventHistorySummaryRepository,

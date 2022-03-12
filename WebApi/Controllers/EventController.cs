@@ -17,7 +17,7 @@ namespace WebApi.Controllers
         private ITaskItemRepository TaskItemRepository { get; }
         private IInterruptionItemService InterruptionItemService { get; }
         private ITaskItemService TaskItemService { get; }
-        private IEventService EventService { get; }
+        private IEventSummaryService EventSummaryService { get; }
 
         public EventController
         (
@@ -25,35 +25,35 @@ namespace WebApi.Controllers
             ITaskItemRepository taskItemRepository,
             IInterruptionItemService interruptionItemService,
             ITaskItemService taskItemService,
-            IEventService eventService
+            IEventSummaryService eventSummaryService
         )
         {
             InterruptionItemRepository = interruptionItemRepository;
             TaskItemRepository = taskItemRepository;
             InterruptionItemService = interruptionItemService;
             TaskItemService = taskItemService;
-            EventService = eventService;
+            EventSummaryService = eventSummaryService;
         }
 
         [HttpGet]
         [Route("time-summary/{start}")]
         public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
         {
-            return await EventService.GetOngoingTimeSummary(start).ConfigureAwait(false);
+            return await EventSummaryService.GetOngoingTimeSummary(start).ConfigureAwait(false);
         }
 
         [HttpGet]
         [Route("event-summaries/{start}")]
         public async Task<EventSummariesDto> GetEventSummariesByDay(DateTime start)
         {
-            return await EventService.GetEventSummariesByDay(start).ConfigureAwait(false);
+            return await EventSummaryService.GetEventSummariesByDay(start).ConfigureAwait(false);
         }
 
         [HttpGet]
         [Route("timesheets/{start}")]
         public async Task<IActionResult> GetTimesheetsByDay(DateTime start)
         {
-            var timesheets = await EventService.GetTimesheetsByDay(start).ConfigureAwait(false);
+            var timesheets = await EventSummaryService.GetTimesheetsByDay(start).ConfigureAwait(false);
             var file = Encoding.UTF8.GetBytes(string.Join("\n", timesheets));
 
             return File(file, "text/plain", $"timesheets_{start:yyyy_MM_dd}");
@@ -63,7 +63,7 @@ namespace WebApi.Controllers
         [Route("idling-sessions")]
         public async Task<bool> StartIdlingSession()
         {
-            return await EventService.StartIdlingSession().ConfigureAwait(false);
+            return await EventSummaryService.StartIdlingSession().ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -82,7 +82,7 @@ namespace WebApi.Controllers
                 return false;
             }
 
-            return await EventService.StartInterruptionItem(id).ConfigureAwait(false);
+            return await EventSummaryService.StartInterruptionItem(id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -101,7 +101,7 @@ namespace WebApi.Controllers
                 return false;
             }
 
-            return await EventService.StartTaskItem(id).ConfigureAwait(false);
+            return await EventSummaryService.StartTaskItem(id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -112,10 +112,10 @@ namespace WebApi.Controllers
             {
                 if (confirmation.IsSkip)
                 {
-                    return Ok(await EventService.SkipBreakSession().ConfigureAwait(false));
+                    return Ok(await EventSummaryService.SkipBreakSession().ConfigureAwait(false));
                 }
 
-                return Ok(await EventService.StartBreakSession(confirmation.TargetDuration).ConfigureAwait(false));
+                return Ok(await EventSummaryService.StartBreakSession(confirmation.TargetDuration).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {
@@ -129,7 +129,7 @@ namespace WebApi.Controllers
         {
             try
             {
-                return Ok(await EventService.UpdateTimeRange(range).ConfigureAwait(false));
+                return Ok(await EventSummaryService.UpdateTimeRange(range).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {
