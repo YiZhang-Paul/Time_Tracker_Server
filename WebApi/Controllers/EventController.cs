@@ -85,7 +85,7 @@ namespace WebApi.Controllers
                 return false;
             }
 
-            return await EventSummaryService.StartInterruptionItem(id).ConfigureAwait(false);
+            return await EventTrackingService.StartInterruptionItem(id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -104,7 +104,7 @@ namespace WebApi.Controllers
                 return false;
             }
 
-            return await EventSummaryService.StartTaskItem(id).ConfigureAwait(false);
+            return await EventTrackingService.StartTaskItem(id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -115,10 +115,10 @@ namespace WebApi.Controllers
             {
                 if (confirmation.IsSkip)
                 {
-                    return Ok(await EventSummaryService.SkipBreakSession().ConfigureAwait(false));
+                    return Ok(await EventTrackingService.SkipBreakSession().ConfigureAwait(false));
                 }
 
-                return Ok(await EventSummaryService.StartBreakSession(confirmation.TargetDuration).ConfigureAwait(false));
+                return Ok(await EventTrackingService.StartBreakSession(confirmation.TargetDuration).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {
@@ -132,7 +132,7 @@ namespace WebApi.Controllers
         {
             try
             {
-                return Ok(await EventSummaryService.UpdateTimeRange(range).ConfigureAwait(false));
+                return Ok(await EventTrackingService.UpdateTimeRange(range).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {

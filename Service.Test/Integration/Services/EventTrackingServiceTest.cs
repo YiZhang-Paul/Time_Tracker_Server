@@ -2,7 +2,6 @@ using Core.DbContexts;
 using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
-using Core.Interfaces.Services;
 using Core.Models.Event;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -16,11 +15,11 @@ namespace Service.Test.Integration.Services
 {
     [TestFixture]
     [Category("Integration")]
-    public class EventSummaryServiceTest
+    public class EventTrackingServiceTest
     {
         private TimeTrackerDbContext Context { get; set; }
         private IEventHistoryRepository EventHistoryRepository { get; set; }
-        private IEventSummaryService Subject { get; set; }
+        private IEventTrackingService Subject { get; set; }
 
         [SetUp]
         public async Task Setup()
@@ -30,13 +29,12 @@ namespace Service.Test.Integration.Services
             var provider = new ServiceCollection()
                 .AddSingleton(Context)
                 .AddTransient<IEventHistoryRepository, EventHistoryRepository>()
-                .AddTransient<IEventHistorySummaryRepository, EventHistorySummaryRepository>()
                 .AddTransient<IEventPromptRepository, EventPromptRepository>()
-                .AddTransient<IEventSummaryService, EventSummaryService>()
+                .AddTransient<IEventTrackingService, EventTrackingService>()
                 .BuildServiceProvider();
 
             EventHistoryRepository = provider.GetService<IEventHistoryRepository>();
-            Subject = provider.GetService<IEventSummaryService>();
+            Subject = provider.GetService<IEventTrackingService>();
         }
 
         [Test]
