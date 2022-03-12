@@ -29,6 +29,7 @@ namespace Core.DbContexts
             modelBuilder.UseSerialColumns();
             new InterruptionItemEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionItem>());
             new TaskItemEntityTypeConfiguration().Configure(modelBuilder.Entity<TaskItem>());
+            new EventHistoryEntityTypeConfiguration().Configure(modelBuilder.Entity<EventHistory>());
             modelBuilder.Entity<EventHistorySummary>().ToView("EventHistorySummary");
             OnModelCreatingPartial(modelBuilder);
         }
