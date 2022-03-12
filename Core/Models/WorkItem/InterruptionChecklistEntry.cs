@@ -13,8 +13,5 @@ namespace Core.Models.WorkItem
         [StringLength(15)]
         public string Rank { get; set; }
         public bool IsCompleted { get; set; }
-        // relationships and navigations
-        public long ParentId { get; set; }
-        public InterruptionItem Parent { get; set; }
     }
 }
