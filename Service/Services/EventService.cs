@@ -180,16 +180,43 @@ namespace Service.Services
             var end = next?.Timestamp ?? range.End;
             var histories = await EventHistoryRepository.GetHistories(start, end).ConfigureAwait(false);
 
-            if (!await UpdateTimeRangeStart(histories, range).ConfigureAwait(false) || !await UpdateTimeRangeEnd(histories, range.End).ConfigureAwait(false))
+            var previousHistory = histories.LastOrDefault(_ => _.Timestamp <= range.Start);
+
+            if (previousHistory?.EventType == range.EventType && previousHistory.ResourceId == range.Id && histories.All(_ => _.Timestamp < range.Start || _.Timestamp >= range.End || _.EventType == range.EventType))
             {
-                return false;
+                if (range.EventType == EventType.Idling)
+                {
+                    return true;
+                }
+
+                if (previousHistory.Timestamp != range.Start)
+                {
+                    var replacedPreviousHistory = new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = previousHistory.Timestamp };
+                    var history = new EventHistory { ResourceId = range.Id, EventType = range.EventType, Timestamp = range.Start };
+                    await EventHistoryRepository.DeleteHistory(previousHistory).ConfigureAwait(false);
+                    await EventHistoryRepository.CreateHistory(replacedPreviousHistory).ConfigureAwait(false);
+                    await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false);
+                }
+
+                if (histories.All(_ => _.Timestamp != range.End))
+                {
+                    var history = new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = range.End };
+                    await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false);
+                }
             }
-
-            var overlaps = histories.Where(_ => _.Timestamp > range.Start && _.Timestamp < range.End).ToList();
-
-            if (overlaps.Any() && !await EventHistoryRepository.DeleteHistories(overlaps).ConfigureAwait(false))
+            else
             {
-                return false;
+                if (!await UpdateTimeRangeStart(histories, range).ConfigureAwait(false) || !await UpdateTimeRangeEnd(histories, range.End).ConfigureAwait(false))
+                {
+                    return false;
+                }
+
+                var overlaps = histories.Where(_ => _.Timestamp > range.Start && _.Timestamp < range.End).ToList();
+
+                if (overlaps.Any() && !await EventHistoryRepository.DeleteHistories(overlaps).ConfigureAwait(false))
+                {
+                    return false;
+                }
             }
 
             return await MergeTimeRange(start, end).ConfigureAwait(false);
@@ -302,7 +329,11 @@ namespace Service.Services
         private async Task<bool> MergeTimeRange(DateTime start, DateTime end)
         {
             var redundant = new List<EventHistory>();
-            var histories = await EventHistoryRepository.GetHistories(start, end).ConfigureAwait(false);
+            var previous = await EventHistoryRepository.GetLastHistory(start.AddTicks(-1000)).ConfigureAwait(false);
+            var next = await EventHistoryRepository.GetNextHistory(end.AddTicks(1000)).ConfigureAwait(false);
+            var startTime = previous?.Timestamp ?? start;
+            var endTime = next?.Timestamp ?? end;
+            var histories = await EventHistoryRepository.GetHistories(startTime, endTime).ConfigureAwait(false);
 
             for (var i = 1; i < histories.Count; ++i)
             {

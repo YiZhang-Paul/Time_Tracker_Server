@@ -278,6 +278,119 @@ namespace Service.Test.Integration.Services
             AreEqual(expected, histories);
         }
 
+        [Test]
+        public async Task UpdateTimeRangeShouldDoNothingWhenIdlingTimeIsUnchanged()
+        {
+            var now = DateTime.UtcNow;
+            var range = new EventTimeRangeDto { Id = -1, EventType = EventType.Idling, Start = now.AddHours(-5), End = now.AddHours(-3) };
+
+            var previous = new List<EventHistory>
+            {
+                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-10) },
+                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) }
+            };
+
+            Context.AddRange(previous);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
+
+            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+
+            Assert.IsTrue(result);
+            AreEqual(previous, histories);
+        }
+
+        [Test]
+        public async Task UpdateTimeRangeShouldUpdateTimeRangeForSameEventWhenStartTimeIsTheSame()
+        {
+            var now = DateTime.UtcNow;
+            var range = new EventTimeRangeDto { Id = -1, EventType = EventType.Break, Start = now.AddHours(-5), End = now.AddHours(-3) };
+
+            var previous = new List<EventHistory>
+            {
+                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
+                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected = new List<EventHistory>
+            {
+                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
+                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-3) },
+                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
+            };
+
+            Context.AddRange(previous);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
+
+            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+
+            Assert.IsTrue(result);
+            AreEqual(expected, histories);
+        }
+
+        [Test]
+        public async Task UpdateTimeRangeShouldUpdateTimeRangeForSameEventWhenEndTimeIsTheSame()
+        {
+            var now = DateTime.UtcNow;
+            var range = new EventTimeRangeDto { Id = 2, EventType = EventType.Task, Start = now.AddHours(-5), End = now.AddHours(-3) };
+
+            var previous = new List<EventHistory>
+            {
+                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-12) },
+                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) }
+            };
+
+            var expected = new List<EventHistory>
+            {
+                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-12) },
+                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-10) },
+                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-5) },
+                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) }
+            };
+
+            Context.AddRange(previous);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
+
+            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+
+            Assert.IsTrue(result);
+            AreEqual(expected, histories);
+        }
+
+        [Test]
+        public async Task UpdateTimeRangeShouldUpdateTimeRangeForSameEventWhenNeitherStartTimeNorEndTimeIsTheSame()
+        {
+            var now = DateTime.UtcNow;
+            var range = new EventTimeRangeDto { Id = 5, EventType = EventType.Interruption, Start = now.AddHours(-5), End = now.AddHours(-3) };
+
+            var previous = new List<EventHistory>
+            {
+                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-12) },
+                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { ResourceId = 9, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected = new List<EventHistory>
+            {
+                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-12) },
+                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
+                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-3) },
+                new EventHistory { ResourceId = 9, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
+            };
+
+            Context.AddRange(previous);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
+
+            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
+            var histories = await EventHistoryRepository.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+
+            Assert.IsTrue(result);
+            AreEqual(expected, histories);
+        }
+
         [TearDown]
         public async Task TearDown()
         {
