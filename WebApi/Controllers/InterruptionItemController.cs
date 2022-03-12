@@ -23,6 +23,20 @@ namespace WebApi.Controllers
         }
 
         [HttpGet]
+        [Route("summaries")]
+        public async Task<IActionResult> GetItemSummaries([FromQuery]string searchText)
+        {
+            try
+            {
+                return Ok(await InterruptionItemService.GetItemSummaries(searchText).ConfigureAwait(false));
+            }
+            catch (ArgumentException exception)
+            {
+                return BadRequest(exception.Message);
+            }
+        }
+
+        [HttpGet]
         [Route("summaries/{start}")]
         public async Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start)
         {

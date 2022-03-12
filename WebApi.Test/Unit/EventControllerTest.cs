@@ -21,7 +21,8 @@ namespace WebApi.Test.Unit
         private Mock<ITaskItemRepository> TaskItemRepository { get; set; }
         private Mock<IInterruptionItemService> InterruptionItemService { get; set; }
         private Mock<ITaskItemService> TaskItemService { get; set; }
-        private Mock<IEventService> EventService { get; set; }
+        private Mock<IEventSummaryService> EventSummaryService { get; set; }
+        private Mock<IEventTrackingService> EventTrackingService { get; set; }
         private HttpClient HttpClient { get; set; }
 
         [SetUp]
@@ -31,7 +32,8 @@ namespace WebApi.Test.Unit
             TaskItemRepository = new Mock<ITaskItemRepository>();
             InterruptionItemService = new Mock<IInterruptionItemService>();
             TaskItemService = new Mock<ITaskItemService>();
-            EventService = new Mock<IEventService>();
+            EventSummaryService = new Mock<IEventSummaryService>();
+            EventTrackingService = new Mock<IEventTrackingService>();
 
             HttpClient = await new ControllerTestUtility().SetupTestHttpClient
             (
@@ -39,7 +41,8 @@ namespace WebApi.Test.Unit
                       .AddSingleton(TaskItemRepository.Object)
                       .AddSingleton(InterruptionItemService.Object)
                       .AddSingleton(TaskItemService.Object)
-                      .AddSingleton(EventService.Object)
+                      .AddSingleton(EventSummaryService.Object)
+                      .AddSingleton(EventTrackingService.Object)
             ).ConfigureAwait(false);
         }
 
@@ -47,25 +50,25 @@ namespace WebApi.Test.Unit
         public async Task GetOngoingTimeSummaryShouldReturnSummary()
         {
             var time = DateTime.UtcNow.AddHours(-10);
-            EventService.Setup(_ => _.GetOngoingTimeSummary(It.IsAny<DateTime>())).ReturnsAsync(new OngoingEventTimeSummaryDto());
+            EventSummaryService.Setup(_ => _.GetOngoingTimeSummary(It.IsAny<DateTime>())).ReturnsAsync(new OngoingEventTimeSummaryDto());
 
             var response = await HttpClient.GetAsync($"{ApiBase}/time-summary/{time:o}").ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<OngoingEventTimeSummaryDto>().ConfigureAwait(false));
-            EventService.Verify(_ => _.GetOngoingTimeSummary(time), Times.Once);
+            EventSummaryService.Verify(_ => _.GetOngoingTimeSummary(time), Times.Once);
         }
 
         [Test]
         public async Task StartIdlingSessionShouldStartIdlingSession()
         {
-            EventService.Setup(_ => _.StartIdlingSession()).ReturnsAsync(true);
+            EventTrackingService.Setup(_ => _.StartIdlingSession()).ReturnsAsync(true);
 
             var response = await HttpClient.PostAsync($"{ApiBase}/idling-sessions", null).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-            EventService.Verify(_ => _.StartIdlingSession(), Times.Once);
+            EventTrackingService.Verify(_ => _.StartIdlingSession(), Times.Once);
         }
 
         [Test]
@@ -78,21 +81,21 @@ namespace WebApi.Test.Unit
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("false", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
             InterruptionItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
-            EventService.Verify(_ => _.StartInterruptionItem(It.IsAny<long>()), Times.Never);
+            EventTrackingService.Verify(_ => _.StartInterruptionItem(It.IsAny<long>()), Times.Never);
         }
 
         [Test]
         public async Task StartInterruptionItemShouldStartInterruptionItem()
         {
             InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
-            EventService.Setup(_ => _.StartInterruptionItem(It.IsAny<long>())).ReturnsAsync(true);
+            EventTrackingService.Setup(_ => _.StartInterruptionItem(It.IsAny<long>())).ReturnsAsync(true);
 
             var response = await HttpClient.PostAsync($"{ApiBase}/interruption-items/5", null).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
             InterruptionItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
-            EventService.Verify(_ => _.StartInterruptionItem(5), Times.Once);
+            EventTrackingService.Verify(_ => _.StartInterruptionItem(5), Times.Once);
         }
 
         [Test]
@@ -105,28 +108,28 @@ namespace WebApi.Test.Unit
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("false", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
             TaskItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
-            EventService.Verify(_ => _.StartTaskItem(It.IsAny<long>()), Times.Never);
+            EventTrackingService.Verify(_ => _.StartTaskItem(It.IsAny<long>()), Times.Never);
         }
 
         [Test]
         public async Task StartTaskItemShouldStartTaskItem()
         {
             TaskItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new TaskItem());
-            EventService.Setup(_ => _.StartTaskItem(It.IsAny<long>())).ReturnsAsync(true);
+            EventTrackingService.Setup(_ => _.StartTaskItem(It.IsAny<long>())).ReturnsAsync(true);
 
             var response = await HttpClient.PostAsync($"{ApiBase}/task-items/5", null).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
             TaskItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
-            EventService.Verify(_ => _.StartTaskItem(5), Times.Once);
+            EventTrackingService.Verify(_ => _.StartTaskItem(5), Times.Once);
         }
 
         [Test]
         public async Task ConfirmBreakSessionPromptShouldReturnBadRequestOnFailure()
         {
             var body = new BreakSessionConfirmationDto { IsSkip = true };
-            EventService.Setup(_ => _.SkipBreakSession()).ThrowsAsync(new ArgumentException());
+            EventTrackingService.Setup(_ => _.SkipBreakSession()).ThrowsAsync(new ArgumentException());
 
             var response = await HttpClient.PostAsJsonAsync($"{ApiBase}/scheduled-break-prompts", body).ConfigureAwait(false);
 
@@ -137,26 +140,26 @@ namespace WebApi.Test.Unit
         public async Task ConfirmBreakSessionPromptShouldStartBreakSessionWhenApplicable()
         {
             var body = new BreakSessionConfirmationDto { IsSkip = false, TargetDuration = 500000 };
-            EventService.Setup(_ => _.StartBreakSession(It.IsAny<int>())).ReturnsAsync(true);
+            EventTrackingService.Setup(_ => _.StartBreakSession(It.IsAny<int>())).ReturnsAsync(true);
 
             var response = await HttpClient.PostAsJsonAsync($"{ApiBase}/scheduled-break-prompts", body).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-            EventService.Verify(_ => _.StartBreakSession(500000), Times.Once);
+            EventTrackingService.Verify(_ => _.StartBreakSession(500000), Times.Once);
         }
 
         [Test]
         public async Task ConfirmBreakSessionPromptShouldSkipBreakSessionWhenApplicable()
         {
             var body = new BreakSessionConfirmationDto { IsSkip = true };
-            EventService.Setup(_ => _.SkipBreakSession()).ReturnsAsync(true);
+            EventTrackingService.Setup(_ => _.SkipBreakSession()).ReturnsAsync(true);
 
             var response = await HttpClient.PostAsJsonAsync($"{ApiBase}/scheduled-break-prompts", body).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-            EventService.Verify(_ => _.SkipBreakSession(), Times.Once);
+            EventTrackingService.Verify(_ => _.SkipBreakSession(), Times.Once);
         }
     }
 }

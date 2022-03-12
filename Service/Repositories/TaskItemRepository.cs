@@ -19,24 +19,33 @@ namespace Service.Repositories
             Context = context;
         }
 
+        public async Task<List<TaskItemSummaryDto>> GetItemSummaries(string searchText)
+        {
+            var query = Context.TaskItem
+                .Where(_ => _.Name.ToLower().Contains(searchText.ToLower()))
+                .Select(_ => TaskItemSummaryDto.Convert(_));
+
+            return await query.ToListAsync().ConfigureAwait(false);
+        }
+
         public async Task<List<TaskItemSummaryDto>> GetResolvedItemSummaries(DateTime start)
         {
-            var items = Context.TaskItem
+            var query = Context.TaskItem
                 .Where(_ => !_.IsDeleted && _.ResolvedTime >= start)
                 .Include(_ => _.Checklists)
                 .Select(_ => TaskItemSummaryDto.Convert(_));
 
-            return await items.ToListAsync().ConfigureAwait(false);
+            return await query.ToListAsync().ConfigureAwait(false);
         }
 
         public async Task<List<TaskItemSummaryDto>> GetUnresolvedItemSummaries()
         {
-            var items = Context.TaskItem
+            var query = Context.TaskItem
                 .Where(_ => !_.IsDeleted && _.ResolvedTime == null)
                 .Include(_ => _.Checklists)
                 .Select(_ => TaskItemSummaryDto.Convert(_));
 
-            return await items.ToListAsync().ConfigureAwait(false);
+            return await query.ToListAsync().ConfigureAwait(false);
         }
 
         public async Task<TaskItem> GetItemById(long id, bool excludeDeleted = true)

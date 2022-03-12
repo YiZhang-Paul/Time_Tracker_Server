@@ -10,6 +10,8 @@ namespace Core.Dtos
         public string Name { get; set; }
         public Priority Priority { get; set; }
         public double Progress { get; set; }
+        public bool IsDeleted { get; set; }
+        public bool IsResolved { get; set; }
 
         public static InterruptionItemSummaryDto Convert(InterruptionItem item)
         {
@@ -23,7 +25,9 @@ namespace Core.Dtos
                 Id = item.Id,
                 Name = item.Name,
                 Priority = item.Priority,
-                Progress = item.Checklists.Any() ? (double)item.Checklists.Count(_ => _.IsCompleted) / item.Checklists.Count : 0
+                Progress = item.Checklists.Any() ? (double)item.Checklists.Count(_ => _.IsCompleted) / item.Checklists.Count : 0,
+                IsDeleted = item.IsDeleted,
+                IsResolved = item.ResolvedTime != null
             };
         }
     }

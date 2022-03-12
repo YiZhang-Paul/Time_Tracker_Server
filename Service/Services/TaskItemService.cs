@@ -4,6 +4,7 @@ using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.WorkItem;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +17,16 @@ namespace Service.Services
         public TaskItemService(ITaskItemRepository taskItemRepository)
         {
             TaskItemRepository = taskItemRepository;
+        }
+
+        public async Task<List<TaskItemSummaryDto>> GetItemSummaries(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                throw new ArgumentException("Search text must not be empty.");
+            }
+
+            return await TaskItemRepository.GetItemSummaries(searchText.Trim()).ConfigureAwait(false);
         }
 
         public async Task<ItemSummariesDto<TaskItemSummaryDto>> GetItemSummaries(DateTime start)

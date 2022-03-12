@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace Service.Services
 {
-    public class EventService : IEventService
+    public class EventSummaryService : IEventSummaryService
     {
         private IEventHistoryRepository EventHistoryRepository { get; }
         private IEventHistorySummaryRepository EventHistorySummaryRepository { get; }
         private IEventPromptRepository EventPromptRepository { get; }
 
-        public EventService
+        public EventSummaryService
         (
             IEventHistoryRepository eventHistoryRepository,
             IEventHistorySummaryRepository eventHistorySummaryRepository,
@@ -48,14 +48,15 @@ namespace Service.Services
         public async Task<EventSummariesDto> GetEventSummariesByDay(DateTime start)
         {
             var startTime = start.ToUniversalTime();
-            var endTime = startTime.AddDays(1) < DateTime.UtcNow ? startTime.AddDays(1) : DateTime.UtcNow;
+            var endOfDay = startTime.AddDays(1).AddTicks(-1000);
+            var endTime = endOfDay < DateTime.UtcNow ? endOfDay : DateTime.UtcNow;
 
             if (startTime > DateTime.UtcNow)
             {
                 return new EventSummariesDto();
             }
 
-            var histories = await GetEventHistorySummariesByDay(startTime).ConfigureAwait(false);
+            var histories = await GetEventHistorySummaries(startTime, endTime).ConfigureAwait(false);
 
             if (!histories.Any())
             {
@@ -89,83 +90,6 @@ namespace Service.Services
             }).ToList();
         }
 
-        public async Task<bool> StartIdlingSession()
-        {
-            var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
-
-            if (last?.EventType == EventType.Idling)
-            {
-                return false;
-            }
-
-            var history = new EventHistory { ResourceId = -1, EventType = EventType.Idling };
-
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
-        }
-
-        public async Task<bool> StartInterruptionItem(long id)
-        {
-            var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
-
-            if (last != null && last.EventType == EventType.Interruption && last.ResourceId == id)
-            {
-                return false;
-            }
-
-            var history = new EventHistory { ResourceId = id, EventType = EventType.Interruption };
-
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
-        }
-
-        public async Task<bool> StartTaskItem(long id)
-        {
-            var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
-
-            if (last != null && last.EventType == EventType.Task && last.ResourceId == id)
-            {
-                return false;
-            }
-
-            var history = new EventHistory { ResourceId = id, EventType = EventType.Task };
-
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
-        }
-
-        public async Task<bool> StartBreakSession(int duration)
-        {
-            var minDuration = 1000 * 60 * 5;
-
-            if (duration < minDuration)
-            {
-                throw new ArgumentException($"Duration cannot be less than {minDuration} milliseconds.");
-            }
-
-            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
-
-            if (await EventPromptRepository.CreatePrompt(prompt).ConfigureAwait(false) == null)
-            {
-                return false;
-            }
-
-            var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
-
-            if (last?.EventType == EventType.Break)
-            {
-                return false;
-            }
-
-            var history = new EventHistory { ResourceId = -1, EventType = EventType.Break, TargetDuration = duration };
-
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
-        }
-
-        public async Task<bool> SkipBreakSession()
-        {
-            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Skipped };
-
-            return await EventPromptRepository.CreatePrompt(prompt).ConfigureAwait(false) != null;
-        }
-
         private async Task<EventTimeSummary> GetConcludedTimeSummary(DateTime start, DateTime end)
         {
             var summary = new EventTimeSummary();
@@ -195,9 +119,9 @@ namespace Service.Services
             return history;
         }
 
-        private async Task<List<EventHistorySummary>> GetEventHistorySummariesByDay(DateTime start)
+        private async Task<List<EventHistorySummary>> GetEventHistorySummaries(DateTime start, DateTime end)
         {
-            var summaries = await EventHistorySummaryRepository.GetSummaries(start, start.AddDays(1)).ConfigureAwait(false);
+            var summaries = await EventHistorySummaryRepository.GetSummaries(start, end).ConfigureAwait(false);
 
             if (!summaries.Any() || summaries[0].Timestamp != start)
             {

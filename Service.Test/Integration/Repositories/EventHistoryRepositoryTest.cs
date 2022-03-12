@@ -1,4 +1,5 @@
 using Core.DbContexts;
+using Core.Enums;
 using Core.Models.Event;
 using NUnit.Framework;
 using Service.Repositories;
@@ -20,6 +21,28 @@ namespace Service.Test.Integration.Repositories
         {
             Context = await new DatabaseTestUtility().SetupTimeTrackerDbContext().ConfigureAwait(false);
             Subject = new EventHistoryRepository(Context);
+        }
+
+        [Test]
+        public async Task GetNextHistoryShouldReturnNullWhenNoHistoryExist()
+        {
+            await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+
+            var result = await Subject.GetNextHistory(DateTime.UtcNow).ConfigureAwait(false);
+
+            Assert.IsNull(result);
+        }
+
+        [Test]
+        public async Task GetNextHistoryShouldReturnNextHistory()
+        {
+            await Subject.CreateHistory(new EventHistory { ResourceId = 12, EventType = EventType.Task }).ConfigureAwait(false);
+            await Subject.CreateHistory(new EventHistory { ResourceId = 55, EventType = EventType.Interruption }).ConfigureAwait(false);
+
+            var result = await Subject.GetNextHistory(DateTime.UtcNow.AddMinutes(-5)).ConfigureAwait(false);
+
+            Assert.AreEqual(12, result.ResourceId);
+            Assert.AreEqual(EventType.Task, result.EventType);
         }
 
         [Test]

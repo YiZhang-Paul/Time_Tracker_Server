@@ -4,6 +4,7 @@ using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Models.WorkItem;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +17,16 @@ namespace Service.Services
         public InterruptionItemService(IInterruptionItemRepository interruptionItemRepository)
         {
             InterruptionItemRepository = interruptionItemRepository;
+        }
+
+        public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries(string searchText)
+        {
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                throw new ArgumentException("Search text must not be empty.");
+            }
+
+            return await InterruptionItemRepository.GetItemSummaries(searchText.Trim()).ConfigureAwait(false);
         }
 
         public async Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start)
