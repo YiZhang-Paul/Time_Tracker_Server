@@ -31,6 +31,7 @@ namespace Core.DbContexts
             new TaskItemEntityTypeConfiguration().Configure(modelBuilder.Entity<TaskItem>());
             new EventHistoryEntityTypeConfiguration().Configure(modelBuilder.Entity<EventHistory>());
             new EventHistorySummaryEntityTypeConfiguration().Configure(modelBuilder.Entity<EventHistorySummary>());
+            new EventPromptEntityTypeConfiguration().Configure(modelBuilder.Entity<EventPrompt>());
             OnModelCreatingPartial(modelBuilder);
         }
 
