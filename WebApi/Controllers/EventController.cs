@@ -18,6 +18,7 @@ namespace WebApi.Controllers
         private IInterruptionItemService InterruptionItemService { get; }
         private ITaskItemService TaskItemService { get; }
         private IEventSummaryService EventSummaryService { get; }
+        private IEventTrackingService EventTrackingService { get; }
 
         public EventController
         (
@@ -25,7 +26,8 @@ namespace WebApi.Controllers
             ITaskItemRepository taskItemRepository,
             IInterruptionItemService interruptionItemService,
             ITaskItemService taskItemService,
-            IEventSummaryService eventSummaryService
+            IEventSummaryService eventSummaryService,
+            IEventTrackingService eventTrackingService
         )
         {
             InterruptionItemRepository = interruptionItemRepository;
@@ -33,6 +35,7 @@ namespace WebApi.Controllers
             InterruptionItemService = interruptionItemService;
             TaskItemService = taskItemService;
             EventSummaryService = eventSummaryService;
+            EventTrackingService = eventTrackingService;
         }
 
         [HttpGet]
@@ -63,7 +66,7 @@ namespace WebApi.Controllers
         [Route("idling-sessions")]
         public async Task<bool> StartIdlingSession()
         {
-            return await EventSummaryService.StartIdlingSession().ConfigureAwait(false);
+            return await EventTrackingService.StartIdlingSession().ConfigureAwait(false);
         }
 
         [HttpPost]

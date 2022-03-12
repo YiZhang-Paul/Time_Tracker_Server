@@ -22,6 +22,7 @@ namespace WebApi.Test.Unit
         private Mock<IInterruptionItemService> InterruptionItemService { get; set; }
         private Mock<ITaskItemService> TaskItemService { get; set; }
         private Mock<IEventSummaryService> EventSummaryService { get; set; }
+        private Mock<IEventTrackingService> EventTrackingService { get; set; }
         private HttpClient HttpClient { get; set; }
 
         [SetUp]
@@ -32,6 +33,7 @@ namespace WebApi.Test.Unit
             InterruptionItemService = new Mock<IInterruptionItemService>();
             TaskItemService = new Mock<ITaskItemService>();
             EventSummaryService = new Mock<IEventSummaryService>();
+            EventTrackingService = new Mock<IEventTrackingService>();
 
             HttpClient = await new ControllerTestUtility().SetupTestHttpClient
             (
@@ -40,6 +42,7 @@ namespace WebApi.Test.Unit
                       .AddSingleton(InterruptionItemService.Object)
                       .AddSingleton(TaskItemService.Object)
                       .AddSingleton(EventSummaryService.Object)
+                      .AddSingleton(EventTrackingService.Object)
             ).ConfigureAwait(false);
         }
 
@@ -59,13 +62,13 @@ namespace WebApi.Test.Unit
         [Test]
         public async Task StartIdlingSessionShouldStartIdlingSession()
         {
-            EventSummaryService.Setup(_ => _.StartIdlingSession()).ReturnsAsync(true);
+            EventTrackingService.Setup(_ => _.StartIdlingSession()).ReturnsAsync(true);
 
             var response = await HttpClient.PostAsync($"{ApiBase}/idling-sessions", null).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-            EventSummaryService.Verify(_ => _.StartIdlingSession(), Times.Once);
+            EventTrackingService.Verify(_ => _.StartIdlingSession(), Times.Once);
         }
 
         [Test]

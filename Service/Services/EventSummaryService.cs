@@ -90,20 +90,6 @@ namespace Service.Services
             }).ToList();
         }
 
-        public async Task<bool> StartIdlingSession()
-        {
-            var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
-
-            if (last?.EventType == EventType.Idling)
-            {
-                return false;
-            }
-
-            var history = new EventHistory { ResourceId = -1, EventType = EventType.Idling };
-
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
-        }
-
         public async Task<bool> StartInterruptionItem(long id)
         {
             var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
