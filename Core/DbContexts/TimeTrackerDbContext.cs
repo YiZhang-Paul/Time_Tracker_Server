@@ -1,3 +1,4 @@
+using Core.DbContexts.Configurations;
 using Core.Models.Event;
 using Core.Models.WorkItem;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +27,13 @@ namespace Core.DbContexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.UseSerialColumns();
-            modelBuilder.Entity<EventHistorySummary>().ToView("EventHistorySummary");
+            new InterruptionItemEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionItem>());
+            new InterruptionChecklistEntryEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionChecklistEntry>());
+            new TaskItemEntityTypeConfiguration().Configure(modelBuilder.Entity<TaskItem>());
+            new TaskChecklistEntryEntityTypeConfiguration().Configure(modelBuilder.Entity<TaskChecklistEntry>());
+            new EventHistoryEntityTypeConfiguration().Configure(modelBuilder.Entity<EventHistory>());
+            new EventHistorySummaryEntityTypeConfiguration().Configure(modelBuilder.Entity<EventHistorySummary>());
+            new EventPromptEntityTypeConfiguration().Configure(modelBuilder.Entity<EventPrompt>());
             OnModelCreatingPartial(modelBuilder);
         }
 
