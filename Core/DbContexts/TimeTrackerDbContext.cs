@@ -1,3 +1,4 @@
+using Core.DbContexts.Configurations;
 using Core.Models.Event;
 using Core.Models.WorkItem;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,7 @@ namespace Core.DbContexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.UseSerialColumns();
+            new InterruptionItemEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionItem>());
             modelBuilder.Entity<EventHistorySummary>().ToView("EventHistorySummary");
             OnModelCreatingPartial(modelBuilder);
         }
