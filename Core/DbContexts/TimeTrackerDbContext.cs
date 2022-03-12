@@ -30,7 +30,7 @@ namespace Core.DbContexts
             new InterruptionItemEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionItem>());
             new TaskItemEntityTypeConfiguration().Configure(modelBuilder.Entity<TaskItem>());
             new EventHistoryEntityTypeConfiguration().Configure(modelBuilder.Entity<EventHistory>());
-            modelBuilder.Entity<EventHistorySummary>().ToView("EventHistorySummary");
+            new EventHistorySummaryEntityTypeConfiguration().Configure(modelBuilder.Entity<EventHistorySummary>());
             OnModelCreatingPartial(modelBuilder);
         }
 
