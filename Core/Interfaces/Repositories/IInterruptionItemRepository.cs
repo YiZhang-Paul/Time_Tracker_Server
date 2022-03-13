@@ -15,5 +15,6 @@ namespace Core.Interfaces.Repositories
         InterruptionItem CreateItem(InterruptionItemBase item);
         Task<InterruptionItem> UpdateItem(InterruptionItem item);
         Task<bool> DeleteItemById(long id);
+        Task<bool> DeleteItem(InterruptionItem item);
     }
 }

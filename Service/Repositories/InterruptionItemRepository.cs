@@ -74,41 +74,46 @@ namespace Service.Repositories
                 ModifiedTime = now
             };
 
-            Context.InterruptionItem.Add(payload);
-
-            return payload;
+            return Context.InterruptionItem.Add(payload).Entity;
         }
 
         public async Task<InterruptionItem> UpdateItem(InterruptionItem item)
         {
-            var existing = await GetItemById(item.Id).ConfigureAwait(false);
-
-            if (existing == null)
+            if (await Context.InterruptionItem.AllAsync(_ => _.Id != item.Id).ConfigureAwait(false))
             {
                 return null;
             }
 
-            existing.Name = item.Name;
-            existing.Description = item.Description;
-            existing.Priority = item.Priority;
-            existing.Checklists = item.Checklists;
-            existing.ResolvedTime = item.ResolvedTime;
-            existing.ModifiedTime = DateTime.UtcNow;
+            item.ModifiedTime = DateTime.UtcNow;
 
-            return existing;
+            return Context.InterruptionItem.Update(item).Entity;
         }
 
         public async Task<bool> DeleteItemById(long id)
         {
-            var existing = await GetItemById(id).ConfigureAwait(false);
+            var item = await GetItemById(id).ConfigureAwait(false);
 
-            if (existing == null)
+            if (item == null)
             {
                 return false;
             }
 
-            existing.IsDeleted = true;
-            existing.ModifiedTime = DateTime.UtcNow;
+            item.IsDeleted = true;
+            item.ModifiedTime = DateTime.UtcNow;
+
+            return true;
+        }
+
+        public async Task<bool> DeleteItem(InterruptionItem item)
+        {
+            if (await Context.InterruptionItem.AllAsync(_ => _.Id != item.Id).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            item.IsDeleted = true;
+            item.ModifiedTime = DateTime.UtcNow;
+            Context.InterruptionItem.Update(item);
 
             return true;
         }
