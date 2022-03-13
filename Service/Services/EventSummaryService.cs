@@ -2,6 +2,7 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.Event;
 using Core.Models.Generic;
 using System;
@@ -14,19 +15,19 @@ namespace Service.Services
     public class EventSummaryService : IEventSummaryService
     {
         private IEventHistoryRepository EventHistoryRepository { get; }
-        private IEventHistorySummaryRepository EventHistorySummaryRepository { get; }
         private IEventPromptRepository EventPromptRepository { get; }
+        private IEventUnitOfWork EventUnitOfWork { get; }
 
         public EventSummaryService
         (
             IEventHistoryRepository eventHistoryRepository,
-            IEventHistorySummaryRepository eventHistorySummaryRepository,
-            IEventPromptRepository eventPromptRepository
+            IEventPromptRepository eventPromptRepository,
+            IEventUnitOfWork eventUnitOfWork
         )
         {
             EventHistoryRepository = eventHistoryRepository;
-            EventHistorySummaryRepository = eventHistorySummaryRepository;
             EventPromptRepository = eventPromptRepository;
+            EventUnitOfWork = eventUnitOfWork;
         }
 
         public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
@@ -121,11 +122,11 @@ namespace Service.Services
 
         private async Task<List<EventHistorySummary>> GetEventHistorySummaries(DateTime start, DateTime end)
         {
-            var summaries = await EventHistorySummaryRepository.GetSummaries(start, end).ConfigureAwait(false);
+            var summaries = await EventUnitOfWork.EventHistorySummary.GetSummaries(start, end).ConfigureAwait(false);
 
             if (!summaries.Any() || summaries[0].Timestamp != start)
             {
-                var previous = await EventHistorySummaryRepository.GetLastSummary(start).ConfigureAwait(false);
+                var previous = await EventUnitOfWork.EventHistorySummary.GetLastSummary(start).ConfigureAwait(false);
                 previous.Timestamp = start;
                 summaries.Insert(0, previous);
             }

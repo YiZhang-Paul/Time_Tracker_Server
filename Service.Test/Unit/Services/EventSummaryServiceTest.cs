@@ -1,5 +1,6 @@
 using Core.Enums;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.Event;
 using Moq;
 using NUnit.Framework;
@@ -14,22 +15,22 @@ namespace Service.Test.Unit.Services
     public class EventSummaryServiceTest
     {
         private Mock<IEventHistoryRepository> EventHistoryRepository { get; set; }
-        private Mock<IEventHistorySummaryRepository> EventHistorySummaryRepository { get; set; }
         private Mock<IEventPromptRepository> EventPromptRepository { get; set; }
+        private Mock<IEventUnitOfWork> EventUnitOfWork { get; set; }
         private EventSummaryService Subject { get; set; }
 
         [SetUp]
         public void Setup()
         {
             EventHistoryRepository = new Mock<IEventHistoryRepository>();
-            EventHistorySummaryRepository = new Mock<IEventHistorySummaryRepository>();
             EventPromptRepository = new Mock<IEventPromptRepository>();
+            EventUnitOfWork = new Mock<IEventUnitOfWork>();
 
             Subject = new EventSummaryService
             (
                 EventHistoryRepository.Object,
-                EventHistorySummaryRepository.Object,
-                EventPromptRepository.Object
+                EventPromptRepository.Object,
+                EventUnitOfWork.Object
             );
         }
 
