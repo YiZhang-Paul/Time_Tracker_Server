@@ -2,6 +2,7 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Text;
@@ -13,8 +14,8 @@ namespace WebApi.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
-        private IInterruptionItemRepository InterruptionItemRepository { get; }
         private ITaskItemRepository TaskItemRepository { get; }
+        private IWorkItemUnitOfWork WorkItemUnitOfWork { get; }
         private IInterruptionItemService InterruptionItemService { get; }
         private ITaskItemService TaskItemService { get; }
         private IEventSummaryService EventSummaryService { get; }
@@ -22,16 +23,16 @@ namespace WebApi.Controllers
 
         public EventController
         (
-            IInterruptionItemRepository interruptionItemRepository,
             ITaskItemRepository taskItemRepository,
+            IWorkItemUnitOfWork workItemUnitOfWork,
             IInterruptionItemService interruptionItemService,
             ITaskItemService taskItemService,
             IEventSummaryService eventSummaryService,
             IEventTrackingService eventTrackingService
         )
         {
-            InterruptionItemRepository = interruptionItemRepository;
             TaskItemRepository = taskItemRepository;
+            WorkItemUnitOfWork = workItemUnitOfWork;
             InterruptionItemService = interruptionItemService;
             TaskItemService = taskItemService;
             EventSummaryService = eventSummaryService;
@@ -73,7 +74,7 @@ namespace WebApi.Controllers
         [Route("interruption-items/{id}")]
         public async Task<bool> StartInterruptionItem(long id)
         {
-            var item = await InterruptionItemRepository.GetItemById(id).ConfigureAwait(false);
+            var item = await WorkItemUnitOfWork.InterruptionItem.GetItemById(id).ConfigureAwait(false);
 
             if (item == null)
             {

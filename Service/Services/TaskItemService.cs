@@ -61,7 +61,7 @@ namespace Service.Services
 
             if (action != ResolveAction.None)
             {
-                item.ResolvedTime = action == ResolveAction.Resolve ? DateTime.UtcNow : (DateTime?)null;
+                item.ResolvedTime = action == ResolveAction.Resolve ? DateTime.UtcNow : null;
             }
 
             return await TaskItemRepository.UpdateItem(item).ConfigureAwait(false);

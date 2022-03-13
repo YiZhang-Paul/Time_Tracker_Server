@@ -60,7 +60,7 @@ namespace Service.Repositories
             return await query.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
-        public async Task<InterruptionItem> CreateItem(InterruptionItemBase item)
+        public InterruptionItem CreateItem(InterruptionItemBase item)
         {
             var now = DateTime.UtcNow;
 
@@ -76,7 +76,7 @@ namespace Service.Repositories
 
             Context.InterruptionItem.Add(payload);
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0 ? payload : null;
+            return payload;
         }
 
         public async Task<InterruptionItem> UpdateItem(InterruptionItem item)
@@ -95,7 +95,7 @@ namespace Service.Repositories
             existing.ResolvedTime = item.ResolvedTime;
             existing.ModifiedTime = DateTime.UtcNow;
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0 ? existing : null;
+            return existing;
         }
 
         public async Task<bool> DeleteItemById(long id)
@@ -110,7 +110,7 @@ namespace Service.Repositories
             existing.IsDeleted = true;
             existing.ModifiedTime = DateTime.UtcNow;
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0;
+            return true;
         }
     }
 }

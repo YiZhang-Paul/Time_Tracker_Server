@@ -1,7 +1,7 @@
 using Core.Dtos;
 using Core.Enums;
-using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -13,12 +13,12 @@ namespace WebApi.Controllers
     [ApiController]
     public class InterruptionItemController : ControllerBase
     {
-        private IInterruptionItemRepository InterruptionItemRepository { get; }
+        private IWorkItemUnitOfWork WorkItemUnitOfWork { get; }
         private IInterruptionItemService InterruptionItemService { get; }
 
-        public InterruptionItemController(IInterruptionItemRepository interruptionItemRepository, IInterruptionItemService interruptionItemService)
+        public InterruptionItemController(IWorkItemUnitOfWork workItemUnitOfWork, IInterruptionItemService interruptionItemService)
         {
-            InterruptionItemRepository = interruptionItemRepository;
+            WorkItemUnitOfWork = workItemUnitOfWork;
             InterruptionItemService = interruptionItemService;
         }
 
@@ -47,7 +47,7 @@ namespace WebApi.Controllers
         [Route("{id}")]
         public async Task<InterruptionItem> GetItemById(long id)
         {
-            return await InterruptionItemRepository.GetItemById(id).ConfigureAwait(false);
+            return await WorkItemUnitOfWork.InterruptionItem.GetItemById(id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -82,7 +82,12 @@ namespace WebApi.Controllers
         [Route("{id}")]
         public async Task<bool> DeleteItemById(long id)
         {
-            return await InterruptionItemRepository.DeleteItemById(id).ConfigureAwait(false);
+            if (!await WorkItemUnitOfWork.InterruptionItem.DeleteItemById(id).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            return await WorkItemUnitOfWork.Save().ConfigureAwait(false) > 0;
         }
     }
 }

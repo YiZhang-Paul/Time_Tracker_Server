@@ -1,7 +1,7 @@
 using Core.Dtos;
 using Core.Enums;
-using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
 using System;
 using System.Collections.Generic;
@@ -12,11 +12,11 @@ namespace Service.Services
 {
     public class InterruptionItemService : IInterruptionItemService
     {
-        private IInterruptionItemRepository InterruptionItemRepository { get; }
+        private IWorkItemUnitOfWork WorkItemUnitOfWork { get; }
 
-        public InterruptionItemService(IInterruptionItemRepository interruptionItemRepository)
+        public InterruptionItemService(IWorkItemUnitOfWork workItemUnitOfWork)
         {
-            InterruptionItemRepository = interruptionItemRepository;
+            WorkItemUnitOfWork = workItemUnitOfWork;
         }
 
         public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries(string searchText)
@@ -26,23 +26,24 @@ namespace Service.Services
                 throw new ArgumentException("Search text must not be empty.");
             }
 
-            return await InterruptionItemRepository.GetItemSummaries(searchText.Trim()).ConfigureAwait(false);
+            return await WorkItemUnitOfWork.InterruptionItem.GetItemSummaries(searchText.Trim()).ConfigureAwait(false);
         }
 
         public async Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start)
         {
             return new ItemSummariesDto<InterruptionItemSummaryDto>
             {
-                Resolved = await InterruptionItemRepository.GetResolvedItemSummaries(start).ConfigureAwait(false),
-                Unresolved = await InterruptionItemRepository.GetUnresolvedItemSummaries().ConfigureAwait(false)
+                Resolved = await WorkItemUnitOfWork.InterruptionItem.GetResolvedItemSummaries(start).ConfigureAwait(false),
+                Unresolved = await WorkItemUnitOfWork.InterruptionItem.GetUnresolvedItemSummaries().ConfigureAwait(false)
             };
         }
 
         public async Task<InterruptionItem> CreateItem(InterruptionItemBase item)
         {
             ValidateItem(item);
+            var created = WorkItemUnitOfWork.InterruptionItem.CreateItem(item);
 
-            return await InterruptionItemRepository.CreateItem(item).ConfigureAwait(false);
+            return await WorkItemUnitOfWork.Save().ConfigureAwait(false) > 0 ? created : null;
         }
 
         public async Task<InterruptionItem> UpdateItem(InterruptionItem item, ResolveAction action = ResolveAction.None)
@@ -61,10 +62,12 @@ namespace Service.Services
 
             if (action != ResolveAction.None)
             {
-                item.ResolvedTime = action == ResolveAction.Resolve ? DateTime.UtcNow : (DateTime?)null;
+                item.ResolvedTime = action == ResolveAction.Resolve ? DateTime.UtcNow : null;
             }
 
-            return await InterruptionItemRepository.UpdateItem(item).ConfigureAwait(false);
+            var updated = await WorkItemUnitOfWork.InterruptionItem.UpdateItem(item).ConfigureAwait(false);
+
+            return updated != null && await WorkItemUnitOfWork.Save().ConfigureAwait(false) > 0 ? updated : null;
         }
 
         private void ValidateItem(InterruptionItemBase item)

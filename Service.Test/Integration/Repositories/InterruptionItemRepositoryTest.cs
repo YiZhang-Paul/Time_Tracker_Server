@@ -36,14 +36,9 @@ namespace Service.Test.Integration.Repositories
         {
             for (var i = 0; i < 5; ++i)
             {
-                var payload = new InterruptionItemBase
-                {
-                    Name = $"name_{i}",
-                    Description = $"description_{i}",
-                    Priority = Priority.Medium
-                };
-
-                var created = await Subject.CreateItem(payload).ConfigureAwait(false);
+                var payload = new InterruptionItemBase { Name = $"name_{i}", Description = $"description_{i}", Priority = Priority.Medium };
+                var created = Subject.CreateItem(payload);
+                await Context.SaveChangesAsync().ConfigureAwait(false);
 
                 if (i == 0 || i == 3)
                 {
@@ -53,6 +48,7 @@ namespace Service.Test.Integration.Repositories
             }
 
             await Subject.DeleteItemById(2).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetUnresolvedItemSummaries().ConfigureAwait(false);
 
@@ -72,9 +68,10 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetItemByIdShouldReturnNullWhenItemIsDeleted()
         {
-            var payload = new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateItem(payload).ConfigureAwait(false);
+            Subject.CreateItem(new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low });
+            await Context.SaveChangesAsync().ConfigureAwait(false);
             await Subject.DeleteItemById(1).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetItemById(1).ConfigureAwait(false);
 
@@ -84,9 +81,10 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetItemByIdShouldReturnDeletedItemWhenNotExcludingDeletedItem()
         {
-            var payload = new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateItem(payload).ConfigureAwait(false);
+            Subject.CreateItem(new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low });
+            await Context.SaveChangesAsync().ConfigureAwait(false);
             await Subject.DeleteItemById(1).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetItemById(1, false).ConfigureAwait(false);
 
@@ -96,8 +94,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetItemByIdShouldReturnItemFound()
         {
-            var payload = new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateItem(payload).ConfigureAwait(false);
+            Subject.CreateItem(new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low });
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetItemById(1).ConfigureAwait(false);
 
@@ -116,7 +114,8 @@ namespace Service.Test.Integration.Repositories
                 Priority = Priority.Medium
             };
 
-            var result = await Subject.CreateItem(payload).ConfigureAwait(false);
+            var result = Subject.CreateItem(payload);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.AreEqual("item_name", result.Name);
             Assert.AreEqual("item_description", result.Description);
@@ -130,6 +129,7 @@ namespace Service.Test.Integration.Repositories
         public async Task UpdateItemShouldReturnNullWhenItemDoesNotExist()
         {
             var result = await Subject.UpdateItem(new InterruptionItem { Id = 1000 }).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.IsNull(result);
         }
@@ -144,13 +144,14 @@ namespace Service.Test.Integration.Repositories
                 Priority = Priority.High
             };
 
-            await Subject.CreateItem(payload).ConfigureAwait(false);
-            var item = await Subject.GetItemById(1).ConfigureAwait(false);
+            var item = Subject.CreateItem(payload);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
             item.Name = "current_name";
             item.Description = "current_description";
             item.Priority = Priority.Medium;
 
             var result = await Subject.UpdateItem(item).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.AreEqual("current_name", result.Name);
             Assert.AreEqual("current_description", result.Description);
@@ -162,6 +163,7 @@ namespace Service.Test.Integration.Repositories
         public async Task DeleteItemByIdShouldReturnFalseWhenItemDoesNotExist()
         {
             var result = await Subject.DeleteItemById(1000).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.IsFalse(result);
         }
@@ -169,11 +171,13 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task DeleteItemByIdShouldReturnFalseWhenItemIsAlreadyDeleted()
         {
-            var payload = new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateItem(payload).ConfigureAwait(false);
+            Subject.CreateItem(new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low });
+            await Context.SaveChangesAsync().ConfigureAwait(false);
             await Subject.DeleteItemById(1).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.DeleteItemById(1).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.IsFalse(result);
         }
@@ -181,10 +185,11 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task DeleteItemByIdShouldReturnTrueWhenSuccessfullyDeletedItem()
         {
-            var payload = new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low };
-            await Subject.CreateItem(payload).ConfigureAwait(false);
+            Subject.CreateItem(new InterruptionItemBase { Name = "name", Description = "description", Priority = Priority.Low });
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.DeleteItemById(1).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.IsTrue(result);
         }

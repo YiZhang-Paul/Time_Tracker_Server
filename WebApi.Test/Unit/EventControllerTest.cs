@@ -1,6 +1,7 @@
 using Core.Dtos;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -19,6 +20,7 @@ namespace WebApi.Test.Unit
         private const string ApiBase = "api/v1/events";
         private Mock<IInterruptionItemRepository> InterruptionItemRepository { get; set; }
         private Mock<ITaskItemRepository> TaskItemRepository { get; set; }
+        private Mock<IWorkItemUnitOfWork> WorkItemUnitOfWork { get; set; }
         private Mock<IInterruptionItemService> InterruptionItemService { get; set; }
         private Mock<ITaskItemService> TaskItemService { get; set; }
         private Mock<IEventSummaryService> EventSummaryService { get; set; }
@@ -30,6 +32,7 @@ namespace WebApi.Test.Unit
         {
             InterruptionItemRepository = new Mock<IInterruptionItemRepository>();
             TaskItemRepository = new Mock<ITaskItemRepository>();
+            WorkItemUnitOfWork = new Mock<IWorkItemUnitOfWork>();
             InterruptionItemService = new Mock<IInterruptionItemService>();
             TaskItemService = new Mock<ITaskItemService>();
             EventSummaryService = new Mock<IEventSummaryService>();
@@ -37,13 +40,15 @@ namespace WebApi.Test.Unit
 
             HttpClient = await new ControllerTestUtility().SetupTestHttpClient
             (
-                _ => _.AddSingleton(InterruptionItemRepository.Object)
+                _ => _.AddSingleton(WorkItemUnitOfWork.Object)
                       .AddSingleton(TaskItemRepository.Object)
                       .AddSingleton(InterruptionItemService.Object)
                       .AddSingleton(TaskItemService.Object)
                       .AddSingleton(EventSummaryService.Object)
                       .AddSingleton(EventTrackingService.Object)
             ).ConfigureAwait(false);
+
+            WorkItemUnitOfWork.SetupGet(_ => _.InterruptionItem).Returns(InterruptionItemRepository.Object);
         }
 
         [Test]

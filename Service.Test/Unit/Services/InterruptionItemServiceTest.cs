@@ -1,4 +1,5 @@
 using Core.Interfaces.Repositories;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
 using Moq;
 using NUnit.Framework;
@@ -13,13 +14,16 @@ namespace Service.Test.Unit.Services
     public class InterruptionItemServiceTest
     {
         private Mock<IInterruptionItemRepository> InterruptionItemRepository { get; set; }
+        private Mock<IWorkItemUnitOfWork> WorkItemUnitOfWork { get; set; }
         private InterruptionItemService Subject { get; set; }
 
         [SetUp]
         public void Setup()
         {
             InterruptionItemRepository = new Mock<IInterruptionItemRepository>();
-            Subject = new InterruptionItemService(InterruptionItemRepository.Object);
+            WorkItemUnitOfWork = new Mock<IWorkItemUnitOfWork>();
+            WorkItemUnitOfWork.SetupGet(_ => _.InterruptionItem).Returns(InterruptionItemRepository.Object);
+            Subject = new InterruptionItemService(WorkItemUnitOfWork.Object);
         }
 
         [Test]
@@ -53,12 +57,14 @@ namespace Service.Test.Unit.Services
         [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            InterruptionItemRepository.Setup(_ => _.CreateItem(It.IsAny<InterruptionItemBase>())).ReturnsAsync(new InterruptionItem());
+            InterruptionItemRepository.Setup(_ => _.CreateItem(It.IsAny<InterruptionItemBase>())).Returns(new InterruptionItem());
+            WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(1);
 
             var result = await Subject.CreateItem(new InterruptionItemBase { Name = "valid_name" }).ConfigureAwait(false);
 
             Assert.IsNotNull(result);
             InterruptionItemRepository.Verify(_ => _.CreateItem(It.IsAny<InterruptionItemBase>()), Times.Once);
+            WorkItemUnitOfWork.Verify(_ => _.Save(), Times.Once);
         }
     }
 }
