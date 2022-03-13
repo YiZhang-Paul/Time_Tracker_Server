@@ -29,9 +29,10 @@ namespace Service.Test.Unit.Services
             Subject = new EventSummaryService
             (
                 EventHistoryRepository.Object,
-                EventPromptRepository.Object,
                 EventUnitOfWork.Object
             );
+
+            EventUnitOfWork.SetupGet(_ => _.EventPrompt).Returns(EventPromptRepository.Object);
         }
 
         [Test]

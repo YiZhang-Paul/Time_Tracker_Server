@@ -15,24 +15,21 @@ namespace Service.Services
     public class EventSummaryService : IEventSummaryService
     {
         private IEventHistoryRepository EventHistoryRepository { get; }
-        private IEventPromptRepository EventPromptRepository { get; }
         private IEventUnitOfWork EventUnitOfWork { get; }
 
         public EventSummaryService
         (
             IEventHistoryRepository eventHistoryRepository,
-            IEventPromptRepository eventPromptRepository,
             IEventUnitOfWork eventUnitOfWork
         )
         {
             EventHistoryRepository = eventHistoryRepository;
-            EventPromptRepository = eventPromptRepository;
             EventUnitOfWork = eventUnitOfWork;
         }
 
         public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
         {
-            var lastPrompt = await EventPromptRepository.GetLastPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
+            var lastPrompt = await EventUnitOfWork.EventPrompt.GetLastPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
             var startTime = start.ToUniversalTime();
             var promptTime = lastPrompt?.Timestamp ?? startTime;
             var endTime = DateTime.UtcNow;
