@@ -30,12 +30,11 @@ namespace Service.Repositories
             return await sorted.FirstOrDefaultAsync(_ => _.PromptType == type).ConfigureAwait(false);
         }
 
-        public async Task<EventPrompt> CreatePrompt(EventPrompt prompt)
+        public EventPrompt CreatePrompt(EventPrompt prompt)
         {
             prompt.Timestamp = DateTime.UtcNow;
-            Context.EventPrompt.Add(prompt);
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? prompt : null;
+            return Context.EventPrompt.Add(prompt).Entity;
         }
     }
 }

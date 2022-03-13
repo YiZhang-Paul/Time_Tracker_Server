@@ -1,6 +1,7 @@
 using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.Event;
 using System;
 using System.Collections.Generic;
@@ -12,16 +13,16 @@ namespace Service.Services
     public class EventTrackingService : IEventTrackingService
     {
         private IEventHistoryRepository EventHistoryRepository { get; }
-        private IEventPromptRepository EventPromptRepository { get; }
+        private IEventUnitOfWork EventUnitOfWork { get; }
 
         public EventTrackingService
         (
             IEventHistoryRepository eventHistoryRepository,
-            IEventPromptRepository eventPromptRepository
+            IEventUnitOfWork eventUnitOfWork
         )
         {
             EventHistoryRepository = eventHistoryRepository;
-            EventPromptRepository = eventPromptRepository;
+            EventUnitOfWork = eventUnitOfWork;
         }
 
         public async Task<bool> StartIdlingSession()
@@ -75,14 +76,9 @@ namespace Service.Services
                 throw new ArgumentException($"Duration cannot be less than {minDuration} milliseconds.");
             }
 
-            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
-
-            if (await EventPromptRepository.CreatePrompt(prompt).ConfigureAwait(false) == null)
-            {
-                return false;
-            }
-
             var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
+            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
+            EventUnitOfWork.EventPrompt.CreatePrompt(prompt);
 
             if (last?.EventType == EventType.Break)
             {
@@ -97,8 +93,9 @@ namespace Service.Services
         public async Task<bool> SkipBreakSession()
         {
             var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Skipped };
+            EventUnitOfWork.EventPrompt.CreatePrompt(prompt);
 
-            return await EventPromptRepository.CreatePrompt(prompt).ConfigureAwait(false) != null;
+            return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
         public async Task<bool> UpdateTimeRange(EventTimeRangeDto range)

@@ -1,5 +1,6 @@
 using Core.Enums;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.Event;
 using Moq;
 using NUnit.Framework;
@@ -14,6 +15,7 @@ namespace Service.Test.Unit.Services
     {
         private Mock<IEventHistoryRepository> EventHistoryRepository { get; set; }
         private Mock<IEventPromptRepository> EventPromptRepository { get; set; }
+        private Mock<IEventUnitOfWork> EventUnitOfWork { get; set; }
         private EventTrackingService Subject { get; set; }
 
         [SetUp]
@@ -21,7 +23,9 @@ namespace Service.Test.Unit.Services
         {
             EventHistoryRepository = new Mock<IEventHistoryRepository>();
             EventPromptRepository = new Mock<IEventPromptRepository>();
-            Subject = new EventTrackingService(EventHistoryRepository.Object, EventPromptRepository.Object);
+            EventUnitOfWork = new Mock<IEventUnitOfWork>();
+            EventUnitOfWork.SetupGet(_ => _.EventPrompt).Returns(EventPromptRepository.Object);
+            Subject = new EventTrackingService(EventHistoryRepository.Object, EventUnitOfWork.Object);
         }
 
         [Test]
@@ -172,14 +176,9 @@ namespace Service.Test.Unit.Services
         }
 
         [Test]
-        public async Task StartBreakSessionShouldReturnFalseWhenFailedToRecordEventPrompt()
+        public async Task StartBreakSessionShouldRecordPromptResponse()
         {
-            EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync((EventPrompt)null);
-
-            var result = await Subject.StartBreakSession(300000).ConfigureAwait(false);
-
-            Assert.IsFalse(result);
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
+            await Subject.StartBreakSession(300000).ConfigureAwait(false);
 
             EventPromptRepository.Verify(_ => _.CreatePrompt(It.Is<EventPrompt>
             (
@@ -191,7 +190,6 @@ namespace Service.Test.Unit.Services
         public async Task StartBreakSessionShouldReturnFalseWhenBreakSessionIsOngoing()
         {
             var history = new EventHistory { EventType = EventType.Break };
-            EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync(new EventPrompt());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync(history);
 
             var result = await Subject.StartBreakSession(300000).ConfigureAwait(false);
@@ -204,7 +202,6 @@ namespace Service.Test.Unit.Services
         [Test]
         public async Task StartBreakSessionShouldReturnFalseWhenFailedToStartSession()
         {
-            EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync(new EventPrompt());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync((EventHistory)null);
 
@@ -224,7 +221,6 @@ namespace Service.Test.Unit.Services
         public async Task StartBreakSessionShouldReturnTrueWhenSuccessfullyStartedSession()
         {
             var history = new EventHistory { EventType = EventType.Interruption };
-            EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync(new EventPrompt());
             EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync(history);
             EventHistoryRepository.Setup(_ => _.CreateHistory(It.IsAny<EventHistory>())).ReturnsAsync(new EventHistory());
 
@@ -243,11 +239,12 @@ namespace Service.Test.Unit.Services
         [Test]
         public async Task SkipBreakSessionShouldReturnFalseWhenFailedToSkipSession()
         {
-            EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync((EventPrompt)null);
+            EventUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(false);
 
             var result = await Subject.SkipBreakSession().ConfigureAwait(false);
 
             Assert.IsFalse(result);
+            EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
             EventPromptRepository.Verify(_ => _.CreatePrompt(It.Is<EventPrompt>
             (
@@ -258,11 +255,12 @@ namespace Service.Test.Unit.Services
         [Test]
         public async Task SkipBreakSessionShouldReturnTrueWhenSuccessfullySkippedSession()
         {
-            EventPromptRepository.Setup(_ => _.CreatePrompt(It.IsAny<EventPrompt>())).ReturnsAsync(new EventPrompt());
+            EventUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
             var result = await Subject.SkipBreakSession().ConfigureAwait(false);
 
             Assert.IsTrue(result);
+            EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
             EventPromptRepository.Verify(_ => _.CreatePrompt(It.Is<EventPrompt>
             (
