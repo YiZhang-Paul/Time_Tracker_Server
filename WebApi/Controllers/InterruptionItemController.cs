@@ -82,12 +82,7 @@ namespace WebApi.Controllers
         [Route("{id}")]
         public async Task<bool> DeleteItemById(long id)
         {
-            if (!await WorkItemUnitOfWork.InterruptionItem.DeleteItemById(id).ConfigureAwait(false))
-            {
-                return false;
-            }
-
-            return await WorkItemUnitOfWork.Save().ConfigureAwait(false) > 0;
+            return await WorkItemUnitOfWork.InterruptionItem.DeleteItemById(id).ConfigureAwait(false) && await WorkItemUnitOfWork.Save().ConfigureAwait(false);
         }
     }
 }

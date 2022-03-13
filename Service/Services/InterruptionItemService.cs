@@ -43,7 +43,7 @@ namespace Service.Services
             ValidateItem(item);
             var created = WorkItemUnitOfWork.InterruptionItem.CreateItem(item);
 
-            return await WorkItemUnitOfWork.Save().ConfigureAwait(false) > 0 ? created : null;
+            return await WorkItemUnitOfWork.Save().ConfigureAwait(false) ? created : null;
         }
 
         public async Task<InterruptionItem> UpdateItem(InterruptionItem item, ResolveAction action = ResolveAction.None)
@@ -67,7 +67,7 @@ namespace Service.Services
 
             var updated = await WorkItemUnitOfWork.InterruptionItem.UpdateItem(item).ConfigureAwait(false);
 
-            return updated != null && await WorkItemUnitOfWork.Save().ConfigureAwait(false) > 0 ? updated : null;
+            return updated != null && await WorkItemUnitOfWork.Save().ConfigureAwait(false) ? updated : null;
         }
 
         private void ValidateItem(InterruptionItemBase item)

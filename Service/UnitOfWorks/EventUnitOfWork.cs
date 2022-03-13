@@ -26,9 +26,9 @@ namespace Service.UnitOfWorks
             EventPrompt = eventPromptRepository;
         }
 
-        public async Task<int> Save()
+        public async Task<bool> Save()
         {
-            return await Context.SaveChangesAsync().ConfigureAwait(false);
+            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0;
         }
     }
 }

@@ -8,6 +8,6 @@ namespace Core.Interfaces.UnitOfWorks
         IEventHistoryRepository EventHistory { get; }
         IEventHistorySummaryRepository EventHistorySummary { get; }
         IEventPromptRepository EventPrompt { get; }
-        Task<int> Save();
+        Task<bool> Save();
     }
 }

@@ -111,7 +111,7 @@ namespace WebApi.Test.Unit
         public async Task DeleteItemByIdShouldDeleteItem()
         {
             InterruptionItemRepository.Setup(_ => _.DeleteItemById(It.IsAny<long>())).ReturnsAsync(true);
-            WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(1);
+            WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
             var response = await HttpClient.DeleteAsync($"{ApiBase}/5").ConfigureAwait(false);
 

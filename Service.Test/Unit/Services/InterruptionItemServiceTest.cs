@@ -58,7 +58,7 @@ namespace Service.Test.Unit.Services
         public async Task CreateItemShouldReturnItemCreated()
         {
             InterruptionItemRepository.Setup(_ => _.CreateItem(It.IsAny<InterruptionItemBase>())).Returns(new InterruptionItem());
-            WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(1);
+            WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
             var result = await Subject.CreateItem(new InterruptionItemBase { Name = "valid_name" }).ConfigureAwait(false);
 

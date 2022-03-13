@@ -7,6 +7,6 @@ namespace Core.Interfaces.UnitOfWorks
     {
         IInterruptionItemRepository InterruptionItem { get; }
         ITaskItemRepository TaskItem { get; }
-        Task<int> Save();
+        Task<bool> Save();
     }
 }
