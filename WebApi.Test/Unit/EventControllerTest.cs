@@ -41,7 +41,6 @@ namespace WebApi.Test.Unit
             HttpClient = await new ControllerTestUtility().SetupTestHttpClient
             (
                 _ => _.AddSingleton(WorkItemUnitOfWork.Object)
-                      .AddSingleton(TaskItemRepository.Object)
                       .AddSingleton(InterruptionItemService.Object)
                       .AddSingleton(TaskItemService.Object)
                       .AddSingleton(EventSummaryService.Object)
@@ -49,6 +48,7 @@ namespace WebApi.Test.Unit
             ).ConfigureAwait(false);
 
             WorkItemUnitOfWork.SetupGet(_ => _.InterruptionItem).Returns(InterruptionItemRepository.Object);
+            WorkItemUnitOfWork.SetupGet(_ => _.TaskItem).Returns(TaskItemRepository.Object);
         }
 
         [Test]

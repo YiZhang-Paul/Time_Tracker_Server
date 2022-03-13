@@ -1,4 +1,5 @@
 using Core.Interfaces.Repositories;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
 using Moq;
 using NUnit.Framework;
@@ -13,13 +14,16 @@ namespace Service.Test.Unit.Services
     public class TaskItemServiceTest
     {
         private Mock<ITaskItemRepository> TaskItemRepository { get; set; }
+        private Mock<IWorkItemUnitOfWork> WorkItemUnitOfWork { get; set; }
         private TaskItemService Subject { get; set; }
 
         [SetUp]
         public void Setup()
         {
             TaskItemRepository = new Mock<ITaskItemRepository>();
-            Subject = new TaskItemService(TaskItemRepository.Object);
+            WorkItemUnitOfWork = new Mock<IWorkItemUnitOfWork>();
+            WorkItemUnitOfWork.SetupGet(_ => _.TaskItem).Returns(TaskItemRepository.Object);
+            Subject = new TaskItemService(WorkItemUnitOfWork.Object);
         }
 
         [Test]
@@ -53,12 +57,14 @@ namespace Service.Test.Unit.Services
         [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            TaskItemRepository.Setup(_ => _.CreateItem(It.IsAny<TaskItemBase>())).ReturnsAsync(new TaskItem());
+            TaskItemRepository.Setup(_ => _.CreateItem(It.IsAny<TaskItemBase>())).Returns(new TaskItem());
+            WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
             var result = await Subject.CreateItem(new TaskItemBase { Name = "valid_name" }).ConfigureAwait(false);
 
             Assert.IsNotNull(result);
             TaskItemRepository.Verify(_ => _.CreateItem(It.IsAny<TaskItemBase>()), Times.Once);
+            WorkItemUnitOfWork.Verify(_ => _.Save(), Times.Once);
         }
     }
 }

@@ -1,7 +1,7 @@
 using Core.Dtos;
 using Core.Enums;
-using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
 using System;
 using System.Collections.Generic;
@@ -12,11 +12,11 @@ namespace Service.Services
 {
     public class TaskItemService : ITaskItemService
     {
-        private ITaskItemRepository TaskItemRepository { get; }
+        private IWorkItemUnitOfWork WorkItemUnitOfWork { get; }
 
-        public TaskItemService(ITaskItemRepository taskItemRepository)
+        public TaskItemService(IWorkItemUnitOfWork workItemUnitOfWork)
         {
-            TaskItemRepository = taskItemRepository;
+            WorkItemUnitOfWork = workItemUnitOfWork;
         }
 
         public async Task<List<TaskItemSummaryDto>> GetItemSummaries(string searchText)
@@ -26,23 +26,24 @@ namespace Service.Services
                 throw new ArgumentException("Search text must not be empty.");
             }
 
-            return await TaskItemRepository.GetItemSummaries(searchText.Trim()).ConfigureAwait(false);
+            return await WorkItemUnitOfWork.TaskItem.GetItemSummaries(searchText.Trim()).ConfigureAwait(false);
         }
 
         public async Task<ItemSummariesDto<TaskItemSummaryDto>> GetItemSummaries(DateTime start)
         {
             return new ItemSummariesDto<TaskItemSummaryDto>
             {
-                Resolved = await TaskItemRepository.GetResolvedItemSummaries(start).ConfigureAwait(false),
-                Unresolved = await TaskItemRepository.GetUnresolvedItemSummaries().ConfigureAwait(false)
+                Resolved = await WorkItemUnitOfWork.TaskItem.GetResolvedItemSummaries(start).ConfigureAwait(false),
+                Unresolved = await WorkItemUnitOfWork.TaskItem.GetUnresolvedItemSummaries().ConfigureAwait(false)
             };
         }
 
         public async Task<TaskItem> CreateItem(TaskItemBase item)
         {
             ValidateItem(item);
+            var created = WorkItemUnitOfWork.TaskItem.CreateItem(item);
 
-            return await TaskItemRepository.CreateItem(item).ConfigureAwait(false);
+            return await WorkItemUnitOfWork.Save().ConfigureAwait(false) ? created : null;
         }
 
         public async Task<TaskItem> UpdateItem(TaskItem item, ResolveAction action = ResolveAction.None)
@@ -64,7 +65,9 @@ namespace Service.Services
                 item.ResolvedTime = action == ResolveAction.Resolve ? DateTime.UtcNow : null;
             }
 
-            return await TaskItemRepository.UpdateItem(item).ConfigureAwait(false);
+            var updated = await WorkItemUnitOfWork.TaskItem.UpdateItem(item).ConfigureAwait(false);
+
+            return updated != null && await WorkItemUnitOfWork.Save().ConfigureAwait(false) ? updated : null;
         }
 
         private void ValidateItem(TaskItemBase item)

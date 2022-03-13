@@ -60,7 +60,7 @@ namespace Service.Repositories
             return await query.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
         }
 
-        public async Task<TaskItem> CreateItem(TaskItemBase item)
+        public TaskItem CreateItem(TaskItemBase item)
         {
             var now = DateTime.UtcNow;
 
@@ -74,43 +74,48 @@ namespace Service.Repositories
                 ModifiedTime = now
             };
 
-            Context.TaskItem.Add(payload);
-
-            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0 ? payload : null;
+            return Context.TaskItem.Add(payload).Entity;
         }
 
         public async Task<TaskItem> UpdateItem(TaskItem item)
         {
-            var existing = await GetItemById(item.Id).ConfigureAwait(false);
-
-            if (existing == null)
+            if (await Context.TaskItem.AllAsync(_ => _.Id != item.Id).ConfigureAwait(false))
             {
                 return null;
             }
 
-            existing.Name = item.Name;
-            existing.Description = item.Description;
-            existing.Effort = item.Effort;
-            existing.Checklists = item.Checklists;
-            existing.ResolvedTime = item.ResolvedTime;
-            existing.ModifiedTime = DateTime.UtcNow;
+            item.ModifiedTime = DateTime.UtcNow;
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0 ? existing : null;
+            return Context.TaskItem.Update(item).Entity;
         }
 
         public async Task<bool> DeleteItemById(long id)
         {
-            var existing = await GetItemById(id).ConfigureAwait(false);
+            var item = await GetItemById(id).ConfigureAwait(false);
 
-            if (existing == null)
+            if (item == null)
             {
                 return false;
             }
 
-            existing.IsDeleted = true;
-            existing.ModifiedTime = DateTime.UtcNow;
+            item.IsDeleted = true;
+            item.ModifiedTime = DateTime.UtcNow;
 
-            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0;
+            return true;
+        }
+
+        public async Task<bool> DeleteItem(TaskItem item)
+        {
+            if (await Context.TaskItem.AllAsync(_ => _.Id != item.Id).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            item.IsDeleted = true;
+            item.ModifiedTime = DateTime.UtcNow;
+            Context.TaskItem.Update(item);
+
+            return true;
         }
     }
 }

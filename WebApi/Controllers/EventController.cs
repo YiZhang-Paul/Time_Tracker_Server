@@ -14,7 +14,6 @@ namespace WebApi.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
-        private ITaskItemRepository TaskItemRepository { get; }
         private IWorkItemUnitOfWork WorkItemUnitOfWork { get; }
         private IInterruptionItemService InterruptionItemService { get; }
         private ITaskItemService TaskItemService { get; }
@@ -23,7 +22,6 @@ namespace WebApi.Controllers
 
         public EventController
         (
-            ITaskItemRepository taskItemRepository,
             IWorkItemUnitOfWork workItemUnitOfWork,
             IInterruptionItemService interruptionItemService,
             ITaskItemService taskItemService,
@@ -31,7 +29,6 @@ namespace WebApi.Controllers
             IEventTrackingService eventTrackingService
         )
         {
-            TaskItemRepository = taskItemRepository;
             WorkItemUnitOfWork = workItemUnitOfWork;
             InterruptionItemService = interruptionItemService;
             TaskItemService = taskItemService;
@@ -93,7 +90,7 @@ namespace WebApi.Controllers
         [Route("task-items/{id}")]
         public async Task<bool> StartTaskItem(long id)
         {
-            var item = await TaskItemRepository.GetItemById(id).ConfigureAwait(false);
+            var item = await WorkItemUnitOfWork.TaskItem.GetItemById(id).ConfigureAwait(false);
 
             if (item == null)
             {
