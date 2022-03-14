@@ -1,6 +1,7 @@
 using Core.DbContexts;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Service.Repositories;
 using Service.Services;
+using Service.UnitOfWorks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -48,6 +50,8 @@ namespace WebApi
             services.AddScoped<IEventHistoryRepository, EventHistoryRepository>();
             services.AddScoped<IEventHistorySummaryRepository, EventHistorySummaryRepository>();
             services.AddScoped<IEventPromptRepository, EventPromptRepository>();
+            services.AddScoped<IWorkItemUnitOfWork, WorkItemUnitOfWork>();
+            services.AddScoped<IEventUnitOfWork, EventUnitOfWork>();
             services.AddScoped<IInterruptionItemService, InterruptionItemService>();
             services.AddScoped<ITaskItemService, TaskItemService>();
             services.AddScoped<IEventSummaryService, EventSummaryService>();
