@@ -47,30 +47,24 @@ namespace Service.Repositories
                 .ConfigureAwait(false);
         }
 
-        public async Task<EventHistory> CreateHistory(EventHistory history)
+        public EventHistory CreateHistory(EventHistory history)
         {
             if (history.Timestamp == default)
             {
                 history.Timestamp = DateTime.UtcNow;
             }
 
-            Context.EventHistory.Add(history);
-
-            return await Context.SaveChangesAsync().ConfigureAwait(false) == 1 ? history : null;
+            return Context.EventHistory.Add(history).Entity;
         }
 
-        public async Task<bool> DeleteHistory(EventHistory history)
+        public void DeleteHistory(EventHistory history)
         {
             Context.EventHistory.Remove(history);
-
-            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0;
         }
 
-        public async Task<bool> DeleteHistories(List<EventHistory> histories)
+        public void DeleteHistories(List<EventHistory> histories)
         {
             Context.EventHistory.RemoveRange(histories);
-
-            return await Context.SaveChangesAsync().ConfigureAwait(false) > 0;
         }
     }
 }

@@ -1,7 +1,7 @@
 using Core.Dtos;
 using Core.Enums;
-using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.Event;
 using Core.Models.Generic;
 using System;
@@ -13,25 +13,16 @@ namespace Service.Services
 {
     public class EventSummaryService : IEventSummaryService
     {
-        private IEventHistoryRepository EventHistoryRepository { get; }
-        private IEventHistorySummaryRepository EventHistorySummaryRepository { get; }
-        private IEventPromptRepository EventPromptRepository { get; }
+        private IEventUnitOfWork EventUnitOfWork { get; }
 
-        public EventSummaryService
-        (
-            IEventHistoryRepository eventHistoryRepository,
-            IEventHistorySummaryRepository eventHistorySummaryRepository,
-            IEventPromptRepository eventPromptRepository
-        )
+        public EventSummaryService(IEventUnitOfWork eventUnitOfWork)
         {
-            EventHistoryRepository = eventHistoryRepository;
-            EventHistorySummaryRepository = eventHistorySummaryRepository;
-            EventPromptRepository = eventPromptRepository;
+            EventUnitOfWork = eventUnitOfWork;
         }
 
         public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
         {
-            var lastPrompt = await EventPromptRepository.GetLastPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
+            var lastPrompt = await EventUnitOfWork.EventPrompt.GetLastPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
             var startTime = start.ToUniversalTime();
             var promptTime = lastPrompt?.Timestamp ?? startTime;
             var endTime = DateTime.UtcNow;
@@ -93,7 +84,7 @@ namespace Service.Services
         private async Task<EventTimeSummary> GetConcludedTimeSummary(DateTime start, DateTime end)
         {
             var summary = new EventTimeSummary();
-            var histories = await EventHistoryRepository.GetHistories(start, end).ConfigureAwait(false);
+            var histories = await EventUnitOfWork.EventHistory.GetHistories(start, end).ConfigureAwait(false);
 
             if (!histories.Any())
             {
@@ -105,14 +96,14 @@ namespace Service.Services
                 summary = RecordTimeSummary(summary, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
             }
             // record time between start time and first history
-            var previous = await EventHistoryRepository.GetHistoryById(histories[0].Id - 1).ConfigureAwait(false);
+            var previous = await EventUnitOfWork.EventHistory.GetHistoryById(histories[0].Id - 1).ConfigureAwait(false);
 
             return RecordTimeSummary(summary, previous?.EventType ?? EventType.Idling, start, histories[0].Timestamp);
         }
 
         private async Task<EventHistory> GetUnconcludedTimeSummary(DateTime start)
         {
-            var history = await EventHistoryRepository.GetLastHistory(null, true).ConfigureAwait(false);
+            var history = await EventUnitOfWork.EventHistory.GetLastHistory(null, true).ConfigureAwait(false);
             history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = start };
             history.Timestamp = history.Timestamp > start ? history.Timestamp : start;
 
@@ -121,11 +112,11 @@ namespace Service.Services
 
         private async Task<List<EventHistorySummary>> GetEventHistorySummaries(DateTime start, DateTime end)
         {
-            var summaries = await EventHistorySummaryRepository.GetSummaries(start, end).ConfigureAwait(false);
+            var summaries = await EventUnitOfWork.EventHistorySummary.GetSummaries(start, end).ConfigureAwait(false);
 
             if (!summaries.Any() || summaries[0].Timestamp != start)
             {
-                var previous = await EventHistorySummaryRepository.GetLastSummary(start).ConfigureAwait(false);
+                var previous = await EventUnitOfWork.EventHistorySummary.GetLastSummary(start).ConfigureAwait(false);
                 previous.Timestamp = start;
                 summaries.Insert(0, previous);
             }

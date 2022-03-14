@@ -26,7 +26,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetNextHistoryShouldReturnNullWhenNoHistoryExist()
         {
-            await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+            Subject.CreateHistory(new EventHistory());
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetNextHistory(DateTime.UtcNow).ConfigureAwait(false);
 
@@ -36,8 +37,9 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetNextHistoryShouldReturnNextHistory()
         {
-            await Subject.CreateHistory(new EventHistory { ResourceId = 12, EventType = EventType.Task }).ConfigureAwait(false);
-            await Subject.CreateHistory(new EventHistory { ResourceId = 55, EventType = EventType.Interruption }).ConfigureAwait(false);
+            Subject.CreateHistory(new EventHistory { ResourceId = 12, EventType = EventType.Task });
+            Subject.CreateHistory(new EventHistory { ResourceId = 55, EventType = EventType.Interruption });
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetNextHistory(DateTime.UtcNow.AddMinutes(-5)).ConfigureAwait(false);
 
@@ -58,8 +60,10 @@ namespace Service.Test.Integration.Repositories
         {
             for (var i = 0; i < 3; ++i)
             {
-                await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+                Subject.CreateHistory(new EventHistory());
             }
+
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetLastHistory().ConfigureAwait(false);
 
@@ -69,7 +73,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetHistoryByIdShouldReturnNullWhenNoHistoryFound()
         {
-            await Subject.CreateHistory(new EventHistory { Id = 5 }).ConfigureAwait(false);
+            Subject.CreateHistory(new EventHistory { Id = 5 });
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetHistoryById(4).ConfigureAwait(false);
 
@@ -79,9 +84,10 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetHistoryByIdShouldReturnHistoryFound()
         {
-            await Subject.CreateHistory(new EventHistory { Id = 5 }).ConfigureAwait(false);
+            var created = Subject.CreateHistory(new EventHistory { Id = 5 });
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.GetHistoryById(5).ConfigureAwait(false);
+            var result = await Subject.GetHistoryById(created.Id).ConfigureAwait(false);
 
             Assert.AreEqual(5, result.Id);
             Assert.AreEqual(DateTimeKind.Utc, result.Timestamp.Kind);
@@ -94,8 +100,10 @@ namespace Service.Test.Integration.Repositories
 
             for (var i = 0; i < 3; ++i)
             {
-                await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+                Subject.CreateHistory(new EventHistory());
             }
+
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetHistories(now.AddMinutes(-10), now.AddMinutes(-5)).ConfigureAwait(false);
 
@@ -109,8 +117,10 @@ namespace Service.Test.Integration.Repositories
 
             for (var i = 0; i < 3; ++i)
             {
-                await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+                Subject.CreateHistory(new EventHistory());
             }
+
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetHistories(now.AddMinutes(-5), now.AddMinutes(5)).ConfigureAwait(false);
 
@@ -121,7 +131,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task CreateHistoryShouldReturnHistoryWhenCreationSucceeded()
         {
-            var result = await Subject.CreateHistory(new EventHistory()).ConfigureAwait(false);
+            var result = Subject.CreateHistory(new EventHistory());
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.AreEqual(1, result.Id);
             Assert.AreEqual(-1, result.TargetDuration);

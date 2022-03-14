@@ -1,6 +1,7 @@
 using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.Event;
 using System;
 using System.Collections.Generic;
@@ -11,22 +12,16 @@ namespace Service.Services
 {
     public class EventTrackingService : IEventTrackingService
     {
-        private IEventHistoryRepository EventHistoryRepository { get; }
-        private IEventPromptRepository EventPromptRepository { get; }
+        private IEventUnitOfWork EventUnitOfWork { get; }
 
-        public EventTrackingService
-        (
-            IEventHistoryRepository eventHistoryRepository,
-            IEventPromptRepository eventPromptRepository
-        )
+        public EventTrackingService(IEventUnitOfWork eventUnitOfWork)
         {
-            EventHistoryRepository = eventHistoryRepository;
-            EventPromptRepository = eventPromptRepository;
+            EventUnitOfWork = eventUnitOfWork;
         }
 
         public async Task<bool> StartIdlingSession()
         {
-            var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
+            var last = await EventUnitOfWork.EventHistory.GetLastHistory().ConfigureAwait(false);
 
             if (last?.EventType == EventType.Idling)
             {
@@ -34,13 +29,14 @@ namespace Service.Services
             }
 
             var history = new EventHistory { ResourceId = -1, EventType = EventType.Idling };
+            EventUnitOfWork.EventHistory.CreateHistory(history);
 
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
+            return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
         public async Task<bool> StartInterruptionItem(long id)
         {
-            var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
+            var last = await EventUnitOfWork.EventHistory.GetLastHistory().ConfigureAwait(false);
 
             if (last != null && last.EventType == EventType.Interruption && last.ResourceId == id)
             {
@@ -48,13 +44,14 @@ namespace Service.Services
             }
 
             var history = new EventHistory { ResourceId = id, EventType = EventType.Interruption };
+            EventUnitOfWork.EventHistory.CreateHistory(history);
 
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
+            return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
         public async Task<bool> StartTaskItem(long id)
         {
-            var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
+            var last = await EventUnitOfWork.EventHistory.GetLastHistory().ConfigureAwait(false);
 
             if (last != null && last.EventType == EventType.Task && last.ResourceId == id)
             {
@@ -62,8 +59,9 @@ namespace Service.Services
             }
 
             var history = new EventHistory { ResourceId = id, EventType = EventType.Task };
+            EventUnitOfWork.EventHistory.CreateHistory(history);
 
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
+            return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
         public async Task<bool> StartBreakSession(int duration)
@@ -76,13 +74,14 @@ namespace Service.Services
             }
 
             var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
+            EventUnitOfWork.EventPrompt.CreatePrompt(prompt);
 
-            if (await EventPromptRepository.CreatePrompt(prompt).ConfigureAwait(false) == null)
+            if (!await EventUnitOfWork.Save().ConfigureAwait(false))
             {
                 return false;
             }
 
-            var last = await EventHistoryRepository.GetLastHistory().ConfigureAwait(false);
+            var last = await EventUnitOfWork.EventHistory.GetLastHistory().ConfigureAwait(false);
 
             if (last?.EventType == EventType.Break)
             {
@@ -90,15 +89,17 @@ namespace Service.Services
             }
 
             var history = new EventHistory { ResourceId = -1, EventType = EventType.Break, TargetDuration = duration };
+            EventUnitOfWork.EventHistory.CreateHistory(history);
 
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
+            return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
         public async Task<bool> SkipBreakSession()
         {
             var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Skipped };
+            EventUnitOfWork.EventPrompt.CreatePrompt(prompt);
 
-            return await EventPromptRepository.CreatePrompt(prompt).ConfigureAwait(false) != null;
+            return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
         public async Task<bool> UpdateTimeRange(EventTimeRangeDto range)
@@ -111,14 +112,22 @@ namespace Service.Services
             var histories = await GetAffectedHistories(range.Start, range.End).ConfigureAwait(false);
             var previous = histories.LastOrDefault(_ => _.Timestamp <= range.Start);
             var isSameEvent = previous?.EventType == range.EventType && previous?.ResourceId == range.Id;
-            var isContained = histories.All(_ => _.Timestamp <= range.Start || _.Timestamp >= range.End);
+            var isContained = isSameEvent && histories.All(_ => _.Timestamp <= range.Start || _.Timestamp >= range.End);
 
-            if (isSameEvent && isContained)
+            if (isContained && !await UpdateContainedTimeRange(histories, range).ConfigureAwait(false))
             {
-                return await UpdateContainedTimeRange(histories, range).ConfigureAwait(false);
+                return false;
             }
 
-            return await UpdateOverlapTimeRange(histories, range).ConfigureAwait(false);
+            if (!isContained && !await UpdateOverlapTimeRange(histories, range).ConfigureAwait(false))
+            {
+                return false;
+            }
+
+            var start = histories.FirstOrDefault()?.Timestamp ?? range.Start;
+            var end = histories.LastOrDefault()?.Timestamp ?? range.End;
+
+            return await MergeTimeRanges(start, end).ConfigureAwait(false);
         }
 
         private async Task<bool> UpdateContainedTimeRange(List<EventHistory> histories, EventTimeRangeDto range)
@@ -128,107 +137,82 @@ namespace Service.Services
                 return true;
             }
 
-            if (!await UpdateContainedTimeRangeStart(histories, range).ConfigureAwait(false))
-            {
-                return false;
-            }
+            SetContainedTimeRangeStart(histories, range);
+            SetContainedTimeRangeEnd(histories, range.End);
 
-            if (!await UpdateContainedTimeRangeEnd(histories, range.End).ConfigureAwait(false))
-            {
-                return false;
-            }
-
-            var start = histories.FirstOrDefault()?.Timestamp ?? range.Start;
-            var end = histories.LastOrDefault()?.Timestamp ?? range.End;
-
-            return await MergeTimeRanges(start, end).ConfigureAwait(false);
+            return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
-        private async Task<bool> UpdateContainedTimeRangeStart(List<EventHistory> histories, EventTimeRangeDto range)
+        private void SetContainedTimeRangeStart(List<EventHistory> histories, EventTimeRangeDto range)
         {
             var previous = histories.LastOrDefault(_ => _.Timestamp <= range.Start);
 
             if (previous.Timestamp == range.Start)
             {
-                return true;
-            }
-
-            var replaced = new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = previous.Timestamp };
-
-            if (!await EventHistoryRepository.DeleteHistory(previous).ConfigureAwait(false) || await EventHistoryRepository.CreateHistory(replaced).ConfigureAwait(false) == null)
-            {
-                return false;
+                return;
             }
 
             var history = new EventHistory { ResourceId = range.Id, EventType = range.EventType, Timestamp = range.Start };
-
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
+            EventUnitOfWork.EventHistory.CreateHistory(history);
+            // mark original range start as idling
+            var replaced = new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = previous.Timestamp };
+            EventUnitOfWork.EventHistory.DeleteHistory(previous);
+            EventUnitOfWork.EventHistory.CreateHistory(replaced);
         }
 
-        private async Task<bool> UpdateContainedTimeRangeEnd(List<EventHistory> histories, DateTime end)
+        private void SetContainedTimeRangeEnd(List<EventHistory> histories, DateTime end)
         {
-            if (histories.Any(_ => _.Timestamp == end))
+            if (histories.All(_ => _.Timestamp != end))
             {
-                return true;
+                var history = new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = end };
+                EventUnitOfWork.EventHistory.CreateHistory(history);
             }
-
-            var history = new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = end };
-
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
         }
 
         private async Task<bool> UpdateOverlapTimeRange(List<EventHistory> histories, EventTimeRangeDto range)
         {
-            if (!await UpdateOverlapTimeRangeStart(histories, range).ConfigureAwait(false))
-            {
-                return false;
-            }
-
-            if (!await UpdateOverlapTimeRangeEnd(histories, range.End).ConfigureAwait(false))
-            {
-                return false;
-            }
-
+            SetOverlapTimeRangeStart(histories, range);
+            SetOverlapTimeRangeEnd(histories, range.End);
             var overlaps = histories.Where(_ => _.Timestamp > range.Start && _.Timestamp < range.End).ToList();
 
-            if (overlaps.Any() && !await EventHistoryRepository.DeleteHistories(overlaps).ConfigureAwait(false))
+            if (overlaps.Any())
             {
-                return false;
+                EventUnitOfWork.EventHistory.DeleteHistories(overlaps);
             }
 
-            var start = histories.FirstOrDefault()?.Timestamp ?? range.Start;
-            var end = histories.LastOrDefault()?.Timestamp ?? range.End;
-
-            return await MergeTimeRanges(start, end).ConfigureAwait(false);
+            return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
-        private async Task<bool> UpdateOverlapTimeRangeStart(List<EventHistory> histories, EventTimeRangeDto range)
+        private void SetOverlapTimeRangeStart(List<EventHistory> histories, EventTimeRangeDto range)
         {
             var existing = histories.FirstOrDefault(_ => _.Timestamp == range.Start);
 
-            if (existing != null && !await EventHistoryRepository.DeleteHistory(existing).ConfigureAwait(false))
+            if (existing != null)
             {
-                return false;
+                EventUnitOfWork.EventHistory.DeleteHistory(existing);
             }
 
             var history = new EventHistory { ResourceId = range.Id, EventType = range.EventType, Timestamp = range.Start };
-
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
+            EventUnitOfWork.EventHistory.CreateHistory(history);
         }
 
-        private async Task<bool> UpdateOverlapTimeRangeEnd(List<EventHistory> histories, DateTime end)
+        private void SetOverlapTimeRangeEnd(List<EventHistory> histories, DateTime end)
         {
             if (histories.Any(_ => _.Timestamp == end))
             {
-                return true;
+                return;
             }
 
             var previous = histories.LastOrDefault(_ => _.Timestamp < end);
-            var resourceId = previous?.ResourceId ?? -1;
-            var eventType = previous?.EventType ?? EventType.Idling;
-            var history = new EventHistory { ResourceId = resourceId, EventType = eventType, Timestamp = end };
 
-            return await EventHistoryRepository.CreateHistory(history).ConfigureAwait(false) != null;
+            var history = new EventHistory
+            {
+                ResourceId = previous?.ResourceId ?? -1,
+                EventType = previous?.EventType ?? EventType.Idling,
+                Timestamp = end
+            };
+
+            EventUnitOfWork.EventHistory.CreateHistory(history);
         }
 
         private async Task<bool> MergeTimeRanges(DateTime start, DateTime end)
@@ -247,15 +231,22 @@ namespace Service.Services
                 }
             }
 
-            return !redundant.Any() || await EventHistoryRepository.DeleteHistories(redundant).ConfigureAwait(false);
+            if (!redundant.Any())
+            {
+                return true;
+            }
+
+            EventUnitOfWork.EventHistory.DeleteHistories(redundant);
+
+            return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
         private async Task<List<EventHistory>> GetAffectedHistories(DateTime start, DateTime end)
         {
-            var previous = await EventHistoryRepository.GetLastHistory(start.AddTicks(-1000)).ConfigureAwait(false);
-            var next = await EventHistoryRepository.GetNextHistory(end.AddTicks(1000)).ConfigureAwait(false);
+            var previous = await EventUnitOfWork.EventHistory.GetLastHistory(start.AddTicks(-1000)).ConfigureAwait(false);
+            var next = await EventUnitOfWork.EventHistory.GetNextHistory(end.AddTicks(1000)).ConfigureAwait(false);
 
-            return await EventHistoryRepository.GetHistories(previous?.Timestamp ?? start, next?.Timestamp ?? end).ConfigureAwait(false);
+            return await EventUnitOfWork.EventHistory.GetHistories(previous?.Timestamp ?? start, next?.Timestamp ?? end).ConfigureAwait(false);
         }
     }
 }

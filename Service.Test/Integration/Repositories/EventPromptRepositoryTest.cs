@@ -35,8 +35,10 @@ namespace Service.Test.Integration.Repositories
         {
             for (var i = 0; i < 3; ++i)
             {
-                await Subject.CreatePrompt(new EventPrompt { PromptType = PromptType.ScheduledBreak }).ConfigureAwait(false);
+                Subject.CreatePrompt(new EventPrompt { PromptType = PromptType.ScheduledBreak });
             }
+
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetLastPrompt(PromptType.SuggestedBreak).ConfigureAwait(false);
 
@@ -49,8 +51,10 @@ namespace Service.Test.Integration.Repositories
             for (var i = 0; i < 4; ++i)
             {
                 var type = i % 2 == 0 ? PromptType.ScheduledBreak : PromptType.SuggestedBreak;
-                await Subject.CreatePrompt(new EventPrompt { PromptType = type }).ConfigureAwait(false);
+                Subject.CreatePrompt(new EventPrompt { PromptType = type });
             }
+
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetLastPrompt(null).ConfigureAwait(false);
 
@@ -64,8 +68,10 @@ namespace Service.Test.Integration.Repositories
             for (var i = 0; i < 4; ++i)
             {
                 var type = i % 2 == 0 ? PromptType.ScheduledBreak : PromptType.SuggestedBreak;
-                await Subject.CreatePrompt(new EventPrompt { PromptType = type }).ConfigureAwait(false);
+                Subject.CreatePrompt(new EventPrompt { PromptType = type });
             }
+
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetLastPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
 
@@ -77,9 +83,14 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task CreatePromptShouldReturnPromptCreated()
         {
-            var result = await Subject.CreatePrompt(new EventPrompt()).ConfigureAwait(false);
+            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
+
+            var result = Subject.CreatePrompt(prompt);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.AreEqual(1, result.Id);
+            Assert.AreEqual(PromptType.ScheduledBreak, result.PromptType);
+            Assert.AreEqual(PromptConfirmType.Commenced, result.ConfirmType);
             Assert.IsTrue((DateTime.UtcNow - result.Timestamp).Duration().TotalMilliseconds < 1000);
         }
 

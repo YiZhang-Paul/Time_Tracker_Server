@@ -1,7 +1,7 @@
 using Core.Dtos;
 using Core.Enums;
-using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -13,12 +13,12 @@ namespace WebApi.Controllers
     [ApiController]
     public class TaskItemController : ControllerBase
     {
-        private ITaskItemRepository TaskItemRepository { get; }
+        private IWorkItemUnitOfWork WorkItemUnitOfWork { get; }
         private ITaskItemService TaskItemService { get; }
 
-        public TaskItemController(ITaskItemRepository taskItemRepository, ITaskItemService taskItemService)
+        public TaskItemController(IWorkItemUnitOfWork workItemUnitOfWork, ITaskItemService taskItemService)
         {
-            TaskItemRepository = taskItemRepository;
+            WorkItemUnitOfWork = workItemUnitOfWork;
             TaskItemService = taskItemService;
         }
 
@@ -47,7 +47,7 @@ namespace WebApi.Controllers
         [Route("{id}")]
         public async Task<TaskItem> GetItemById(long id)
         {
-            return await TaskItemRepository.GetItemById(id).ConfigureAwait(false);
+            return await WorkItemUnitOfWork.TaskItem.GetItemById(id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -82,7 +82,7 @@ namespace WebApi.Controllers
         [Route("{id}")]
         public async Task<bool> DeleteItemById(long id)
         {
-            return await TaskItemRepository.DeleteItemById(id).ConfigureAwait(false);
+            return await WorkItemUnitOfWork.TaskItem.DeleteItemById(id).ConfigureAwait(false) && await WorkItemUnitOfWork.Save().ConfigureAwait(false);
         }
     }
 }

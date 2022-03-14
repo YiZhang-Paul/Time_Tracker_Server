@@ -2,6 +2,7 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -20,6 +21,7 @@ namespace WebApi.Test.Unit
     {
         private const string ApiBase = "api/v1/interruption-items";
         private Mock<IInterruptionItemRepository> InterruptionItemRepository { get; set; }
+        private Mock<IWorkItemUnitOfWork> WorkItemUnitOfWork { get; set; }
         private Mock<IInterruptionItemService> InterruptionItemService { get; set; }
         private HttpClient HttpClient { get; set; }
 
@@ -27,13 +29,16 @@ namespace WebApi.Test.Unit
         public async Task Setup()
         {
             InterruptionItemRepository = new Mock<IInterruptionItemRepository>();
+            WorkItemUnitOfWork = new Mock<IWorkItemUnitOfWork>();
             InterruptionItemService = new Mock<IInterruptionItemService>();
 
             HttpClient = await new ControllerTestUtility().SetupTestHttpClient
             (
-                _ => _.AddSingleton(InterruptionItemRepository.Object)
+                _ => _.AddSingleton(WorkItemUnitOfWork.Object)
                       .AddSingleton(InterruptionItemService.Object)
             ).ConfigureAwait(false);
+
+            WorkItemUnitOfWork.SetupGet(_ => _.InterruptionItem).Returns(InterruptionItemRepository.Object);
         }
 
         [Test]
@@ -106,12 +111,14 @@ namespace WebApi.Test.Unit
         public async Task DeleteItemByIdShouldDeleteItem()
         {
             InterruptionItemRepository.Setup(_ => _.DeleteItemById(It.IsAny<long>())).ReturnsAsync(true);
+            WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
             var response = await HttpClient.DeleteAsync($"{ApiBase}/5").ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
             InterruptionItemRepository.Verify(_ => _.DeleteItemById(5), Times.Once);
+            WorkItemUnitOfWork.Verify(_ => _.Save(), Times.Once);
         }
     }
 }
