@@ -25,14 +25,9 @@ namespace Service.Test.Unit.Services
             EventHistoryRepository = new Mock<IEventHistoryRepository>();
             EventPromptRepository = new Mock<IEventPromptRepository>();
             EventUnitOfWork = new Mock<IEventUnitOfWork>();
-
-            Subject = new EventSummaryService
-            (
-                EventHistoryRepository.Object,
-                EventUnitOfWork.Object
-            );
-
+            EventUnitOfWork.SetupGet(_ => _.EventHistory).Returns(EventHistoryRepository.Object);
             EventUnitOfWork.SetupGet(_ => _.EventPrompt).Returns(EventPromptRepository.Object);
+            Subject = new EventSummaryService(EventUnitOfWork.Object);
         }
 
         [Test]

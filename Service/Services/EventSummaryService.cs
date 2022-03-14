@@ -1,6 +1,5 @@
 using Core.Dtos;
 using Core.Enums;
-using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Interfaces.UnitOfWorks;
 using Core.Models.Event;
@@ -14,16 +13,10 @@ namespace Service.Services
 {
     public class EventSummaryService : IEventSummaryService
     {
-        private IEventHistoryRepository EventHistoryRepository { get; }
         private IEventUnitOfWork EventUnitOfWork { get; }
 
-        public EventSummaryService
-        (
-            IEventHistoryRepository eventHistoryRepository,
-            IEventUnitOfWork eventUnitOfWork
-        )
+        public EventSummaryService(IEventUnitOfWork eventUnitOfWork)
         {
-            EventHistoryRepository = eventHistoryRepository;
             EventUnitOfWork = eventUnitOfWork;
         }
 
@@ -91,7 +84,7 @@ namespace Service.Services
         private async Task<EventTimeSummary> GetConcludedTimeSummary(DateTime start, DateTime end)
         {
             var summary = new EventTimeSummary();
-            var histories = await EventHistoryRepository.GetHistories(start, end).ConfigureAwait(false);
+            var histories = await EventUnitOfWork.EventHistory.GetHistories(start, end).ConfigureAwait(false);
 
             if (!histories.Any())
             {
@@ -103,14 +96,14 @@ namespace Service.Services
                 summary = RecordTimeSummary(summary, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
             }
             // record time between start time and first history
-            var previous = await EventHistoryRepository.GetHistoryById(histories[0].Id - 1).ConfigureAwait(false);
+            var previous = await EventUnitOfWork.EventHistory.GetHistoryById(histories[0].Id - 1).ConfigureAwait(false);
 
             return RecordTimeSummary(summary, previous?.EventType ?? EventType.Idling, start, histories[0].Timestamp);
         }
 
         private async Task<EventHistory> GetUnconcludedTimeSummary(DateTime start)
         {
-            var history = await EventHistoryRepository.GetLastHistory(null, true).ConfigureAwait(false);
+            var history = await EventUnitOfWork.EventHistory.GetLastHistory(null, true).ConfigureAwait(false);
             history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = start };
             history.Timestamp = history.Timestamp > start ? history.Timestamp : start;
 
