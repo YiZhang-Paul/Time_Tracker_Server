@@ -96,7 +96,7 @@ namespace Service.Services
                 summary = RecordTimeSummary(summary, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
             }
             // record time between start time and first history
-            var previous = await EventUnitOfWork.EventHistory.GetHistoryById(histories[0].Id - 1).ConfigureAwait(false);
+            var previous = await EventUnitOfWork.EventHistory.GetLastHistory(histories[0].Timestamp.AddTicks(-1000)).ConfigureAwait(false);
 
             return RecordTimeSummary(summary, previous?.EventType ?? EventType.Idling, start, histories[0].Timestamp);
         }

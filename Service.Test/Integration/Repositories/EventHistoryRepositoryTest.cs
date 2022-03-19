@@ -71,29 +71,6 @@ namespace Service.Test.Integration.Repositories
         }
 
         [Test]
-        public async Task GetHistoryByIdShouldReturnNullWhenNoHistoryFound()
-        {
-            Subject.CreateHistory(new EventHistory { Id = 5 });
-            await Context.SaveChangesAsync().ConfigureAwait(false);
-
-            var result = await Subject.GetHistoryById(4).ConfigureAwait(false);
-
-            Assert.IsNull(result);
-        }
-
-        [Test]
-        public async Task GetHistoryByIdShouldReturnHistoryFound()
-        {
-            var created = Subject.CreateHistory(new EventHistory { Id = 5 });
-            await Context.SaveChangesAsync().ConfigureAwait(false);
-
-            var result = await Subject.GetHistoryById(created.Id).ConfigureAwait(false);
-
-            Assert.AreEqual(5, result.Id);
-            Assert.AreEqual(DateTimeKind.Utc, result.Timestamp.Kind);
-        }
-
-        [Test]
         public async Task GetHistoriesShouldReturnEmptyCollectionWhenNoHistoryFound()
         {
             var now = DateTime.UtcNow;
