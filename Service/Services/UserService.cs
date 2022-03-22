@@ -24,26 +24,33 @@ namespace Service.Services
 
         public async Task<string> SignIn(Credentials credentials)
         {
-            var form = new FormUrlEncodedContent(new Dictionary<string, string>
+            try
             {
-                { "grant_type", "password" },
-                { "audience", Configuration["Auth0:Audience"] },
-                { "client_id", Configuration["Auth0:ClientId"] },
-                { "client_secret", await GetClientSecret().ConfigureAwait(false) },
-                { "scope", "openid profile email" },
-                { "username", credentials.Email },
-                { "password", credentials.Password }
-            });
+                var form = new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    { "grant_type", "password" },
+                    { "audience", Configuration["Auth0:Audience"] },
+                    { "client_id", Configuration["Auth0:ClientId"] },
+                    { "client_secret", await GetClientSecret().ConfigureAwait(false) },
+                    { "scope", "openid profile email" },
+                    { "username", credentials.Email },
+                    { "password", credentials.Password }
+                });
 
-            var client = new HttpClient { BaseAddress = new Uri(Configuration["Auth0:Domain"]) };
-            var response = await client.PostAsync("oauth/token", form).ConfigureAwait(false);
+                var client = new HttpClient { BaseAddress = new Uri(Configuration["Auth0:Domain"]) };
+                var response = await client.PostAsync("oauth/token", form).ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
+                if (!response.IsSuccessStatusCode)
+                {
+                    return string.Empty;
+                }
+
+                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             }
-
-            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         private async Task<string> GetClientSecret()
