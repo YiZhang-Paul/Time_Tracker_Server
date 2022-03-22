@@ -1,3 +1,5 @@
+using Amazon;
+using Amazon.SecretsManager;
 using Core.DbContexts;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
@@ -52,6 +54,8 @@ namespace WebApi
             services.AddScoped<IEventPromptRepository, EventPromptRepository>();
             services.AddScoped<IWorkItemUnitOfWork, WorkItemUnitOfWork>();
             services.AddScoped<IEventUnitOfWork, EventUnitOfWork>();
+            services.AddScoped<IAmazonSecretsManager>(_ => new AmazonSecretsManagerClient(RegionEndpoint.USEast1));
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IInterruptionItemService, InterruptionItemService>();
             services.AddScoped<ITaskItemService, TaskItemService>();
             services.AddScoped<IEventSummaryService, EventSummaryService>();
