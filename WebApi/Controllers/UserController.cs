@@ -36,7 +36,7 @@ namespace WebApi.Controllers
             }
             catch (EmailUnverifiedException)
             {
-                result = Forbid("Must verify email first.");
+                result = StatusCode(403, "Must verify email first.");
             }
 
             var throttle = 3000;

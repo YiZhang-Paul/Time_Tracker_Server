@@ -29,28 +29,21 @@ namespace Service.Services
 
         public async Task<string> SignIn(Credentials credentials)
         {
-            try
-            {
-                var response = await GetTokens(credentials).ConfigureAwait(false);
+            var response = await GetTokens(credentials).ConfigureAwait(false);
 
-                if (string.IsNullOrWhiteSpace(response))
-                {
-                    throw new InvalidCredentialException();
-                }
-
-                var tokens = JsonSerializer.Deserialize<TokenResponse>(response);
-
-                if (!IsEmailVerified(tokens.IdToken))
-                {
-                    throw new EmailUnverifiedException();
-                }
-
-                return tokens.AccessToken;
-            }
-            catch
+            if (string.IsNullOrWhiteSpace(response))
             {
                 throw new InvalidCredentialException();
             }
+
+            var tokens = JsonSerializer.Deserialize<TokenResponse>(response);
+
+            if (!IsEmailVerified(tokens.IdToken))
+            {
+                throw new EmailUnverifiedException();
+            }
+
+            return tokens.AccessToken;
         }
 
         private async Task<string> GetTokens(Credentials credentials)
