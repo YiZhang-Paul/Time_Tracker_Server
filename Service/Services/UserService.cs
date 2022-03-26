@@ -1,6 +1,5 @@
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
-using Core.Exceptions.Authentication;
 using Core.Interfaces.Services;
 using Core.Models.Authentication;
 using Core.Models.Generic;
@@ -27,7 +26,7 @@ namespace Service.Services
             Secrets = secrets;
         }
 
-        public async Task<string> SignIn(Credentials credentials)
+        public async Task<TokenResponse> SignIn(Credentials credentials)
         {
             var response = await GetTokens(credentials).ConfigureAwait(false);
 
@@ -38,12 +37,17 @@ namespace Service.Services
 
             var tokens = JsonSerializer.Deserialize<TokenResponse>(response);
 
-            if (!IsEmailVerified(tokens.IdToken))
+            if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken))
             {
-                throw new EmailUnverifiedException();
+                throw new InvalidCredentialException();
             }
 
-            return tokens.AccessToken;
+            if (!IsEmailVerified(tokens.IdToken))
+            {
+                tokens.AccessToken = null;
+            }
+
+            return tokens;
         }
 
         private async Task<string> GetTokens(Credentials credentials)

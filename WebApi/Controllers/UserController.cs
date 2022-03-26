@@ -1,4 +1,3 @@
-using Core.Exceptions.Authentication;
 using Core.Interfaces.Services;
 using Core.Models.Generic;
 using Microsoft.AspNetCore.Mvc;
@@ -28,15 +27,12 @@ namespace WebApi.Controllers
 
             try
             {
-                result = Ok(await UserService.SignIn(credentials).ConfigureAwait(false));
+                var tokens = await UserService.SignIn(credentials).ConfigureAwait(false);
+                result = string.IsNullOrWhiteSpace(tokens.AccessToken) ? StatusCode(403, tokens) : Ok(tokens);
             }
             catch (InvalidCredentialException)
             {
-                result = Unauthorized("Invalid login credentials.");
-            }
-            catch (EmailUnverifiedException)
-            {
-                result = StatusCode(403, "Must verify email first.");
+                result = Unauthorized(null);
             }
 
             var throttle = 3000;
