@@ -1,4 +1,4 @@
-namespace Core.Models.Generic
+namespace Core.Models.Authentication
 {
     public class Credentials
     {
