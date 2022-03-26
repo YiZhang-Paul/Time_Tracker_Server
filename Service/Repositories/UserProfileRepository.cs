@@ -16,9 +16,9 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<UserProfile> GetProfileById(long id)
+        public async Task<UserProfile> GetProfileByEmail(string email)
         {
-            return await Context.UserProfile.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
+            return await Context.UserProfile.FirstOrDefaultAsync(_ => _.Email == email).ConfigureAwait(false);
         }
 
         public UserProfile CreateProfile(UserProfile profile)
