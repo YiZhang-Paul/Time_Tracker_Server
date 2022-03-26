@@ -53,6 +53,7 @@ namespace WebApi
             services.AddScoped<IEventHistoryRepository, EventHistoryRepository>();
             services.AddScoped<IEventHistorySummaryRepository, EventHistorySummaryRepository>();
             services.AddScoped<IEventPromptRepository, EventPromptRepository>();
+            services.AddScoped<IUserUnitOfWork, UserUnitOfWork>();
             services.AddScoped<IWorkItemUnitOfWork, WorkItemUnitOfWork>();
             services.AddScoped<IEventUnitOfWork, EventUnitOfWork>();
             services.AddScoped<IAmazonSecretsManager>(_ => new AmazonSecretsManagerClient(RegionEndpoint.USEast1));
