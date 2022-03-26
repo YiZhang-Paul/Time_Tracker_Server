@@ -29,21 +29,16 @@ namespace Service.Services
 
         public async Task<TokenResponse> SignIn(Credentials credentials)
         {
-            var response = await GetTokensByPassword(credentials).ConfigureAwait(false);
-
-            if (string.IsNullOrWhiteSpace(response))
-            {
-                throw new InvalidCredentialException();
-            }
-
-            var tokens = JsonSerializer.Deserialize<TokenResponse>(response);
+            var tokens = await GetTokensByPassword(credentials).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken))
             {
                 throw new InvalidCredentialException();
             }
 
-            if (!IsEmailVerified(tokens.IdToken))
+            var emailVerified = GetClaim(tokens.IdToken, "email_verified");
+
+            if (!bool.Parse(emailVerified))
             {
                 tokens.AccessToken = null;
             }
@@ -53,35 +48,22 @@ namespace Service.Services
 
         public async Task<bool> SendVerification(string idToken)
         {
-            string userId;
-
-            try
-            {
-                var parsed = new JwtSecurityTokenHandler().ReadJwtToken(idToken);
-                userId = parsed.Claims.First(_ => _.Type == "sub").Value;
-            }
-            catch
-            {
-                throw new InvalidCredentialException();
-            }
-
-            var json = await GetTokensByClientCredentials().ConfigureAwait(false);
-
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                throw new InvalidCredentialException();
-            }
-
-            var tokens = JsonSerializer.Deserialize<TokenResponse>(json);
+            var userId = GetClaim(idToken, "sub");
+            var tokens = await GetTokensByClientCredentials().ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(tokens.AccessToken))
             {
                 throw new InvalidCredentialException();
             }
 
+            return await SendVerificationByUserId(userId, tokens.AccessToken).ConfigureAwait(false);
+        }
+
+        private async Task<bool> SendVerificationByUserId(string userId, string accessToken)
+        {
             var client = new HttpClient { BaseAddress = new Uri(Configuration["Auth0:Domain"]) };
             var request = new HttpRequestMessage(HttpMethod.Post, "api/v2/jobs/verification-email");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.AccessToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
             request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -94,7 +76,7 @@ namespace Service.Services
             return response.IsSuccessStatusCode;
         }
 
-        private async Task<string> GetTokensByPassword(Credentials credentials)
+        private async Task<TokenResponse> GetTokensByPassword(Credentials credentials)
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -107,13 +89,10 @@ namespace Service.Services
                 { "password", credentials.Password }
             });
 
-            var client = new HttpClient { BaseAddress = new Uri(Configuration["Auth0:Domain"]) };
-            var response = await client.PostAsync("oauth/token", form).ConfigureAwait(false);
-
-            return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync().ConfigureAwait(false) : string.Empty;
+            return await GetTokens(form).ConfigureAwait(false);
         }
 
-        private async Task<string> GetTokensByClientCredentials()
+        private async Task<TokenResponse> GetTokensByClientCredentials()
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -123,10 +102,41 @@ namespace Service.Services
                 { "client_secret", await GetClientSecret("auth0MachineClientSecret").ConfigureAwait(false) }
             });
 
+            return await GetTokens(form).ConfigureAwait(false);
+        }
+
+        private async Task<TokenResponse> GetTokens(FormUrlEncodedContent form)
+        {
             var client = new HttpClient { BaseAddress = new Uri(Configuration["Auth0:Domain"]) };
             var response = await client.PostAsync("oauth/token", form).ConfigureAwait(false);
 
-            return response.IsSuccessStatusCode ? await response.Content.ReadAsStringAsync().ConfigureAwait(false) : string.Empty;
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new InvalidCredentialException();
+            }
+
+            var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                throw new InvalidCredentialException();
+            }
+
+            return JsonSerializer.Deserialize<TokenResponse>(json);
+        }
+
+        private string GetClaim(string token, string type)
+        {
+            try
+            {
+                var claims = new JwtSecurityTokenHandler().ReadJwtToken(token).Claims;
+
+                return claims.First(_ => _.Type == type).Value;
+            }
+            catch
+            {
+                throw new InvalidCredentialException();
+            }
         }
 
         private async Task<string> GetClientSecret(string key)
@@ -135,14 +145,6 @@ namespace Service.Services
             var response = await Secrets.GetSecretValueAsync(request).ConfigureAwait(false);
 
             return JsonSerializer.Deserialize<Dictionary<string, string>>(response.SecretString)[key];
-        }
-
-        private bool IsEmailVerified(string idToken)
-        {
-            var parsed = new JwtSecurityTokenHandler().ReadJwtToken(idToken);
-            var claim = parsed.Claims.First(_ => _.Type == "email_verified");
-
-            return bool.Parse(claim.Value);
         }
     }
 }
