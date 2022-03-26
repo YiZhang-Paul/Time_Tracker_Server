@@ -45,5 +45,12 @@ namespace WebApi.Controllers
 
             return result;
         }
+
+        [HttpPost]
+        [Route("verification")]
+        public async Task<bool> SendVerification([FromBody]string idToken)
+        {
+            return await UserService.SendVerification(idToken).ConfigureAwait(false);
+        }
     }
 }
