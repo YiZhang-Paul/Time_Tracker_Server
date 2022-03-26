@@ -1,4 +1,5 @@
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.Authentication;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -15,15 +16,22 @@ namespace Service.Services
     public class UserService : IUserService
     {
         private IConfiguration Configuration { get; }
+        private IUserUnitOfWork UserUnitOfWork { get; }
         private IAuthenticationService AuthenticationService { get; }
 
-        public UserService(IConfiguration configuration, IAuthenticationService authenticationService)
+        public UserService
+        (
+            IConfiguration configuration,
+            IUserUnitOfWork userUnitOfWork,
+            IAuthenticationService authenticationService
+        )
         {
             Configuration = configuration;
+            UserUnitOfWork = userUnitOfWork;
             AuthenticationService = authenticationService;
         }
 
-        public async Task<TokenResponse> SignIn(Credentials credentials)
+        public async Task<SignInResponse> SignIn(Credentials credentials)
         {
             var tokens = await AuthenticationService.GetTokensByPassword(credentials).ConfigureAwait(false);
 
@@ -37,9 +45,18 @@ namespace Service.Services
             if (!bool.Parse(emailVerified))
             {
                 tokens.AccessToken = null;
+
+                return new SignInResponse { Tokens = tokens };
             }
 
-            return tokens;
+            var profile = await EnsureProfileCreation(credentials.Email).ConfigureAwait(false);
+
+            if (profile == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return new SignInResponse { Tokens = tokens, Profile = profile };
         }
 
         public async Task<bool> SendVerification(string idToken)
@@ -53,6 +70,21 @@ namespace Service.Services
             }
 
             return await SendVerificationByUserId(userId, tokens.AccessToken).ConfigureAwait(false);
+        }
+
+        private async Task<UserProfile> EnsureProfileCreation(string email)
+        {
+            var profile = await UserUnitOfWork.UserProfile.GetProfileByEmail(email).ConfigureAwait(false);
+
+            if (profile != null)
+            {
+                return profile;
+            }
+
+            var created = new UserProfile { Email = email, DisplayName = $"user{DateTime.UtcNow:yyyyMMdd}" };
+            UserUnitOfWork.UserProfile.CreateProfile(created);
+
+            return await UserUnitOfWork.Save().ConfigureAwait(false) ? created : null;
         }
 
         private async Task<bool> SendVerificationByUserId(string userId, string accessToken)

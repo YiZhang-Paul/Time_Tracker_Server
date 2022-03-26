@@ -5,7 +5,7 @@ namespace Core.Interfaces.Services
 {
     public interface IUserService
     {
-        Task<TokenResponse> SignIn(Credentials credentials);
+        Task<SignInResponse> SignIn(Credentials credentials);
         Task<bool> SendVerification(string idToken);
     }
 }

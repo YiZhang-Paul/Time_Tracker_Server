@@ -27,8 +27,8 @@ namespace WebApi.Controllers
 
             try
             {
-                var tokens = await UserService.SignIn(credentials).ConfigureAwait(false);
-                result = string.IsNullOrWhiteSpace(tokens.AccessToken) ? StatusCode(403, tokens) : Ok(tokens);
+                var response = await UserService.SignIn(credentials).ConfigureAwait(false);
+                result = string.IsNullOrWhiteSpace(response.Tokens.AccessToken) ? StatusCode(403, response) : Ok(response);
             }
             catch (InvalidCredentialException)
             {
