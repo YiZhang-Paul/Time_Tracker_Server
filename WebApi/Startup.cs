@@ -47,6 +47,7 @@ namespace WebApi
             services.AddControllers().AddJsonOptions(_ => _.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
             services.AddDbContext<TimeTrackerDbContext>(_ => _.UseNpgsql(Configuration["TimeTrackerDbConnectionString"]));
             services.AddScoped<TimeTrackerDbContext, TimeTrackerDbContext>();
+            services.AddScoped<IUserProfileRepository, UserProfileRepository>();
             services.AddScoped<IInterruptionItemRepository, InterruptionItemRepository>();
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
             services.AddScoped<IEventHistoryRepository, EventHistoryRepository>();
@@ -55,6 +56,7 @@ namespace WebApi
             services.AddScoped<IWorkItemUnitOfWork, WorkItemUnitOfWork>();
             services.AddScoped<IEventUnitOfWork, EventUnitOfWork>();
             services.AddScoped<IAmazonSecretsManager>(_ => new AmazonSecretsManagerClient(RegionEndpoint.USEast1));
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IInterruptionItemService, InterruptionItemService>();
             services.AddScoped<ITaskItemService, TaskItemService>();
