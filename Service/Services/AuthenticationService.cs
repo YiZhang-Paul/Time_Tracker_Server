@@ -23,6 +23,19 @@ namespace Service.Services
             Secrets = secrets;
         }
 
+        public async Task<BaseTokenResponse> GetTokensByRefreshToken(string token)
+        {
+            var form = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "grant_type", "refresh_token" },
+                { "client_id", Configuration["Auth0:WebClientId"] },
+                { "client_secret", await GetClientSecret("auth0WebClientSecret").ConfigureAwait(false) },
+                { "refresh_token", token }
+            });
+
+            return await GetTokens<BaseTokenResponse>(form).ConfigureAwait(false);
+        }
+
         public async Task<FullTokenResponse> GetTokensByPassword(Credentials credentials)
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
