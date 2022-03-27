@@ -12,6 +12,7 @@ namespace Core.DbContexts
         public TimeTrackerDbContext(DbContextOptions<TimeTrackerDbContext> options) : base(options) { }
 
         public virtual DbSet<UserProfile> UserProfile { get; set; }
+        public virtual DbSet<UserRefreshToken> UserRefreshToken { get; set; }
         public virtual DbSet<InterruptionItem> InterruptionItem { get; set; }
         public virtual DbSet<TaskItem> TaskItem { get; set; }
         public virtual DbSet<EventHistory> EventHistory { get; set; }
@@ -30,6 +31,7 @@ namespace Core.DbContexts
         {
             modelBuilder.UseSerialColumns();
             new UserProfileEntityTypeConfiguration().Configure(modelBuilder.Entity<UserProfile>());
+            new UserRefreshTokenEntityTypeConfiguration().Configure(modelBuilder.Entity<UserRefreshToken>());
             new InterruptionItemEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionItem>());
             new InterruptionChecklistEntryEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionChecklistEntry>());
             new TaskItemEntityTypeConfiguration().Configure(modelBuilder.Entity<TaskItem>());
