@@ -33,11 +33,6 @@ namespace Service.Repositories
             return await query.OrderBy(_ => _.Timestamp).FirstOrDefaultAsync(_ => _.Timestamp >= start).ConfigureAwait(false);
         }
 
-        public async Task<EventHistory> GetHistoryById(long id)
-        {
-            return await Context.EventHistory.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
-        }
-
         public async Task<List<EventHistory>> GetHistories(DateTime start, DateTime end)
         {
             return await Context.EventHistory

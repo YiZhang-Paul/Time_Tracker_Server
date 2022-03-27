@@ -1,4 +1,5 @@
 using Core.DbContexts.Configurations;
+using Core.Models.Authentication;
 using Core.Models.Event;
 using Core.Models.WorkItem;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ namespace Core.DbContexts
         public TimeTrackerDbContext() { }
         public TimeTrackerDbContext(DbContextOptions<TimeTrackerDbContext> options) : base(options) { }
 
+        public virtual DbSet<UserProfile> UserProfile { get; set; }
         public virtual DbSet<InterruptionItem> InterruptionItem { get; set; }
         public virtual DbSet<TaskItem> TaskItem { get; set; }
         public virtual DbSet<EventHistory> EventHistory { get; set; }
@@ -27,6 +29,7 @@ namespace Core.DbContexts
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.UseSerialColumns();
+            new UserProfileEntityTypeConfiguration().Configure(modelBuilder.Entity<UserProfile>());
             new InterruptionItemEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionItem>());
             new InterruptionChecklistEntryEntityTypeConfiguration().Configure(modelBuilder.Entity<InterruptionChecklistEntry>());
             new TaskItemEntityTypeConfiguration().Configure(modelBuilder.Entity<TaskItem>());

@@ -81,7 +81,7 @@ namespace Service.Test.Unit.Services
             // 15 minutes idling before the break
             var histories = new List<EventHistory> { new EventHistory { EventType = EventType.Break, Timestamp = now.AddMinutes(-15) } };
             EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(histories);
-            EventHistoryRepository.Setup(_ => _.GetHistoryById(It.IsAny<long>())).ReturnsAsync((EventHistory)null);
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
 
             var result = await Subject.GetOngoingTimeSummary(start).ConfigureAwait(false);
 
@@ -114,7 +114,7 @@ namespace Service.Test.Unit.Services
 
             EventHistoryRepository.Setup(_ => _.GetHistories(start, It.IsAny<DateTime>())).ReturnsAsync(historiesSinceStart);
             EventHistoryRepository.Setup(_ => _.GetHistories(promptTime, It.IsAny<DateTime>())).ReturnsAsync(historiesSincePrompt);
-            EventHistoryRepository.Setup(_ => _.GetHistoryById(It.IsAny<long>())).ReturnsAsync(new EventHistory { EventType = EventType.Interruption, Timestamp = start.AddMinutes(-30) });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync(new EventHistory { EventType = EventType.Interruption, Timestamp = start.AddMinutes(-30) });
             EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = promptTime });
 
             var result = await Subject.GetOngoingTimeSummary(start).ConfigureAwait(false);

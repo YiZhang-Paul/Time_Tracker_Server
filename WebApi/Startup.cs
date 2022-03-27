@@ -1,3 +1,5 @@
+using Amazon;
+using Amazon.SecretsManager;
 using Core.DbContexts;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
@@ -45,13 +47,18 @@ namespace WebApi
             services.AddControllers().AddJsonOptions(_ => _.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
             services.AddDbContext<TimeTrackerDbContext>(_ => _.UseNpgsql(Configuration["TimeTrackerDbConnectionString"]));
             services.AddScoped<TimeTrackerDbContext, TimeTrackerDbContext>();
+            services.AddScoped<IUserProfileRepository, UserProfileRepository>();
             services.AddScoped<IInterruptionItemRepository, InterruptionItemRepository>();
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
             services.AddScoped<IEventHistoryRepository, EventHistoryRepository>();
             services.AddScoped<IEventHistorySummaryRepository, EventHistorySummaryRepository>();
             services.AddScoped<IEventPromptRepository, EventPromptRepository>();
+            services.AddScoped<IUserUnitOfWork, UserUnitOfWork>();
             services.AddScoped<IWorkItemUnitOfWork, WorkItemUnitOfWork>();
             services.AddScoped<IEventUnitOfWork, EventUnitOfWork>();
+            services.AddScoped<IAmazonSecretsManager>(_ => new AmazonSecretsManagerClient(RegionEndpoint.USEast1));
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IInterruptionItemService, InterruptionItemService>();
             services.AddScoped<ITaskItemService, TaskItemService>();
             services.AddScoped<IEventSummaryService, EventSummaryService>();
