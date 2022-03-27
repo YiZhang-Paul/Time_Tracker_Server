@@ -19,6 +19,20 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [Route("silent-sign-in")]
+        public async Task<IActionResult> SilentSignIn([FromBody]long userId)
+        {
+            try
+            {
+                return Ok(await UserService.SilentSignIn(userId).ConfigureAwait(false));
+            }
+            catch (InvalidCredentialException)
+            {
+                return Unauthorized(null);
+            }
+        }
+
+        [HttpPost]
         [Route("sign-in")]
         public async Task<IActionResult> SignIn([FromBody]Credentials credentials)
         {

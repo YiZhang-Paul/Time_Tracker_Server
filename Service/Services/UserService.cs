@@ -31,6 +31,50 @@ namespace Service.Services
             AuthenticationService = authenticationService;
         }
 
+        public async Task<SignInResponse> SilentSignIn(long userId)
+        {
+            var record = await UserUnitOfWork.UserRefreshToken.GetTokenByUserId(userId).ConfigureAwait(false);
+
+            if (record == null)
+            {
+                throw new InvalidCredentialException();
+            }
+
+            if (record.ExpireTime <= DateTime.UtcNow)
+            {
+                UserUnitOfWork.UserRefreshToken.DeleteToken(record);
+                await UserUnitOfWork.Save().ConfigureAwait(false);
+
+                throw new InvalidCredentialException();
+            }
+
+            var tokens = await AuthenticationService.GetTokensByRefreshToken(record.RefreshToken).ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken))
+            {
+                UserUnitOfWork.UserRefreshToken.DeleteToken(record);
+                await UserUnitOfWork.Save().ConfigureAwait(false);
+
+                throw new InvalidCredentialException();
+            }
+
+            var profile = await UserUnitOfWork.UserProfile.GetProfileById(userId).ConfigureAwait(false);
+
+            if (profile == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            record.ExpireTime = DateTime.UtcNow.AddHours(8);
+            await UserUnitOfWork.Save().ConfigureAwait(false);
+
+            return new SignInResponse
+            {
+                Tokens = new BaseTokenResponse { IdToken = tokens.IdToken, AccessToken = tokens.AccessToken },
+                Profile = profile
+            };
+        }
+
         public async Task<SignInResponse> SignIn(Credentials credentials)
         {
             var tokens = await AuthenticationService.GetTokensByPassword(credentials).ConfigureAwait(false);
@@ -56,6 +100,10 @@ namespace Service.Services
             {
                 throw new InvalidOperationException();
             }
+
+            var record = new UserRefreshToken { UserId = profile.Id, RefreshToken = tokens.RefreshToken };
+            UserUnitOfWork.UserRefreshToken.CreateToken(record);
+            await UserUnitOfWork.Save().ConfigureAwait(false);
 
             return new SignInResponse
             {
