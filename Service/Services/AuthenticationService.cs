@@ -23,7 +23,7 @@ namespace Service.Services
             Secrets = secrets;
         }
 
-        public async Task<TokenResponse> GetTokensByPassword(Credentials credentials)
+        public async Task<FullTokenResponse> GetTokensByPassword(Credentials credentials)
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -31,15 +31,15 @@ namespace Service.Services
                 { "audience", Configuration["Auth0:WebAudience"] },
                 { "client_id", Configuration["Auth0:WebClientId"] },
                 { "client_secret", await GetClientSecret("auth0WebClientSecret").ConfigureAwait(false) },
-                { "scope", "openid profile email" },
+                { "scope", "openid profile email offline_access" },
                 { "username", credentials.Email },
                 { "password", credentials.Password }
             });
 
-            return await GetTokens(form).ConfigureAwait(false);
+            return await GetTokens<FullTokenResponse>(form).ConfigureAwait(false);
         }
 
-        public async Task<TokenResponse> GetTokensByClientCredentials()
+        public async Task<BaseTokenResponse> GetTokensByClientCredentials()
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -49,7 +49,7 @@ namespace Service.Services
                 { "client_secret", await GetClientSecret("auth0MachineClientSecret").ConfigureAwait(false) }
             });
 
-            return await GetTokens(form).ConfigureAwait(false);
+            return await GetTokens<BaseTokenResponse>(form).ConfigureAwait(false);
         }
 
         private async Task<string> GetClientSecret(string key)
@@ -60,7 +60,7 @@ namespace Service.Services
             return JsonSerializer.Deserialize<Dictionary<string, string>>(response.SecretString)[key];
         }
 
-        private async Task<TokenResponse> GetTokens(FormUrlEncodedContent form)
+        private async Task<T> GetTokens<T>(FormUrlEncodedContent form)
         {
             var client = new HttpClient { BaseAddress = new Uri(Configuration["Auth0:Domain"]) };
             var response = await client.PostAsync("oauth/token", form).ConfigureAwait(false);
@@ -77,7 +77,7 @@ namespace Service.Services
                 throw new InvalidCredentialException();
             }
 
-            return JsonSerializer.Deserialize<TokenResponse>(json);
+            return JsonSerializer.Deserialize<T>(json);
         }
     }
 }

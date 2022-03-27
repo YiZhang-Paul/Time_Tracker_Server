@@ -5,7 +5,7 @@ namespace Core.Interfaces.Services
 {
     public interface IAuthenticationService
     {
-        Task<TokenResponse> GetTokensByPassword(Credentials credentials);
-        Task<TokenResponse> GetTokensByClientCredentials();
+        Task<FullTokenResponse> GetTokensByPassword(Credentials credentials);
+        Task<BaseTokenResponse> GetTokensByClientCredentials();
     }
 }

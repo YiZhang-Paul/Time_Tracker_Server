@@ -35,7 +35,7 @@ namespace Service.Services
         {
             var tokens = await AuthenticationService.GetTokensByPassword(credentials).ConfigureAwait(false);
 
-            if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken))
+            if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken) || string.IsNullOrWhiteSpace(tokens.RefreshToken))
             {
                 throw new InvalidCredentialException();
             }
@@ -44,9 +44,10 @@ namespace Service.Services
 
             if (!bool.Parse(emailVerified))
             {
-                tokens.AccessToken = null;
-
-                return new SignInResponse { Tokens = tokens };
+                return new SignInResponse
+                {
+                    Tokens = new BaseTokenResponse { IdToken = tokens.IdToken }
+                };
             }
 
             var profile = await EnsureProfileCreation(credentials.Email).ConfigureAwait(false);
@@ -56,7 +57,11 @@ namespace Service.Services
                 throw new InvalidOperationException();
             }
 
-            return new SignInResponse { Tokens = tokens, Profile = profile };
+            return new SignInResponse
+            {
+                Tokens = new BaseTokenResponse { IdToken = tokens.IdToken, AccessToken = tokens.AccessToken },
+                Profile = profile
+            };
         }
 
         public async Task<bool> SendVerification(string idToken)
