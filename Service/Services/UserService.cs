@@ -31,11 +31,52 @@ namespace Service.Services
             AuthenticationService = authenticationService;
         }
 
+        public async Task<SignInResponse> SilentSignIn(long userId)
+        {
+            var record = await UserUnitOfWork.UserRefreshToken.GetTokenByUserId(userId).ConfigureAwait(false);
+
+            if (record == null)
+            {
+                throw new InvalidCredentialException();
+            }
+
+            if (record.ExpireTime <= DateTime.UtcNow)
+            {
+                await AuthenticationService.RevokeRefreshToken(record).ConfigureAwait(false);
+
+                throw new InvalidCredentialException();
+            }
+
+            var tokens = await AuthenticationService.GetTokensByRefreshToken(record.RefreshToken).ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken))
+            {
+                await AuthenticationService.RevokeRefreshToken(record).ConfigureAwait(false);
+
+                throw new InvalidCredentialException();
+            }
+
+            var profile = await UserUnitOfWork.UserProfile.GetProfileById(userId).ConfigureAwait(false);
+
+            if (profile == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            await AuthenticationService.ExtendRefreshToken(record).ConfigureAwait(false);
+
+            return new SignInResponse
+            {
+                Tokens = new BaseTokenResponse { IdToken = tokens.IdToken, AccessToken = tokens.AccessToken },
+                Profile = profile
+            };
+        }
+
         public async Task<SignInResponse> SignIn(Credentials credentials)
         {
             var tokens = await AuthenticationService.GetTokensByPassword(credentials).ConfigureAwait(false);
 
-            if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken))
+            if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken) || string.IsNullOrWhiteSpace(tokens.RefreshToken))
             {
                 throw new InvalidCredentialException();
             }
@@ -44,9 +85,10 @@ namespace Service.Services
 
             if (!bool.Parse(emailVerified))
             {
-                tokens.AccessToken = null;
-
-                return new SignInResponse { Tokens = tokens };
+                return new SignInResponse
+                {
+                    Tokens = new BaseTokenResponse { IdToken = tokens.IdToken }
+                };
             }
 
             var profile = await EnsureProfileCreation(credentials.Email).ConfigureAwait(false);
@@ -56,7 +98,13 @@ namespace Service.Services
                 throw new InvalidOperationException();
             }
 
-            return new SignInResponse { Tokens = tokens, Profile = profile };
+            await AuthenticationService.RecordRefreshToken(profile.Id, tokens.RefreshToken).ConfigureAwait(false);
+
+            return new SignInResponse
+            {
+                Tokens = new BaseTokenResponse { IdToken = tokens.IdToken, AccessToken = tokens.AccessToken },
+                Profile = profile
+            };
         }
 
         public async Task<bool> SendVerification(string idToken)

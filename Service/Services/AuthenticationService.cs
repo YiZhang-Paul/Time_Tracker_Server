@@ -1,6 +1,7 @@
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.Authentication;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -16,14 +17,34 @@ namespace Service.Services
     {
         private IConfiguration Configuration { get; }
         private IAmazonSecretsManager Secrets { get; }
+        private IUserUnitOfWork UserUnitOfWork { get; }
 
-        public AuthenticationService(IConfiguration configuration, IAmazonSecretsManager secrets)
+        public AuthenticationService
+        (
+            IConfiguration configuration,
+            IAmazonSecretsManager secrets,
+            IUserUnitOfWork userUnitOfWork
+        )
         {
             Configuration = configuration;
             Secrets = secrets;
+            UserUnitOfWork = userUnitOfWork;
         }
 
-        public async Task<TokenResponse> GetTokensByPassword(Credentials credentials)
+        public async Task<BaseTokenResponse> GetTokensByRefreshToken(string token)
+        {
+            var form = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "grant_type", "refresh_token" },
+                { "client_id", Configuration["Auth0:WebClientId"] },
+                { "client_secret", await GetClientSecret("auth0WebClientSecret").ConfigureAwait(false) },
+                { "refresh_token", token }
+            });
+
+            return await GetTokens<BaseTokenResponse>(form).ConfigureAwait(false);
+        }
+
+        public async Task<FullTokenResponse> GetTokensByPassword(Credentials credentials)
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -31,15 +52,15 @@ namespace Service.Services
                 { "audience", Configuration["Auth0:WebAudience"] },
                 { "client_id", Configuration["Auth0:WebClientId"] },
                 { "client_secret", await GetClientSecret("auth0WebClientSecret").ConfigureAwait(false) },
-                { "scope", "openid profile email" },
+                { "scope", "openid profile email offline_access" },
                 { "username", credentials.Email },
                 { "password", credentials.Password }
             });
 
-            return await GetTokens(form).ConfigureAwait(false);
+            return await GetTokens<FullTokenResponse>(form).ConfigureAwait(false);
         }
 
-        public async Task<TokenResponse> GetTokensByClientCredentials()
+        public async Task<BaseTokenResponse> GetTokensByClientCredentials()
         {
             var form = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -49,7 +70,39 @@ namespace Service.Services
                 { "client_secret", await GetClientSecret("auth0MachineClientSecret").ConfigureAwait(false) }
             });
 
-            return await GetTokens(form).ConfigureAwait(false);
+            return await GetTokens<BaseTokenResponse>(form).ConfigureAwait(false);
+        }
+
+        public async Task<bool> RecordRefreshToken(long userId, string token)
+        {
+            var record = await UserUnitOfWork.UserRefreshToken.GetTokenByUserId(userId).ConfigureAwait(false);
+
+            if (record != null)
+            {
+                record.RefreshToken = token;
+                record.ExpireTime = DateTime.UtcNow.AddHours(8);
+            }
+            else
+            {
+                record = new UserRefreshToken { UserId = userId, RefreshToken = token };
+                UserUnitOfWork.UserRefreshToken.CreateToken(record);
+            }
+
+            return await UserUnitOfWork.Save().ConfigureAwait(false);
+        }
+
+        public async Task<bool> ExtendRefreshToken(UserRefreshToken record)
+        {
+            record.ExpireTime = DateTime.UtcNow.AddHours(8);
+
+            return await UserUnitOfWork.Save().ConfigureAwait(false);
+        }
+
+        public async Task<bool> RevokeRefreshToken(UserRefreshToken record)
+        {
+            UserUnitOfWork.UserRefreshToken.DeleteToken(record);
+
+            return await UserUnitOfWork.Save().ConfigureAwait(false);
         }
 
         private async Task<string> GetClientSecret(string key)
@@ -60,7 +113,7 @@ namespace Service.Services
             return JsonSerializer.Deserialize<Dictionary<string, string>>(response.SecretString)[key];
         }
 
-        private async Task<TokenResponse> GetTokens(FormUrlEncodedContent form)
+        private async Task<T> GetTokens<T>(FormUrlEncodedContent form)
         {
             var client = new HttpClient { BaseAddress = new Uri(Configuration["Auth0:Domain"]) };
             var response = await client.PostAsync("oauth/token", form).ConfigureAwait(false);
@@ -77,7 +130,7 @@ namespace Service.Services
                 throw new InvalidCredentialException();
             }
 
-            return JsonSerializer.Deserialize<TokenResponse>(json);
+            return JsonSerializer.Deserialize<T>(json);
         }
     }
 }
