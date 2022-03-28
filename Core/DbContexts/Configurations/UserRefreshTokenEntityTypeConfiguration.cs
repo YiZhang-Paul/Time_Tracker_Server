@@ -9,8 +9,9 @@ namespace Core.DbContexts.Configurations
         public void Configure(EntityTypeBuilder<UserRefreshToken> builder)
         {
             builder.HasKey(_ => _.UserId);
-            builder.HasAlternateKey(_ => _.RefreshToken);
+            builder.HasIndex(_ => _.RefreshToken).IsUnique();
             builder.Property(_ => _.UserId).ValueGeneratedNever();
+            builder.Property(_ => _.RefreshToken).IsRequired();
             builder.Property(_ => _.ExpireTime).HasColumnType("timestamp with time zone");
         }
     }
