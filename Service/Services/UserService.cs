@@ -63,8 +63,6 @@ namespace Service.Services
                 throw new InvalidOperationException();
             }
 
-            await AuthenticationService.ExtendRefreshToken(record).ConfigureAwait(false);
-
             return new SignInResponse
             {
                 Tokens = new BaseTokenResponse { IdToken = tokens.IdToken, AccessToken = tokens.AccessToken },

@@ -91,13 +91,6 @@ namespace Service.Services
             return await UserUnitOfWork.Save().ConfigureAwait(false);
         }
 
-        public async Task<bool> ExtendRefreshToken(UserRefreshToken record)
-        {
-            record.ExpireTime = DateTime.UtcNow.AddHours(8);
-
-            return await UserUnitOfWork.Save().ConfigureAwait(false);
-        }
-
         public async Task<bool> RevokeRefreshToken(UserRefreshToken record)
         {
             UserUnitOfWork.UserRefreshToken.DeleteToken(record);
