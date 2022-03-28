@@ -1,6 +1,7 @@
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
 using Core.Interfaces.Services;
+using Core.Interfaces.UnitOfWorks;
 using Core.Models.Authentication;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -16,11 +17,18 @@ namespace Service.Services
     {
         private IConfiguration Configuration { get; }
         private IAmazonSecretsManager Secrets { get; }
+        private IUserUnitOfWork UserUnitOfWork { get; }
 
-        public AuthenticationService(IConfiguration configuration, IAmazonSecretsManager secrets)
+        public AuthenticationService
+        (
+            IConfiguration configuration,
+            IAmazonSecretsManager secrets,
+            IUserUnitOfWork userUnitOfWork
+        )
         {
             Configuration = configuration;
             Secrets = secrets;
+            UserUnitOfWork = userUnitOfWork;
         }
 
         public async Task<BaseTokenResponse> GetTokensByRefreshToken(string token)
@@ -63,6 +71,38 @@ namespace Service.Services
             });
 
             return await GetTokens<BaseTokenResponse>(form).ConfigureAwait(false);
+        }
+
+        public async Task<bool> RecordRefreshToken(long userId, string token)
+        {
+            var record = await UserUnitOfWork.UserRefreshToken.GetTokenByUserId(userId).ConfigureAwait(false);
+
+            if (record != null)
+            {
+                record.RefreshToken = token;
+                record.ExpireTime = DateTime.UtcNow.AddHours(8);
+            }
+            else
+            {
+                record = new UserRefreshToken { UserId = userId, RefreshToken = token };
+                UserUnitOfWork.UserRefreshToken.CreateToken(record);
+            }
+
+            return await UserUnitOfWork.Save().ConfigureAwait(false);
+        }
+
+        public async Task<bool> ExtendRefreshToken(UserRefreshToken record)
+        {
+            record.ExpireTime = DateTime.UtcNow.AddHours(8);
+
+            return await UserUnitOfWork.Save().ConfigureAwait(false);
+        }
+
+        public async Task<bool> RevokeRefreshToken(UserRefreshToken record)
+        {
+            UserUnitOfWork.UserRefreshToken.DeleteToken(record);
+
+            return await UserUnitOfWork.Save().ConfigureAwait(false);
         }
 
         private async Task<string> GetClientSecret(string key)

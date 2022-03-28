@@ -42,8 +42,7 @@ namespace Service.Services
 
             if (record.ExpireTime <= DateTime.UtcNow)
             {
-                UserUnitOfWork.UserRefreshToken.DeleteToken(record);
-                await UserUnitOfWork.Save().ConfigureAwait(false);
+                await AuthenticationService.RevokeRefreshToken(record).ConfigureAwait(false);
 
                 throw new InvalidCredentialException();
             }
@@ -52,8 +51,7 @@ namespace Service.Services
 
             if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken))
             {
-                UserUnitOfWork.UserRefreshToken.DeleteToken(record);
-                await UserUnitOfWork.Save().ConfigureAwait(false);
+                await AuthenticationService.RevokeRefreshToken(record).ConfigureAwait(false);
 
                 throw new InvalidCredentialException();
             }
@@ -65,8 +63,7 @@ namespace Service.Services
                 throw new InvalidOperationException();
             }
 
-            record.ExpireTime = DateTime.UtcNow.AddHours(8);
-            await UserUnitOfWork.Save().ConfigureAwait(false);
+            await AuthenticationService.ExtendRefreshToken(record).ConfigureAwait(false);
 
             return new SignInResponse
             {
@@ -101,9 +98,7 @@ namespace Service.Services
                 throw new InvalidOperationException();
             }
 
-            var record = new UserRefreshToken { UserId = profile.Id, RefreshToken = tokens.RefreshToken };
-            UserUnitOfWork.UserRefreshToken.CreateToken(record);
-            await UserUnitOfWork.Save().ConfigureAwait(false);
+            await AuthenticationService.RecordRefreshToken(profile.Id, tokens.RefreshToken).ConfigureAwait(false);
 
             return new SignInResponse
             {
