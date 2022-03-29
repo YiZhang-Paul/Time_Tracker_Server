@@ -5,6 +5,7 @@ using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Interfaces.UnitOfWorks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -18,6 +19,8 @@ using Service.Services;
 using Service.UnitOfWorks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using WebApi.AuthorizationHandlers;
+using WebApi.AuthorizationRequirements;
 
 namespace WebApi
 {
@@ -33,11 +36,14 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(_ =>
-            {
-                _.Authority = Configuration["Auth0:Domain"];
-                _.Audience = Configuration["Auth0:WebAudience"];
-            });
+            services
+                .AddAuthorization(_ => _.AddPolicy("UserProfile", policy => policy.Requirements.Add(new UserProfileRequirement())))
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(_ =>
+                {
+                    _.Authority = Configuration["Auth0:Domain"];
+                    _.Audience = Configuration["Auth0:WebAudience"];
+                });
 
             services.AddCors(options =>
             {
@@ -71,6 +77,7 @@ namespace WebApi
             services.AddScoped<ITaskItemService, TaskItemService>();
             services.AddScoped<IEventSummaryService, EventSummaryService>();
             services.AddScoped<IEventTrackingService, EventTrackingService>();
+            services.AddScoped<IAuthorizationHandler, UserProfileHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
