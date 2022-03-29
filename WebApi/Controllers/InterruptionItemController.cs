@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Interfaces.Services;
 using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 namespace WebApi.Controllers
 {
     [Route("api/v1/interruption-items")]
+    [Authorize(Policy = "UserProfile")]
     [ApiController]
     public class InterruptionItemController : ControllerBase
     {

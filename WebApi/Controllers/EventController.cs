@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Interfaces.UnitOfWorks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Text;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 namespace WebApi.Controllers
 {
     [Route("api/v1/events")]
+    [Authorize(Policy = "UserProfile")]
     [ApiController]
     public class EventController : ControllerBase
     {
