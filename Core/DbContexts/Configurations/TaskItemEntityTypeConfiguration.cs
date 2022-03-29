@@ -1,3 +1,4 @@
+using Core.Models.Authentication;
 using Core.Models.WorkItem;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,6 +10,7 @@ namespace Core.DbContexts.Configurations
         public void Configure(EntityTypeBuilder<TaskItem> builder)
         {
             builder.HasKey(_ => _.Id);
+            builder.HasOne<UserProfile>().WithMany().HasForeignKey(_ => _.UserId);
             builder.HasMany(_ => _.Checklists).WithOne().IsRequired().OnDelete(DeleteBehavior.Cascade);
             builder.Property(_ => _.Name).HasMaxLength(140).IsRequired();
             builder.Property(_ => _.CreationTime).HasColumnType("timestamp with time zone");
