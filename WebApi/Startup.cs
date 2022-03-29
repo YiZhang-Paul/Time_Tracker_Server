@@ -4,6 +4,7 @@ using Core.DbContexts;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Interfaces.UnitOfWorks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -32,6 +33,12 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(_ =>
+            {
+                _.Authority = Configuration["Auth0:Domain"];
+                _.Audience = Configuration["Auth0:WebAudience"];
+            });
+
             services.AddCors(options =>
             {
                 options.AddPolicy("time-tracker-cors", _ =>
@@ -85,6 +92,7 @@ namespace WebApi
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseCors("time-tracker-cors");
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
