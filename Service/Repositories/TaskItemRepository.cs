@@ -60,13 +60,13 @@ namespace Service.Repositories
             return await query.FirstOrDefaultAsync(_ => _.UserId == userId && _.Id == id).ConfigureAwait(false);
         }
 
-        public TaskItem CreateItem(TaskItemBase item)
+        public TaskItem CreateItem(long userId, TaskItemBase item)
         {
             var now = DateTime.UtcNow;
 
             var payload = new TaskItem
             {
-                UserId = item.UserId,
+                UserId = userId,
                 Name = item.Name,
                 Description = item.Description,
                 Effort = item.Effort,

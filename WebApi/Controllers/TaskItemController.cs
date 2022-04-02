@@ -72,9 +72,8 @@ namespace WebApi.Controllers
             try
             {
                 var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
-                item.UserId = user.Id;
 
-                return Ok(await TaskItemService.CreateItem(item).ConfigureAwait(false));
+                return Ok(await TaskItemService.CreateItem(user.Id, item).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {
@@ -89,9 +88,8 @@ namespace WebApi.Controllers
             try
             {
                 var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
-                item.UserId = user.Id;
 
-                return Ok(await TaskItemService.UpdateItem(item, resolve).ConfigureAwait(false));
+                return Ok(await TaskItemService.UpdateItem(user.Id, item, resolve).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {

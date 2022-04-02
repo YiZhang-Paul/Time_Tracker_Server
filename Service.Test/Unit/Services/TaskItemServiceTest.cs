@@ -31,9 +31,9 @@ namespace Service.Test.Unit.Services
         [TestCase(0)]
         public void CreateItemShouldThrowWhenUserIdIsInvalid(long id)
         {
-            var item = new TaskItemBase { UserId = id, Name = "valid_name" };
+            var item = new TaskItemBase { Name = "valid_name" };
 
-            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(item).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(id, item).ConfigureAwait(false));
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace Service.Test.Unit.Services
         [TestCase(" ")]
         public void CreateItemShouldThrowWhenItemNameIsInvalid(string name)
         {
-            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(new TaskItemBase { Name = name }).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(99, new TaskItemBase { Name = name }).ConfigureAwait(false));
         }
 
         [Test]
@@ -61,19 +61,19 @@ namespace Service.Test.Unit.Services
                 }
             };
 
-            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(item).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(99, item).ConfigureAwait(false));
         }
 
         [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            TaskItemRepository.Setup(_ => _.CreateItem(It.IsAny<TaskItemBase>())).Returns(new TaskItem());
+            TaskItemRepository.Setup(_ => _.CreateItem(It.IsAny<long>(), It.IsAny<TaskItemBase>())).Returns(new TaskItem());
             WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
-            var result = await Subject.CreateItem(new TaskItemBase { UserId = 1, Name = "valid_name" }).ConfigureAwait(false);
+            var result = await Subject.CreateItem(1, new TaskItemBase { Name = "valid_name" }).ConfigureAwait(false);
 
             Assert.IsNotNull(result);
-            TaskItemRepository.Verify(_ => _.CreateItem(It.IsAny<TaskItemBase>()), Times.Once);
+            TaskItemRepository.Verify(_ => _.CreateItem(1, It.IsAny<TaskItemBase>()), Times.Once);
             WorkItemUnitOfWork.Verify(_ => _.Save(), Times.Once);
         }
     }

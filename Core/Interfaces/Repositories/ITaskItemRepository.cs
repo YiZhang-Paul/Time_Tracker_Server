@@ -12,7 +12,7 @@ namespace Core.Interfaces.Repositories
         Task<List<TaskItemSummaryDto>> GetResolvedItemSummaries(long userId, DateTime start);
         Task<List<TaskItemSummaryDto>> GetUnresolvedItemSummaries(long userId);
         Task<TaskItem> GetItemById(long userId, long id, bool excludeDeleted = true);
-        TaskItem CreateItem(TaskItemBase item);
+        TaskItem CreateItem(long userId, TaskItemBase item);
         Task<TaskItem> UpdateItem(TaskItem item);
         Task<bool> DeleteItemById(long userId, long id);
         Task<bool> DeleteItem(TaskItem item);

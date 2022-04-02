@@ -39,8 +39,8 @@ namespace Service.Test.Integration.Repositories
         {
             for (var i = 0; i < 5; ++i)
             {
-                var payload = new TaskItemBase { UserId = Users[0].Id, Name = $"name_{i}", Description = $"description_{i}", Effort = 5 };
-                var created = Subject.CreateItem(payload);
+                var payload = new TaskItemBase { Name = $"name_{i}", Description = $"description_{i}", Effort = 5 };
+                var created = Subject.CreateItem(Users[0].Id, payload);
 
                 if (i == 0 || i == 3)
                 {
@@ -73,8 +73,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetItemByIdShouldReturnNullWhenItemIsDeleted()
         {
-            var payload = new TaskItemBase { UserId = Users[0].Id, Name = "name", Description = "description", Effort = 5 };
-            var created = Subject.CreateItem(payload);
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
+            var created = Subject.CreateItem(Users[0].Id, payload);
             await Context.SaveChangesAsync().ConfigureAwait(false);
             await Subject.DeleteItemById(Users[0].Id, created.Id).ConfigureAwait(false);
             await Context.SaveChangesAsync().ConfigureAwait(false);
@@ -87,8 +87,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetItemByIdShouldReturnDeletedItemWhenNotExcludingDeletedItem()
         {
-            var payload = new TaskItemBase { UserId = Users[0].Id, Name = "name", Description = "description", Effort = 5 };
-            var created = Subject.CreateItem(payload);
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
+            var created = Subject.CreateItem(Users[0].Id, payload);
             await Context.SaveChangesAsync().ConfigureAwait(false);
             await Subject.DeleteItemById(Users[0].Id, created.Id).ConfigureAwait(false);
             await Context.SaveChangesAsync().ConfigureAwait(false);
@@ -103,8 +103,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetItemByIdShouldReturnItemFound()
         {
-            var payload = new TaskItemBase { UserId = Users[0].Id, Name = "name", Description = "description", Effort = 5 };
-            var created = Subject.CreateItem(payload);
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
+            var created = Subject.CreateItem(Users[0].Id, payload);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetItemById(Users[0].Id, created.Id).ConfigureAwait(false);
@@ -119,9 +119,9 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            var payload = new TaskItemBase { UserId = Users[0].Id, Name = "item_name", Description = "item_description", Effort = 5 };
+            var payload = new TaskItemBase { Name = "item_name", Description = "item_description", Effort = 5 };
 
-            var result = Subject.CreateItem(payload);
+            var result = Subject.CreateItem(Users[0].Id, payload);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.AreEqual(Users[0].Id, result.UserId);
@@ -145,8 +145,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task UpdateItemShouldReturnItemUpdated()
         {
-            var payload = new TaskItemBase { UserId = Users[0].Id, Name = "previous_name", Description = "previous_description", Effort = 5 };
-            var item = Subject.CreateItem(payload);
+            var payload = new TaskItemBase { Name = "previous_name", Description = "previous_description", Effort = 5 };
+            var item = Subject.CreateItem(Users[0].Id, payload);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             item.Name = "current_name";
@@ -173,8 +173,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task DeleteItemByIdShouldReturnFalseWhenItemIsAlreadyDeleted()
         {
-            var payload = new TaskItemBase { UserId = Users[0].Id, Name = "name", Description = "description", Effort = 5 };
-            var created = Subject.CreateItem(payload);
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
+            var created = Subject.CreateItem(Users[0].Id, payload);
             await Context.SaveChangesAsync().ConfigureAwait(false);
             await Subject.DeleteItemById(Users[0].Id, created.Id).ConfigureAwait(false);
             await Context.SaveChangesAsync().ConfigureAwait(false);
@@ -187,8 +187,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task DeleteItemByIdShouldReturnTrueWhenSuccessfullyDeletedItem()
         {
-            var payload = new TaskItemBase { UserId = Users[0].Id, Name = "name", Description = "description", Effort = 5 };
-            var created = Subject.CreateItem(payload);
+            var payload = new TaskItemBase { Name = "name", Description = "description", Effort = 5 };
+            var created = Subject.CreateItem(Users[0].Id, payload);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.DeleteItemById(Users[0].Id, created.Id).ConfigureAwait(false);

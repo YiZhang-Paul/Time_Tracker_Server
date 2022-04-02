@@ -111,7 +111,7 @@ namespace WebApi.Controllers
                 return false;
             }
 
-            if (item.ResolvedTime != null && await TaskItemService.UpdateItem(item, ResolveAction.Unresolve).ConfigureAwait(false) == null)
+            if (item.ResolvedTime != null && await TaskItemService.UpdateItem(user.Id, item, ResolveAction.Unresolve).ConfigureAwait(false) == null)
             {
                 return false;
             }

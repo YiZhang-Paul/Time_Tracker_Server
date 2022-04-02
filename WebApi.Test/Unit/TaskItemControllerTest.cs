@@ -92,25 +92,25 @@ namespace WebApi.Test.Unit
         [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            TaskItemService.Setup(_ => _.CreateItem(It.IsAny<TaskItemBase>())).ReturnsAsync(new TaskItem());
+            TaskItemService.Setup(_ => _.CreateItem(It.IsAny<long>(), It.IsAny<TaskItemBase>())).ReturnsAsync(new TaskItem());
 
             var response = await HttpClient.PostAsJsonAsync(ApiBase, new TaskItemBase { Name = "item_name" }).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<TaskItem>().ConfigureAwait(false));
-            TaskItemService.Verify(_ => _.CreateItem(It.IsAny<TaskItemBase>()), Times.Once);
+            TaskItemService.Verify(_ => _.CreateItem(99, It.IsAny<TaskItemBase>()), Times.Once);
         }
 
         [Test]
         public async Task UpdateItemShouldReturnItemUpdated()
         {
-            TaskItemService.Setup(_ => _.UpdateItem(It.IsAny<TaskItem>(), It.IsAny<ResolveAction>())).ReturnsAsync(new TaskItem());
+            TaskItemService.Setup(_ => _.UpdateItem(It.IsAny<long>(), It.IsAny<TaskItem>(), It.IsAny<ResolveAction>())).ReturnsAsync(new TaskItem());
 
             var response = await HttpClient.PutAsJsonAsync($"{ApiBase}?resolve={ResolveAction.Unresolve}", new TaskItem { Id = 1, Name = "item_name" }).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<TaskItem>().ConfigureAwait(false));
-            TaskItemService.Verify(_ => _.UpdateItem(It.IsAny<TaskItem>(), ResolveAction.Unresolve), Times.Once);
+            TaskItemService.Verify(_ => _.UpdateItem(99, It.IsAny<TaskItem>(), ResolveAction.Unresolve), Times.Once);
         }
 
         [Test]
