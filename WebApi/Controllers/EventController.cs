@@ -45,21 +45,26 @@ namespace WebApi.Controllers
         [Route("time-summary/{start}")]
         public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
         {
-            return await EventSummaryService.GetOngoingTimeSummary(start).ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+            return await EventSummaryService.GetOngoingTimeSummary(user.Id, start).ConfigureAwait(false);
         }
 
         [HttpGet]
         [Route("event-summaries/{start}")]
         public async Task<EventSummariesDto> GetEventSummariesByDay(DateTime start)
         {
-            return await EventSummaryService.GetEventSummariesByDay(start).ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+            return await EventSummaryService.GetEventSummariesByDay(user.Id, start).ConfigureAwait(false);
         }
 
         [HttpGet]
         [Route("timesheets/{start}")]
         public async Task<IActionResult> GetTimesheetsByDay(DateTime start)
         {
-            var timesheets = await EventSummaryService.GetTimesheetsByDay(start).ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+            var timesheets = await EventSummaryService.GetTimesheetsByDay(user.Id, start).ConfigureAwait(false);
             var file = Encoding.UTF8.GetBytes(string.Join("\n", timesheets));
 
             return File(file, "text/plain", $"timesheets_{start:yyyy_MM_dd}");
@@ -69,7 +74,9 @@ namespace WebApi.Controllers
         [Route("idling-sessions")]
         public async Task<bool> StartIdlingSession()
         {
-            return await EventTrackingService.StartIdlingSession().ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+            return await EventTrackingService.StartIdlingSession(user.Id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -89,7 +96,7 @@ namespace WebApi.Controllers
                 return false;
             }
 
-            return await EventTrackingService.StartInterruptionItem(id).ConfigureAwait(false);
+            return await EventTrackingService.StartInterruptionItem(user.Id, id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -109,7 +116,7 @@ namespace WebApi.Controllers
                 return false;
             }
 
-            return await EventTrackingService.StartTaskItem(id).ConfigureAwait(false);
+            return await EventTrackingService.StartTaskItem(user.Id, id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -118,12 +125,14 @@ namespace WebApi.Controllers
         {
             try
             {
+                var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
                 if (confirmation.IsSkip)
                 {
-                    return Ok(await EventTrackingService.SkipBreakSession().ConfigureAwait(false));
+                    return Ok(await EventTrackingService.SkipBreakSession(user.Id).ConfigureAwait(false));
                 }
 
-                return Ok(await EventTrackingService.StartBreakSession(confirmation.TargetDuration).ConfigureAwait(false));
+                return Ok(await EventTrackingService.StartBreakSession(user.Id, confirmation.TargetDuration).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {
@@ -137,7 +146,9 @@ namespace WebApi.Controllers
         {
             try
             {
-                return Ok(await EventTrackingService.UpdateTimeRange(range).ConfigureAwait(false));
+                var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+                return Ok(await EventTrackingService.UpdateTimeRange(user.Id, range).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {

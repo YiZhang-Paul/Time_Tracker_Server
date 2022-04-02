@@ -7,8 +7,8 @@ namespace Core.Interfaces.Services
 {
     public interface IEventSummaryService
     {
-        Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start);
-        Task<EventSummariesDto> GetEventSummariesByDay(DateTime start);
-        Task<List<string>> GetTimesheetsByDay(DateTime start);
+        Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(long userId, DateTime start);
+        Task<EventSummariesDto> GetEventSummariesByDay(long userId, DateTime start);
+        Task<List<string>> GetTimesheetsByDay(long userId, DateTime start);
     }
 }

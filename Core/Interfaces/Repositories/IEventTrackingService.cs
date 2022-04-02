@@ -5,11 +5,11 @@ namespace Core.Interfaces.Repositories
 {
     public interface IEventTrackingService
     {
-        Task<bool> StartIdlingSession();
-        Task<bool> StartInterruptionItem(long id);
-        Task<bool> StartTaskItem(long id);
-        Task<bool> StartBreakSession(int duration);
-        Task<bool> SkipBreakSession();
-        Task<bool> UpdateTimeRange(EventTimeRangeDto range);
+        Task<bool> StartIdlingSession(long userId);
+        Task<bool> StartInterruptionItem(long userId, long id);
+        Task<bool> StartTaskItem(long userId, long id);
+        Task<bool> StartBreakSession(long userId, int duration);
+        Task<bool> SkipBreakSession(long userId);
+        Task<bool> UpdateTimeRange(long userId, EventTimeRangeDto range);
     }
 }

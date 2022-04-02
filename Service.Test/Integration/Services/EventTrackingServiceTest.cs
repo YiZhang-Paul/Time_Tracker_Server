@@ -3,6 +3,7 @@ using Core.Dtos;
 using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.UnitOfWorks;
+using Core.Models.Authentication;
 using Core.Models.Event;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -19,6 +20,7 @@ namespace Service.Test.Integration.Services
     [Category("Integration")]
     public class EventTrackingServiceTest
     {
+        private List<UserProfile> Users { get; set; }
         private TimeTrackerDbContext Context { get; set; }
         private IEventUnitOfWork EventUnitOfWork { get; set; }
         private IEventTrackingService Subject { get; set; }
@@ -39,6 +41,7 @@ namespace Service.Test.Integration.Services
 
             EventUnitOfWork = provider.GetService<IEventUnitOfWork>();
             Subject = provider.GetService<IEventTrackingService>();
+            await CreateUsers().ConfigureAwait(false);
         }
 
         [Test]
@@ -49,26 +52,36 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 6, EventType = EventType.Interruption, Timestamp = now.AddHours(-8) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Interruption, Timestamp = now.AddHours(-0.5) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = 6, EventType = EventType.Interruption, Timestamp = now.AddHours(-8) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Interruption, Timestamp = now.AddHours(-0.5) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -79,26 +92,36 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-2) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-2) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -109,26 +132,36 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-6) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-6) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -139,24 +172,32 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-2) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-2) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -167,29 +208,41 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 5, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-8) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-7) },
-                new EventHistory { ResourceId = 2, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 7, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-8) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-7) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Task, Timestamp = now.AddHours(-2) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 5, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-9) },
-                new EventHistory { ResourceId = 2, EventType = EventType.Interruption, Timestamp = now.AddHours(-2) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-9) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Interruption, Timestamp = now.AddHours(-2) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = 7, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Task, Timestamp = now.AddHours(-2) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -200,27 +253,37 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-4) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[1].Id, ResourceId = 5, EventType = EventType.Task, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 7, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-4) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-1) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = 5, EventType = EventType.Task, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 7, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -231,25 +294,35 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-2) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-2) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -260,24 +333,34 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-4) },
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) }
+                new EventHistory { UserId = Users[1].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 7, EventType = EventType.Task, Timestamp = now.AddHours(-4) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-4) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 7, EventType = EventType.Task, Timestamp = now.AddHours(-4) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -288,18 +371,34 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 2, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) }
+            };
+
+            var expected1 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-3) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 2, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(previous, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -310,25 +409,35 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -339,27 +448,39 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-12) },
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 2, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-3) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-12) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 2, EventType = EventType.Task, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 3, EventType = EventType.Interruption, Timestamp = now.AddHours(-3) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Break, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 2, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 3, EventType = EventType.Task, Timestamp = now.AddHours(-3) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [Test]
@@ -370,33 +491,58 @@ namespace Service.Test.Integration.Services
 
             var previous = new List<EventHistory>
             {
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-12) },
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
-                new EventHistory { ResourceId = 9, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 5, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 9, EventType = EventType.Task, Timestamp = now.AddHours(-1) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
             };
 
-            var expected = new List<EventHistory>
+            var expected1 = new List<EventHistory>
             {
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-12) },
-                new EventHistory { ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
-                new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-3) },
-                new EventHistory { ResourceId = 9, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 5, EventType = EventType.Interruption, Timestamp = now.AddHours(-5) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-3) },
+                new EventHistory { UserId = Users[0].Id, ResourceId = 9, EventType = EventType.Task, Timestamp = now.AddHours(-1) }
+            };
+
+            var expected2 = new List<EventHistory>
+            {
+                new EventHistory { UserId = Users[1].Id, ResourceId = -1, EventType = EventType.Idling, Timestamp = now.AddHours(-12) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 5, EventType = EventType.Task, Timestamp = now.AddHours(-10) },
+                new EventHistory { UserId = Users[1].Id, ResourceId = 9, EventType = EventType.Interruption, Timestamp = now.AddHours(-1) }
             };
 
             Context.AddRange(previous);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.UpdateTimeRange(range).ConfigureAwait(false);
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var result = await Subject.UpdateTimeRange(Users[0].Id, range).ConfigureAwait(false);
+            var histories1 = await EventUnitOfWork.EventHistory.GetHistories(Users[0].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
+            var histories2 = await EventUnitOfWork.EventHistory.GetHistories(Users[1].Id, DateTime.MinValue, DateTime.MaxValue).ConfigureAwait(false);
 
             Assert.IsTrue(result);
-            AreEqual(expected, histories);
+            AreEqual(expected1, histories1);
+            AreEqual(expected2, histories2);
         }
 
         [TearDown]
         public async Task TearDown()
         {
             await Context.Database.EnsureDeletedAsync().ConfigureAwait(false);
+        }
+
+        private async Task CreateUsers()
+        {
+            var repository = new UserProfileRepository(Context);
+
+            Users = new List<UserProfile>
+            {
+                repository.CreateProfile(new UserProfile { Email = "john.doe@ymail.com", DisplayName = "John Doe" }),
+                repository.CreateProfile(new UserProfile { Email = "jane.doe@ymail.com", DisplayName = "Jane Doe" })
+            };
+
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         private void AreEqual(List<EventHistory> expected, List<EventHistory> actual)

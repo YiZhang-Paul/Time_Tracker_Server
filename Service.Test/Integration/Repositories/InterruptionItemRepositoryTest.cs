@@ -198,6 +198,12 @@ namespace Service.Test.Integration.Repositories
             Assert.IsTrue(result);
         }
 
+        [TearDown]
+        public async Task TearDown()
+        {
+            await Context.Database.EnsureDeletedAsync().ConfigureAwait(false);
+        }
+
         private async Task CreateUsers()
         {
             var repository = new UserProfileRepository(Context);
@@ -209,12 +215,6 @@ namespace Service.Test.Integration.Repositories
             };
 
             await Context.SaveChangesAsync().ConfigureAwait(false);
-        }
-
-        [TearDown]
-        public async Task TearDown()
-        {
-            await Context.Database.EnsureDeletedAsync().ConfigureAwait(false);
         }
     }
 }
