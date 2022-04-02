@@ -39,7 +39,7 @@ namespace Service.Test.Unit.Services
 
             Assert.IsFalse(result);
             EventHistoryRepository.Verify(_ => _.GetLastHistory(99, null, It.IsAny<bool>()), Times.Once);
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
+            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<long>(), It.IsAny<EventHistory>()), Times.Never);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Never);
         }
 
@@ -54,9 +54,9 @@ namespace Service.Test.Unit.Services
             Assert.IsFalse(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
+            EventHistoryRepository.Verify(_ => _.CreateHistory(99, It.Is<EventHistory>
             (
-                history => history.UserId == 99 && history.ResourceId == -1 && history.EventType == EventType.Idling
+                history => history.ResourceId == -1 && history.EventType == EventType.Idling
             )), Times.Once);
         }
 
@@ -72,9 +72,9 @@ namespace Service.Test.Unit.Services
             Assert.IsTrue(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
+            EventHistoryRepository.Verify(_ => _.CreateHistory(99, It.Is<EventHistory>
             (
-                history => history.UserId == 99 && history.ResourceId == -1 && history.EventType == EventType.Idling
+                history => history.ResourceId == -1 && history.EventType == EventType.Idling
             )), Times.Once);
         }
 
@@ -88,7 +88,7 @@ namespace Service.Test.Unit.Services
 
             Assert.IsFalse(result);
             EventHistoryRepository.Verify(_ => _.GetLastHistory(99, null, It.IsAny<bool>()), Times.Once);
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
+            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<long>(), It.IsAny<EventHistory>()), Times.Never);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Never);
         }
 
@@ -103,9 +103,9 @@ namespace Service.Test.Unit.Services
             Assert.IsFalse(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
+            EventHistoryRepository.Verify(_ => _.CreateHistory(99, It.Is<EventHistory>
             (
-                history => history.UserId == 99 && history.ResourceId == 5 && history.EventType == EventType.Interruption
+                history => history.ResourceId == 5 && history.EventType == EventType.Interruption
             )), Times.Once);
         }
 
@@ -121,9 +121,9 @@ namespace Service.Test.Unit.Services
             Assert.IsTrue(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
+            EventHistoryRepository.Verify(_ => _.CreateHistory(99, It.Is<EventHistory>
             (
-                history => history.UserId == 99 && history.ResourceId == 5 && history.EventType == EventType.Interruption
+                history => history.ResourceId == 5 && history.EventType == EventType.Interruption
             )), Times.Once);
         }
 
@@ -137,7 +137,7 @@ namespace Service.Test.Unit.Services
 
             Assert.IsFalse(result);
             EventHistoryRepository.Verify(_ => _.GetLastHistory(99, null, It.IsAny<bool>()), Times.Once);
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
+            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<long>(), It.IsAny<EventHistory>()), Times.Never);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Never);
         }
 
@@ -152,9 +152,9 @@ namespace Service.Test.Unit.Services
             Assert.IsFalse(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
+            EventHistoryRepository.Verify(_ => _.CreateHistory(99, It.Is<EventHistory>
             (
-                history => history.UserId == 99 && history.ResourceId == 5 && history.EventType == EventType.Task
+                history => history.ResourceId == 5 && history.EventType == EventType.Task
             )), Times.Once);
         }
 
@@ -170,9 +170,9 @@ namespace Service.Test.Unit.Services
             Assert.IsTrue(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
+            EventHistoryRepository.Verify(_ => _.CreateHistory(99, It.Is<EventHistory>
             (
-                history => history.UserId == 99 && history.ResourceId == 5 && history.EventType == EventType.Task
+                history => history.ResourceId == 5 && history.EventType == EventType.Task
             )), Times.Once);
         }
 
@@ -195,9 +195,9 @@ namespace Service.Test.Unit.Services
             Assert.IsFalse(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventPromptRepository.Verify(_ => _.CreatePrompt(It.Is<EventPrompt>
+            EventPromptRepository.Verify(_ => _.CreatePrompt(99, It.Is<EventPrompt>
             (
-                prompt => prompt.UserId == 99 && prompt.PromptType == PromptType.ScheduledBreak && prompt.ConfirmType == PromptConfirmType.Commenced
+                prompt => prompt.PromptType == PromptType.ScheduledBreak && prompt.ConfirmType == PromptConfirmType.Commenced
             )), Times.Once);
         }
 
@@ -212,12 +212,12 @@ namespace Service.Test.Unit.Services
 
             Assert.IsFalse(result);
             EventHistoryRepository.Verify(_ => _.GetLastHistory(99, null, It.IsAny<bool>()), Times.Once);
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<EventHistory>()), Times.Never);
+            EventHistoryRepository.Verify(_ => _.CreateHistory(It.IsAny<long>(), It.IsAny<EventHistory>()), Times.Never);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventPromptRepository.Verify(_ => _.CreatePrompt(It.Is<EventPrompt>
+            EventPromptRepository.Verify(_ => _.CreatePrompt(99, It.Is<EventPrompt>
             (
-                prompt => prompt.UserId == 99 && prompt.PromptType == PromptType.ScheduledBreak && prompt.ConfirmType == PromptConfirmType.Commenced
+                prompt => prompt.PromptType == PromptType.ScheduledBreak && prompt.ConfirmType == PromptConfirmType.Commenced
             )), Times.Once);
         }
 
@@ -232,10 +232,9 @@ namespace Service.Test.Unit.Services
             Assert.IsFalse(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Exactly(2));
 
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
+            EventHistoryRepository.Verify(_ => _.CreateHistory(99, It.Is<EventHistory>
             (
-                history => history.UserId == 99 &&
-                           history.ResourceId == -1 &&
+                history => history.ResourceId == -1 &&
                            history.EventType == EventType.Break &&
                            history.TargetDuration == 300000
             )), Times.Once);
@@ -253,10 +252,9 @@ namespace Service.Test.Unit.Services
             Assert.IsTrue(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Exactly(2));
 
-            EventHistoryRepository.Verify(_ => _.CreateHistory(It.Is<EventHistory>
+            EventHistoryRepository.Verify(_ => _.CreateHistory(99, It.Is<EventHistory>
             (
-                history => history.UserId == 99 &&
-                           history.ResourceId == -1 &&
+                history => history.ResourceId == -1 &&
                            history.EventType == EventType.Break &&
                            history.TargetDuration == 300000
             )), Times.Once);
@@ -272,9 +270,9 @@ namespace Service.Test.Unit.Services
             Assert.IsFalse(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventPromptRepository.Verify(_ => _.CreatePrompt(It.Is<EventPrompt>
+            EventPromptRepository.Verify(_ => _.CreatePrompt(99, It.Is<EventPrompt>
             (
-                prompt => prompt.UserId == 99 && prompt.PromptType == PromptType.ScheduledBreak && prompt.ConfirmType == PromptConfirmType.Skipped
+                prompt => prompt.PromptType == PromptType.ScheduledBreak && prompt.ConfirmType == PromptConfirmType.Skipped
             )), Times.Once);
         }
 
@@ -288,9 +286,9 @@ namespace Service.Test.Unit.Services
             Assert.IsTrue(result);
             EventUnitOfWork.Verify(_ => _.Save(), Times.Once);
 
-            EventPromptRepository.Verify(_ => _.CreatePrompt(It.Is<EventPrompt>
+            EventPromptRepository.Verify(_ => _.CreatePrompt(99, It.Is<EventPrompt>
             (
-                prompt => prompt.UserId == 99 && prompt.PromptType == PromptType.ScheduledBreak && prompt.ConfirmType == PromptConfirmType.Skipped
+                prompt => prompt.PromptType == PromptType.ScheduledBreak && prompt.ConfirmType == PromptConfirmType.Skipped
             )), Times.Once);
         }
     }

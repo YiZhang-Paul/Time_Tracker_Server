@@ -10,7 +10,7 @@ namespace Core.Interfaces.Repositories
         Task<EventHistory> GetLastHistory(long userId, DateTime? end = null, bool isReadonly = false);
         Task<EventHistory> GetNextHistory(long userId, DateTime start, bool isReadonly = false);
         Task<List<EventHistory>> GetHistories(long userId, DateTime start, DateTime end);
-        EventHistory CreateHistory(EventHistory history);
+        EventHistory CreateHistory(long userId, EventHistory history);
         void DeleteHistory(EventHistory history);
         void DeleteHistories(List<EventHistory> histories);
     }

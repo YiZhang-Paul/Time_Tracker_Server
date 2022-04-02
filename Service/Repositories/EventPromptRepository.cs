@@ -30,8 +30,9 @@ namespace Service.Repositories
             return await sorted.FirstOrDefaultAsync(_ => _.UserId == userId && _.PromptType == type).ConfigureAwait(false);
         }
 
-        public EventPrompt CreatePrompt(EventPrompt prompt)
+        public EventPrompt CreatePrompt(long userId, EventPrompt prompt)
         {
+            prompt.UserId = userId;
             prompt.Timestamp = DateTime.UtcNow;
 
             return Context.EventPrompt.Add(prompt).Entity;

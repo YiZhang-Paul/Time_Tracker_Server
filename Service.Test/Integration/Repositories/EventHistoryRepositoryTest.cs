@@ -30,7 +30,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetNextHistoryShouldReturnNullWhenNoHistoryExist()
         {
-            Subject.CreateHistory(new EventHistory { UserId = Users[1].Id, Timestamp = DateTime.UtcNow.AddHours(-2) });
+            Subject.CreateHistory(Users[1].Id, new EventHistory { Timestamp = DateTime.UtcNow.AddHours(-2) });
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetNextHistory(Users[0].Id, DateTime.UtcNow.AddHours(-4)).ConfigureAwait(false);
@@ -41,8 +41,8 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetNextHistoryShouldReturnNextHistory()
         {
-            Subject.CreateHistory(new EventHistory { UserId = Users[1].Id, ResourceId = 12, EventType = EventType.Task });
-            Subject.CreateHistory(new EventHistory { UserId = Users[0].Id, ResourceId = 55, EventType = EventType.Interruption });
+            Subject.CreateHistory(Users[1].Id, new EventHistory { ResourceId = 12, EventType = EventType.Task });
+            Subject.CreateHistory(Users[0].Id, new EventHistory { ResourceId = 55, EventType = EventType.Interruption });
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetNextHistory(Users[0].Id, DateTime.UtcNow.AddMinutes(-5)).ConfigureAwait(false);
@@ -65,7 +65,7 @@ namespace Service.Test.Integration.Repositories
         {
             for (var i = 0; i < 3; ++i)
             {
-                Subject.CreateHistory(new EventHistory { UserId = Users[0].Id });
+                Subject.CreateHistory(Users[0].Id, new EventHistory());
             }
 
             await Context.SaveChangesAsync().ConfigureAwait(false);
@@ -83,7 +83,7 @@ namespace Service.Test.Integration.Repositories
 
             for (var i = 0; i < 3; ++i)
             {
-                Subject.CreateHistory(new EventHistory { UserId = Users[0].Id });
+                Subject.CreateHistory(Users[0].Id, new EventHistory());
             }
 
             await Context.SaveChangesAsync().ConfigureAwait(false);
@@ -97,12 +97,9 @@ namespace Service.Test.Integration.Repositories
         public async Task GetHistoriesShouldReturnHistoriesFound()
         {
             var now = DateTime.UtcNow;
-
-            for (var i = 0; i < 3; ++i)
-            {
-                Subject.CreateHistory(new EventHistory { UserId = i == 1 ? Users[1].Id : Users[0].Id });
-            }
-
+            Subject.CreateHistory(Users[0].Id, new EventHistory());
+            Subject.CreateHistory(Users[1].Id, new EventHistory());
+            Subject.CreateHistory(Users[0].Id, new EventHistory());
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetHistories(Users[0].Id, now.AddMinutes(-5), now.AddMinutes(5)).ConfigureAwait(false);
@@ -114,7 +111,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task CreateHistoryShouldReturnHistoryWhenCreationSucceeded()
         {
-            var result = Subject.CreateHistory(new EventHistory { UserId = Users[0].Id });
+            var result = Subject.CreateHistory(Users[0].Id, new EventHistory());
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.AreEqual(Users[0].Id, result.UserId);
