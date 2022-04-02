@@ -7,9 +7,9 @@ namespace Core.Interfaces.Repositories
 {
     public interface IEventHistoryRepository
     {
-        Task<EventHistory> GetLastHistory(DateTime? end = null, bool isReadonly = false);
-        Task<EventHistory> GetNextHistory(DateTime start, bool isReadonly = false);
-        Task<List<EventHistory>> GetHistories(DateTime start, DateTime end);
+        Task<EventHistory> GetLastHistory(long userId, DateTime? end = null, bool isReadonly = false);
+        Task<EventHistory> GetNextHistory(long userId, DateTime start, bool isReadonly = false);
+        Task<List<EventHistory>> GetHistories(long userId, DateTime start, DateTime end);
         EventHistory CreateHistory(EventHistory history);
         void DeleteHistory(EventHistory history);
         void DeleteHistories(List<EventHistory> histories);

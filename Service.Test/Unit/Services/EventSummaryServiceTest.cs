@@ -36,14 +36,14 @@ namespace Service.Test.Unit.Services
             var end = DateTime.UtcNow;
             var start = end.Date;
             var promptTime = end.AddMinutes(-15);
-            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = promptTime });
-            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
+            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<long>(), It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = promptTime });
+            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
 
-            await Subject.GetOngoingTimeSummary(start).ConfigureAwait(false);
+            await Subject.GetOngoingTimeSummary(99, start).ConfigureAwait(false);
 
-            EventHistoryRepository.Verify(_ => _.GetHistories(start, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 100)), Times.Once);
-            EventHistoryRepository.Verify(_ => _.GetHistories(promptTime, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 100)), Times.Once);
-            EventHistoryRepository.Verify(_ => _.GetLastHistory(null, true), Times.Exactly(2));
+            EventHistoryRepository.Verify(_ => _.GetHistories(99, start, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 100)), Times.Once);
+            EventHistoryRepository.Verify(_ => _.GetHistories(99, promptTime, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 100)), Times.Once);
+            EventHistoryRepository.Verify(_ => _.GetLastHistory(99, null, true), Times.Exactly(2));
         }
 
         [Test]
@@ -51,21 +51,21 @@ namespace Service.Test.Unit.Services
         {
             var end = DateTime.UtcNow;
             var start = end.Date;
-            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<PromptType>())).ReturnsAsync((EventPrompt)null);
-            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
+            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<long>(), It.IsAny<PromptType>())).ReturnsAsync((EventPrompt)null);
+            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
 
-            await Subject.GetOngoingTimeSummary(start).ConfigureAwait(false);
+            await Subject.GetOngoingTimeSummary(99, start).ConfigureAwait(false);
 
-            EventHistoryRepository.Verify(_ => _.GetHistories(start, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 500)), Times.Exactly(2));
-            EventHistoryRepository.Verify(_ => _.GetLastHistory(null, true), Times.Exactly(2));
+            EventHistoryRepository.Verify(_ => _.GetHistories(99, start, It.Is<DateTime>(time => (time - end).Duration().TotalMilliseconds < 500)), Times.Exactly(2));
+            EventHistoryRepository.Verify(_ => _.GetLastHistory(99, null, true), Times.Exactly(2));
         }
 
         [Test]
         public async Task GetOngoingTimeSummaryShouldReturnEmptyConcludedTimeWhenNoEventHistoryAvailable()
         {
-            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
+            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
 
-            var result = await Subject.GetOngoingTimeSummary(DateTime.UtcNow.Date).ConfigureAwait(false);
+            var result = await Subject.GetOngoingTimeSummary(99, DateTime.UtcNow.Date).ConfigureAwait(false);
 
             Assert.AreEqual(0, result.ConcludedSinceStart.Working);
             Assert.AreEqual(0, result.ConcludedSinceStart.NotWorking);
@@ -80,10 +80,10 @@ namespace Service.Test.Unit.Services
             var start = now.AddMinutes(-30);
             // 15 minutes idling before the break
             var histories = new List<EventHistory> { new EventHistory { EventType = EventType.Break, Timestamp = now.AddMinutes(-15) } };
-            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(histories);
-            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
+            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(histories);
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<long>(), It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
 
-            var result = await Subject.GetOngoingTimeSummary(start).ConfigureAwait(false);
+            var result = await Subject.GetOngoingTimeSummary(99, start).ConfigureAwait(false);
 
             Assert.AreEqual(0, result.ConcludedSinceStart.Working);
             Assert.AreEqual(15 * 60000, result.ConcludedSinceStart.NotWorking, 1);
@@ -95,6 +95,7 @@ namespace Service.Test.Unit.Services
             var now = DateTime.UtcNow;
             var start = now.AddMinutes(-30);
             var promptTime = now.AddMinutes(-8);
+            var lastHistory = new EventHistory { EventType = EventType.Interruption, Timestamp = start.AddMinutes(-30) };
 
             var historiesSinceStart = new List<EventHistory>
             {
@@ -112,12 +113,12 @@ namespace Service.Test.Unit.Services
                 new EventHistory { EventType = EventType.Idling, Timestamp = now.AddMinutes(-3) }
             };
 
-            EventHistoryRepository.Setup(_ => _.GetHistories(start, It.IsAny<DateTime>())).ReturnsAsync(historiesSinceStart);
-            EventHistoryRepository.Setup(_ => _.GetHistories(promptTime, It.IsAny<DateTime>())).ReturnsAsync(historiesSincePrompt);
-            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync(new EventHistory { EventType = EventType.Interruption, Timestamp = start.AddMinutes(-30) });
-            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = promptTime });
+            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<long>(), start, It.IsAny<DateTime>())).ReturnsAsync(historiesSinceStart);
+            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<long>(), promptTime, It.IsAny<DateTime>())).ReturnsAsync(historiesSincePrompt);
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<long>(), It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync(lastHistory);
+            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<long>(), It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = promptTime });
 
-            var result = await Subject.GetOngoingTimeSummary(start).ConfigureAwait(false);
+            var result = await Subject.GetOngoingTimeSummary(99, start).ConfigureAwait(false);
 
             Assert.AreEqual(22 * 60000, result.ConcludedSinceStart.Working);
             Assert.AreEqual(5 * 60000, result.ConcludedSinceStart.NotWorking, 1);
@@ -129,11 +130,11 @@ namespace Service.Test.Unit.Services
         public async Task GetOngoingTimeSummaryShouldDefaultToIdlingTimeWhenNoEventHistoryExists()
         {
             var now = DateTime.UtcNow;
-            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
-            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = now.AddMinutes(-10) });
-            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
+            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
+            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<long>(), It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = now.AddMinutes(-10) });
+            EventHistoryRepository.Setup(_ => _.GetLastHistory(It.IsAny<long>(), It.IsAny<DateTime?>(), It.IsAny<bool>())).ReturnsAsync((EventHistory)null);
 
-            var result = await Subject.GetOngoingTimeSummary(now.AddMinutes(-60)).ConfigureAwait(false);
+            var result = await Subject.GetOngoingTimeSummary(99, now.AddMinutes(-60)).ConfigureAwait(false);
 
             Assert.AreEqual(-1, result.UnconcludedSinceStart.Id);
             Assert.AreEqual(-1, result.UnconcludedSinceStart.ResourceId);
@@ -149,14 +150,14 @@ namespace Service.Test.Unit.Services
         public async Task GetOngoingTimeSummaryShouldReturnUnconcludedTime()
         {
             var now = DateTime.UtcNow;
-            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
-            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = now.AddMinutes(-10) });
+            EventHistoryRepository.Setup(_ => _.GetHistories(It.IsAny<long>(), It.IsAny<DateTime>(), It.IsAny<DateTime>())).ReturnsAsync(new List<EventHistory>());
+            EventPromptRepository.Setup(_ => _.GetLastPrompt(It.IsAny<long>(), It.IsAny<PromptType>())).ReturnsAsync(new EventPrompt { Timestamp = now.AddMinutes(-10) });
 
-            EventHistoryRepository.SetupSequence(_ => _.GetLastHistory(It.IsAny<DateTime?>(), It.IsAny<bool>()))
+            EventHistoryRepository.SetupSequence(_ => _.GetLastHistory(It.IsAny<long>(), It.IsAny<DateTime?>(), It.IsAny<bool>()))
                 .ReturnsAsync(new EventHistory { Timestamp = now.AddMinutes(-30) })
                 .ReturnsAsync(new EventHistory { Timestamp = now.AddMinutes(-30) });
 
-            var result = await Subject.GetOngoingTimeSummary(now.AddMinutes(-60)).ConfigureAwait(false);
+            var result = await Subject.GetOngoingTimeSummary(99, now.AddMinutes(-60)).ConfigureAwait(false);
 
             Assert.AreEqual(now.AddMinutes(-30), result.UnconcludedSinceStart.Timestamp);
             Assert.AreEqual(now.AddMinutes(-10), result.UnconcludedSinceLastBreakPrompt.Timestamp);

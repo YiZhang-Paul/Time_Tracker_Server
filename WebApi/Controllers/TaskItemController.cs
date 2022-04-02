@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Interfaces.Services;
 using Core.Interfaces.UnitOfWorks;
 using Core.Models.WorkItem;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -10,15 +11,23 @@ using System.Threading.Tasks;
 namespace WebApi.Controllers
 {
     [Route("api/v1/task-items")]
+    [Authorize(Policy = "UserProfile")]
     [ApiController]
     public class TaskItemController : ControllerBase
     {
         private IWorkItemUnitOfWork WorkItemUnitOfWork { get; }
+        private IUserService UserService { get; }
         private ITaskItemService TaskItemService { get; }
 
-        public TaskItemController(IWorkItemUnitOfWork workItemUnitOfWork, ITaskItemService taskItemService)
+        public TaskItemController
+        (
+            IWorkItemUnitOfWork workItemUnitOfWork,
+            IUserService userService,
+            ITaskItemService taskItemService
+        )
         {
             WorkItemUnitOfWork = workItemUnitOfWork;
+            UserService = userService;
             TaskItemService = taskItemService;
         }
 
@@ -28,7 +37,9 @@ namespace WebApi.Controllers
         {
             try
             {
-                return Ok(await TaskItemService.GetItemSummaries(searchText).ConfigureAwait(false));
+                var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+                return Ok(await TaskItemService.GetItemSummaries(user.Id, searchText).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {
@@ -40,14 +51,18 @@ namespace WebApi.Controllers
         [Route("summaries/{start}")]
         public async Task<ItemSummariesDto<TaskItemSummaryDto>> GetItemSummaries(DateTime start)
         {
-            return await TaskItemService.GetItemSummaries(start).ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+            return await TaskItemService.GetItemSummaries(user.Id, start).ConfigureAwait(false);
         }
 
         [HttpGet]
         [Route("{id}")]
         public async Task<TaskItem> GetItemById(long id)
         {
-            return await WorkItemUnitOfWork.TaskItem.GetItemById(id).ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+            return await WorkItemUnitOfWork.TaskItem.GetItemById(user.Id, id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -56,6 +71,9 @@ namespace WebApi.Controllers
         {
             try
             {
+                var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+                item.UserId = user.Id;
+
                 return Ok(await TaskItemService.CreateItem(item).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
@@ -70,6 +88,9 @@ namespace WebApi.Controllers
         {
             try
             {
+                var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+                item.UserId = user.Id;
+
                 return Ok(await TaskItemService.UpdateItem(item, resolve).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
@@ -82,7 +103,9 @@ namespace WebApi.Controllers
         [Route("{id}")]
         public async Task<bool> DeleteItemById(long id)
         {
-            return await WorkItemUnitOfWork.TaskItem.DeleteItemById(id).ConfigureAwait(false) && await WorkItemUnitOfWork.Save().ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+            return await WorkItemUnitOfWork.TaskItem.DeleteItemById(user.Id, id).ConfigureAwait(false) && await WorkItemUnitOfWork.Save().ConfigureAwait(false);
         }
     }
 }

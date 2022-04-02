@@ -1,9 +1,11 @@
 using Core.DbContexts;
 using Core.Enums;
+using Core.Models.Authentication;
 using Core.Models.Event;
 using NUnit.Framework;
 using Service.Repositories;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,6 +15,7 @@ namespace Service.Test.Integration.Repositories
     [Category("Integration")]
     public class EventHistoryRepositoryTest
     {
+        private List<UserProfile> Users { get; set; }
         private TimeTrackerDbContext Context { get; set; }
         private EventHistoryRepository Subject { get; set; }
 
@@ -21,15 +24,16 @@ namespace Service.Test.Integration.Repositories
         {
             Context = await new DatabaseTestUtility().SetupTimeTrackerDbContext().ConfigureAwait(false);
             Subject = new EventHistoryRepository(Context);
+            await CreateUsers().ConfigureAwait(false);
         }
 
         [Test]
         public async Task GetNextHistoryShouldReturnNullWhenNoHistoryExist()
         {
-            Subject.CreateHistory(new EventHistory());
+            Subject.CreateHistory(new EventHistory { UserId = Users[1].Id, Timestamp = DateTime.UtcNow.AddHours(-2) });
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.GetNextHistory(DateTime.UtcNow).ConfigureAwait(false);
+            var result = await Subject.GetNextHistory(Users[0].Id, DateTime.UtcNow.AddHours(-4)).ConfigureAwait(false);
 
             Assert.IsNull(result);
         }
@@ -37,20 +41,21 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetNextHistoryShouldReturnNextHistory()
         {
-            Subject.CreateHistory(new EventHistory { ResourceId = 12, EventType = EventType.Task });
-            Subject.CreateHistory(new EventHistory { ResourceId = 55, EventType = EventType.Interruption });
+            Subject.CreateHistory(new EventHistory { UserId = Users[1].Id, ResourceId = 12, EventType = EventType.Task });
+            Subject.CreateHistory(new EventHistory { UserId = Users[0].Id, ResourceId = 55, EventType = EventType.Interruption });
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.GetNextHistory(DateTime.UtcNow.AddMinutes(-5)).ConfigureAwait(false);
+            var result = await Subject.GetNextHistory(Users[0].Id, DateTime.UtcNow.AddMinutes(-5)).ConfigureAwait(false);
 
-            Assert.AreEqual(12, result.ResourceId);
-            Assert.AreEqual(EventType.Task, result.EventType);
+            Assert.AreEqual(Users[0].Id, result.UserId);
+            Assert.AreEqual(55, result.ResourceId);
+            Assert.AreEqual(EventType.Interruption, result.EventType);
         }
 
         [Test]
         public async Task GetLastHistoryShouldReturnNullWhenNoHistoryExist()
         {
-            var result = await Subject.GetLastHistory().ConfigureAwait(false);
+            var result = await Subject.GetLastHistory(Users[0].Id).ConfigureAwait(false);
 
             Assert.IsNull(result);
         }
@@ -60,13 +65,14 @@ namespace Service.Test.Integration.Repositories
         {
             for (var i = 0; i < 3; ++i)
             {
-                Subject.CreateHistory(new EventHistory());
+                Subject.CreateHistory(new EventHistory { UserId = Users[0].Id });
             }
 
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.GetLastHistory().ConfigureAwait(false);
+            var result = await Subject.GetLastHistory(Users[0].Id).ConfigureAwait(false);
 
+            Assert.AreEqual(Users[0].Id, result.UserId);
             Assert.AreEqual(3, result.Id);
         }
 
@@ -77,12 +83,12 @@ namespace Service.Test.Integration.Repositories
 
             for (var i = 0; i < 3; ++i)
             {
-                Subject.CreateHistory(new EventHistory());
+                Subject.CreateHistory(new EventHistory { UserId = Users[0].Id });
             }
 
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.GetHistories(now.AddMinutes(-10), now.AddMinutes(-5)).ConfigureAwait(false);
+            var result = await Subject.GetHistories(Users[0].Id, now.AddMinutes(-10), now.AddMinutes(-5)).ConfigureAwait(false);
 
             Assert.IsFalse(result.Any());
         }
@@ -94,23 +100,24 @@ namespace Service.Test.Integration.Repositories
 
             for (var i = 0; i < 3; ++i)
             {
-                Subject.CreateHistory(new EventHistory());
+                Subject.CreateHistory(new EventHistory { UserId = i == 1 ? Users[1].Id : Users[0].Id });
             }
 
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
-            var result = await Subject.GetHistories(now.AddMinutes(-5), now.AddMinutes(5)).ConfigureAwait(false);
+            var result = await Subject.GetHistories(Users[0].Id, now.AddMinutes(-5), now.AddMinutes(5)).ConfigureAwait(false);
 
-            Assert.AreEqual(3, result.Count);
-            Assert.IsTrue(result.All(_ => _.Timestamp.Kind == DateTimeKind.Utc));
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.All(_ => _.UserId == Users[0].Id && _.Timestamp.Kind == DateTimeKind.Utc));
         }
 
         [Test]
         public async Task CreateHistoryShouldReturnHistoryWhenCreationSucceeded()
         {
-            var result = Subject.CreateHistory(new EventHistory());
+            var result = Subject.CreateHistory(new EventHistory { UserId = Users[0].Id });
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
+            Assert.AreEqual(Users[0].Id, result.UserId);
             Assert.AreEqual(1, result.Id);
             Assert.AreEqual(-1, result.TargetDuration);
             Assert.IsTrue((DateTime.UtcNow - result.Timestamp).Duration().TotalMilliseconds < 1000);
@@ -120,6 +127,19 @@ namespace Service.Test.Integration.Repositories
         public async Task TearDown()
         {
             await Context.Database.EnsureDeletedAsync().ConfigureAwait(false);
+        }
+
+        private async Task CreateUsers()
+        {
+            var repository = new UserProfileRepository(Context);
+
+            Users = new List<UserProfile>
+            {
+                repository.CreateProfile(new UserProfile { Email = "john.doe@ymail.com", DisplayName = "John Doe" }),
+                repository.CreateProfile(new UserProfile { Email = "jane.doe@ymail.com", DisplayName = "Jane Doe" })
+            };
+
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }

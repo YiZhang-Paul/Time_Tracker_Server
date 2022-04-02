@@ -27,6 +27,16 @@ namespace Service.Test.Unit.Services
         }
 
         [Test]
+        [TestCase(-1)]
+        [TestCase(0)]
+        public void CreateItemShouldThrowWhenUserIdIsInvalid(long id)
+        {
+            var item = new InterruptionItemBase { UserId = id, Name = "valid_name" };
+
+            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(item).ConfigureAwait(false));
+        }
+
+        [Test]
         [TestCase(null)]
         [TestCase("")]
         [TestCase(" ")]
@@ -60,7 +70,7 @@ namespace Service.Test.Unit.Services
             InterruptionItemRepository.Setup(_ => _.CreateItem(It.IsAny<InterruptionItemBase>())).Returns(new InterruptionItem());
             WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
-            var result = await Subject.CreateItem(new InterruptionItemBase { Name = "valid_name" }).ConfigureAwait(false);
+            var result = await Subject.CreateItem(new InterruptionItemBase { UserId = 1, Name = "valid_name" }).ConfigureAwait(false);
 
             Assert.IsNotNull(result);
             InterruptionItemRepository.Verify(_ => _.CreateItem(It.IsAny<InterruptionItemBase>()), Times.Once);

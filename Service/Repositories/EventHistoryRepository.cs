@@ -18,25 +18,25 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<EventHistory> GetLastHistory(DateTime? end = null, bool isReadonly = false)
+        public async Task<EventHistory> GetLastHistory(long userId, DateTime? end = null, bool isReadonly = false)
         {
             var endTime = end ?? DateTime.UtcNow;
             var query = isReadonly ? Context.EventHistory.AsNoTracking() : Context.EventHistory;
 
-            return await query.OrderByDescending(_ => _.Timestamp).FirstOrDefaultAsync(_ => _.Timestamp <= endTime).ConfigureAwait(false);
+            return await query.OrderByDescending(_ => _.Timestamp).FirstOrDefaultAsync(_ => _.UserId == userId && _.Timestamp <= endTime).ConfigureAwait(false);
         }
 
-        public async Task<EventHistory> GetNextHistory(DateTime start, bool isReadonly = false)
+        public async Task<EventHistory> GetNextHistory(long userId, DateTime start, bool isReadonly = false)
         {
             var query = isReadonly ? Context.EventHistory.AsNoTracking() : Context.EventHistory;
 
-            return await query.OrderBy(_ => _.Timestamp).FirstOrDefaultAsync(_ => _.Timestamp >= start).ConfigureAwait(false);
+            return await query.OrderBy(_ => _.Timestamp).FirstOrDefaultAsync(_ => _.UserId == userId && _.Timestamp >= start).ConfigureAwait(false);
         }
 
-        public async Task<List<EventHistory>> GetHistories(DateTime start, DateTime end)
+        public async Task<List<EventHistory>> GetHistories(long userId, DateTime start, DateTime end)
         {
             return await Context.EventHistory
-                .Where(_ => _.Timestamp >= start && _.Timestamp <= end)
+                .Where(_ => _.UserId == userId && _.Timestamp >= start && _.Timestamp <= end)
                 .OrderBy(_ => _.Timestamp)
                 .ToListAsync()
                 .ConfigureAwait(false);

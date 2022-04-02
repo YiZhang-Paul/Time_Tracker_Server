@@ -18,16 +18,16 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<EventPrompt> GetLastPrompt(PromptType? type)
+        public async Task<EventPrompt> GetLastPrompt(long userId, PromptType? type)
         {
             var sorted = Context.EventPrompt.OrderByDescending(_ => _.Id);
 
             if (!type.HasValue)
             {
-                return await sorted.FirstOrDefaultAsync().ConfigureAwait(false);
+                return await sorted.FirstOrDefaultAsync(_ => _.UserId == userId).ConfigureAwait(false);
             }
 
-            return await sorted.FirstOrDefaultAsync(_ => _.PromptType == type).ConfigureAwait(false);
+            return await sorted.FirstOrDefaultAsync(_ => _.UserId == userId && _.PromptType == type).ConfigureAwait(false);
         }
 
         public EventPrompt CreatePrompt(EventPrompt prompt)

@@ -20,23 +20,23 @@ namespace Service.Services
             EventUnitOfWork = eventUnitOfWork;
         }
 
-        public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(DateTime start)
+        public async Task<OngoingEventTimeSummaryDto> GetOngoingTimeSummary(long userId, DateTime start)
         {
-            var lastPrompt = await EventUnitOfWork.EventPrompt.GetLastPrompt(PromptType.ScheduledBreak).ConfigureAwait(false);
+            var lastPrompt = await EventUnitOfWork.EventPrompt.GetLastPrompt(userId, PromptType.ScheduledBreak).ConfigureAwait(false);
             var startTime = start.ToUniversalTime();
             var promptTime = lastPrompt?.Timestamp ?? startTime;
             var endTime = DateTime.UtcNow;
 
             return new OngoingEventTimeSummaryDto
             {
-                ConcludedSinceStart = await GetConcludedTimeSummary(startTime, endTime).ConfigureAwait(false),
-                ConcludedSinceLastBreakPrompt = await GetConcludedTimeSummary(promptTime, endTime).ConfigureAwait(false),
-                UnconcludedSinceStart = await GetUnconcludedTimeSummary(startTime).ConfigureAwait(false),
-                UnconcludedSinceLastBreakPrompt = await GetUnconcludedTimeSummary(promptTime).ConfigureAwait(false)
+                ConcludedSinceStart = await GetConcludedTimeSummary(userId, startTime, endTime).ConfigureAwait(false),
+                ConcludedSinceLastBreakPrompt = await GetConcludedTimeSummary(userId, promptTime, endTime).ConfigureAwait(false),
+                UnconcludedSinceStart = await GetUnconcludedTimeSummary(userId, startTime).ConfigureAwait(false),
+                UnconcludedSinceLastBreakPrompt = await GetUnconcludedTimeSummary(userId, promptTime).ConfigureAwait(false)
             };
         }
 
-        public async Task<EventSummariesDto> GetEventSummariesByDay(DateTime start)
+        public async Task<EventSummariesDto> GetEventSummariesByDay(long userId, DateTime start)
         {
             var startTime = start.ToUniversalTime();
             var endOfDay = startTime.AddDays(1).AddTicks(-1000);
@@ -47,7 +47,7 @@ namespace Service.Services
                 return new EventSummariesDto();
             }
 
-            var histories = await GetEventHistorySummaries(startTime, endTime).ConfigureAwait(false);
+            var histories = await GetEventHistorySummaries(userId, startTime, endTime).ConfigureAwait(false);
 
             if (!histories.Any())
             {
@@ -67,9 +67,9 @@ namespace Service.Services
             return summaries;
         }
 
-        public async Task<List<string>> GetTimesheetsByDay(DateTime start)
+        public async Task<List<string>> GetTimesheetsByDay(long userId, DateTime start)
         {
-            var summaries = await GetEventSummariesByDay(start).ConfigureAwait(false);
+            var summaries = await GetEventSummariesByDay(userId, start).ConfigureAwait(false);
             var durations = summaries.Duration.Where(_ => _.EventType != EventType.Idling && _.EventType != EventType.Break);
 
             return durations.Select(_ =>
@@ -81,10 +81,10 @@ namespace Service.Services
             }).ToList();
         }
 
-        private async Task<EventTimeSummary> GetConcludedTimeSummary(DateTime start, DateTime end)
+        private async Task<EventTimeSummary> GetConcludedTimeSummary(long userId, DateTime start, DateTime end)
         {
             var summary = new EventTimeSummary();
-            var histories = await EventUnitOfWork.EventHistory.GetHistories(start, end).ConfigureAwait(false);
+            var histories = await EventUnitOfWork.EventHistory.GetHistories(userId, start, end).ConfigureAwait(false);
 
             if (!histories.Any())
             {
@@ -96,27 +96,27 @@ namespace Service.Services
                 summary = RecordTimeSummary(summary, histories[i].EventType, histories[i].Timestamp, histories[i + 1].Timestamp);
             }
             // record time between start time and first history
-            var previous = await EventUnitOfWork.EventHistory.GetLastHistory(histories[0].Timestamp.AddTicks(-1000)).ConfigureAwait(false);
+            var previous = await EventUnitOfWork.EventHistory.GetLastHistory(userId, histories[0].Timestamp.AddTicks(-1000)).ConfigureAwait(false);
 
             return RecordTimeSummary(summary, previous?.EventType ?? EventType.Idling, start, histories[0].Timestamp);
         }
 
-        private async Task<EventHistory> GetUnconcludedTimeSummary(DateTime start)
+        private async Task<EventHistory> GetUnconcludedTimeSummary(long userId, DateTime start)
         {
-            var history = await EventUnitOfWork.EventHistory.GetLastHistory(null, true).ConfigureAwait(false);
-            history ??= new EventHistory { Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = start };
+            var history = await EventUnitOfWork.EventHistory.GetLastHistory(userId, null, true).ConfigureAwait(false);
+            history ??= new EventHistory { UserId = userId, Id = -1, ResourceId = -1, EventType = EventType.Idling, Timestamp = start };
             history.Timestamp = history.Timestamp > start ? history.Timestamp : start;
 
             return history;
         }
 
-        private async Task<List<EventHistorySummary>> GetEventHistorySummaries(DateTime start, DateTime end)
+        private async Task<List<EventHistorySummary>> GetEventHistorySummaries(long userId, DateTime start, DateTime end)
         {
-            var summaries = await EventUnitOfWork.EventHistorySummary.GetSummaries(start, end).ConfigureAwait(false);
+            var summaries = await EventUnitOfWork.EventHistorySummary.GetSummaries(userId, start, end).ConfigureAwait(false);
 
             if (!summaries.Any() || summaries[0].Timestamp != start)
             {
-                var previous = await EventUnitOfWork.EventHistorySummary.GetLastSummary(start).ConfigureAwait(false);
+                var previous = await EventUnitOfWork.EventHistorySummary.GetLastSummary(userId, start).ConfigureAwait(false);
                 previous.Timestamp = start;
                 summaries.Insert(0, previous);
             }

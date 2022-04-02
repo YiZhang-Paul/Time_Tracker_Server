@@ -7,7 +7,7 @@ namespace Core.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            var baseFields = @"e.""Id"", e.""ResourceId"", e.""EventType"", e.""Timestamp""";
+            var baseFields = @"e.""Id"", e.""UserId"", e.""ResourceId"", e.""EventType"", e.""Timestamp""";
 
             migrationBuilder.Sql($@"
                 CREATE VIEW ""EventHistorySummary"" AS
