@@ -16,11 +16,18 @@ namespace WebApi.Controllers
     public class InterruptionItemController : ControllerBase
     {
         private IWorkItemUnitOfWork WorkItemUnitOfWork { get; }
+        private IUserService UserService { get; }
         private IInterruptionItemService InterruptionItemService { get; }
 
-        public InterruptionItemController(IWorkItemUnitOfWork workItemUnitOfWork, IInterruptionItemService interruptionItemService)
+        public InterruptionItemController
+        (
+            IWorkItemUnitOfWork workItemUnitOfWork,
+            IUserService userService,
+            IInterruptionItemService interruptionItemService
+        )
         {
             WorkItemUnitOfWork = workItemUnitOfWork;
+            UserService = userService;
             InterruptionItemService = interruptionItemService;
         }
 
@@ -30,7 +37,9 @@ namespace WebApi.Controllers
         {
             try
             {
-                return Ok(await InterruptionItemService.GetItemSummaries(searchText).ConfigureAwait(false));
+                var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+                return Ok(await InterruptionItemService.GetItemSummaries(user.Id, searchText).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
             {
@@ -42,14 +51,18 @@ namespace WebApi.Controllers
         [Route("summaries/{start}")]
         public async Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start)
         {
-            return await InterruptionItemService.GetItemSummaries(start).ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+            return await InterruptionItemService.GetItemSummaries(user.Id, start).ConfigureAwait(false);
         }
 
         [HttpGet]
         [Route("{id}")]
         public async Task<InterruptionItem> GetItemById(long id)
         {
-            return await WorkItemUnitOfWork.InterruptionItem.GetItemById(id).ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+            return await WorkItemUnitOfWork.InterruptionItem.GetItemById(user.Id, id).ConfigureAwait(false);
         }
 
         [HttpPost]
@@ -58,6 +71,9 @@ namespace WebApi.Controllers
         {
             try
             {
+                var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+                item.UserId = user.Id;
+
                 return Ok(await InterruptionItemService.CreateItem(item).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
@@ -72,6 +88,9 @@ namespace WebApi.Controllers
         {
             try
             {
+                var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+                item.UserId = user.Id;
+
                 return Ok(await InterruptionItemService.UpdateItem(item, resolve).ConfigureAwait(false));
             }
             catch (ArgumentException exception)
@@ -84,7 +103,9 @@ namespace WebApi.Controllers
         [Route("{id}")]
         public async Task<bool> DeleteItemById(long id)
         {
-            return await WorkItemUnitOfWork.InterruptionItem.DeleteItemById(id).ConfigureAwait(false) && await WorkItemUnitOfWork.Save().ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+
+            return await WorkItemUnitOfWork.InterruptionItem.DeleteItemById(user.Id, id).ConfigureAwait(false) && await WorkItemUnitOfWork.Save().ConfigureAwait(false);
         }
     }
 }

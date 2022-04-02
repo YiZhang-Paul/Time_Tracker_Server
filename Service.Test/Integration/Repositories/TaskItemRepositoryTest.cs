@@ -137,7 +137,7 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task UpdateItemShouldReturnNullWhenItemDoesNotExist()
         {
-            var result = await Subject.UpdateItem(new TaskItem { Id = 1000 }).ConfigureAwait(false);
+            var result = await Subject.UpdateItem(new TaskItem { UserId = Users[0].Id, Id = 1000 }).ConfigureAwait(false);
 
             Assert.IsNull(result);
         }

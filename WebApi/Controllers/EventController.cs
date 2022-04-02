@@ -76,7 +76,8 @@ namespace WebApi.Controllers
         [Route("interruption-items/{id}")]
         public async Task<bool> StartInterruptionItem(long id)
         {
-            var item = await WorkItemUnitOfWork.InterruptionItem.GetItemById(id).ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+            var item = await WorkItemUnitOfWork.InterruptionItem.GetItemById(user.Id, id).ConfigureAwait(false);
 
             if (item == null)
             {

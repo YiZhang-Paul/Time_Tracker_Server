@@ -19,22 +19,22 @@ namespace Service.Services
             WorkItemUnitOfWork = workItemUnitOfWork;
         }
 
-        public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries(string searchText)
+        public async Task<List<InterruptionItemSummaryDto>> GetItemSummaries(long userId, string searchText)
         {
             if (string.IsNullOrWhiteSpace(searchText))
             {
                 throw new ArgumentException("Search text must not be empty.");
             }
 
-            return await WorkItemUnitOfWork.InterruptionItem.GetItemSummaries(searchText.Trim()).ConfigureAwait(false);
+            return await WorkItemUnitOfWork.InterruptionItem.GetItemSummaries(userId, searchText.Trim()).ConfigureAwait(false);
         }
 
-        public async Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start)
+        public async Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(long userId, DateTime start)
         {
             return new ItemSummariesDto<InterruptionItemSummaryDto>
             {
-                Resolved = await WorkItemUnitOfWork.InterruptionItem.GetResolvedItemSummaries(start).ConfigureAwait(false),
-                Unresolved = await WorkItemUnitOfWork.InterruptionItem.GetUnresolvedItemSummaries().ConfigureAwait(false)
+                Resolved = await WorkItemUnitOfWork.InterruptionItem.GetResolvedItemSummaries(userId, start).ConfigureAwait(false),
+                Unresolved = await WorkItemUnitOfWork.InterruptionItem.GetUnresolvedItemSummaries(userId).ConfigureAwait(false)
             };
         }
 
@@ -72,6 +72,11 @@ namespace Service.Services
 
         private void ValidateItem(InterruptionItemBase item)
         {
+            if (item.UserId <= 0)
+            {
+                throw new ArgumentException("Invalid user id.");
+            }
+
             if (string.IsNullOrWhiteSpace(item.Name))
             {
                 throw new ArgumentException("Name must not be null or empty.");

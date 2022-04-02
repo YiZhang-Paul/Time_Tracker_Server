@@ -66,7 +66,7 @@ namespace WebApi.Test.Unit
             };
 
             var time = DateTime.UtcNow.AddHours(-10);
-            InterruptionItemService.Setup(_ => _.GetItemSummaries(It.IsAny<DateTime>())).ReturnsAsync(summaries);
+            InterruptionItemService.Setup(_ => _.GetItemSummaries(It.IsAny<long>(), It.IsAny<DateTime>())).ReturnsAsync(summaries);
 
             var response = await HttpClient.GetAsync($"{ApiBase}/summaries/{time:o}").ConfigureAwait(false);
             var result = await response.Content.ReadFromJsonAsync<ItemSummariesDto<InterruptionItemSummaryDto>>().ConfigureAwait(false);
@@ -74,19 +74,19 @@ namespace WebApi.Test.Unit
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual(2, result.Resolved.Count);
             Assert.AreEqual(3, result.Unresolved.Count);
-            InterruptionItemService.Verify(_ => _.GetItemSummaries(time), Times.Once);
+            InterruptionItemService.Verify(_ => _.GetItemSummaries(99, time), Times.Once);
         }
 
         [Test]
         public async Task GetItemByIdShouldReturnItem()
         {
-            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), It.IsAny<bool>())).ReturnsAsync(new InterruptionItem());
+            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<bool>())).ReturnsAsync(new InterruptionItem());
 
             var response = await HttpClient.GetAsync($"{ApiBase}/5").ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<InterruptionItem>().ConfigureAwait(false));
-            InterruptionItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
+            InterruptionItemRepository.Verify(_ => _.GetItemById(99, 5, true), Times.Once);
         }
 
         [Test]
@@ -116,14 +116,14 @@ namespace WebApi.Test.Unit
         [Test]
         public async Task DeleteItemByIdShouldDeleteItem()
         {
-            InterruptionItemRepository.Setup(_ => _.DeleteItemById(It.IsAny<long>())).ReturnsAsync(true);
+            InterruptionItemRepository.Setup(_ => _.DeleteItemById(It.IsAny<long>(), It.IsAny<long>())).ReturnsAsync(true);
             WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
             var response = await HttpClient.DeleteAsync($"{ApiBase}/5").ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-            InterruptionItemRepository.Verify(_ => _.DeleteItemById(5), Times.Once);
+            InterruptionItemRepository.Verify(_ => _.DeleteItemById(99, 5), Times.Once);
             WorkItemUnitOfWork.Verify(_ => _.Save(), Times.Once);
         }
     }

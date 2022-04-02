@@ -85,27 +85,27 @@ namespace WebApi.Test.Unit
         [Test]
         public async Task StartInterruptionItemShouldReturnFalseWhenItemDoesNotExist()
         {
-            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync((InterruptionItem)null);
+            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), It.IsAny<long>(), true)).ReturnsAsync((InterruptionItem)null);
 
             var response = await HttpClient.PostAsync($"{ApiBase}/interruption-items/5", null).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("false", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-            InterruptionItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
+            InterruptionItemRepository.Verify(_ => _.GetItemById(99, 5, true), Times.Once);
             EventTrackingService.Verify(_ => _.StartInterruptionItem(It.IsAny<long>()), Times.Never);
         }
 
         [Test]
         public async Task StartInterruptionItemShouldStartInterruptionItem()
         {
-            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
+            InterruptionItemRepository.Setup(_ => _.GetItemById(It.IsAny<long>(), It.IsAny<long>(), true)).ReturnsAsync(new InterruptionItem());
             EventTrackingService.Setup(_ => _.StartInterruptionItem(It.IsAny<long>())).ReturnsAsync(true);
 
             var response = await HttpClient.PostAsync($"{ApiBase}/interruption-items/5", null).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.AreEqual("true", await response.Content.ReadAsStringAsync().ConfigureAwait(false));
-            InterruptionItemRepository.Verify(_ => _.GetItemById(5, true), Times.Once);
+            InterruptionItemRepository.Verify(_ => _.GetItemById(99, 5, true), Times.Once);
             EventTrackingService.Verify(_ => _.StartInterruptionItem(5), Times.Once);
         }
 

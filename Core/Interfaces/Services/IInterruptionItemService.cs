@@ -9,8 +9,8 @@ namespace Core.Interfaces.Services
 {
     public interface IInterruptionItemService
     {
-        Task<List<InterruptionItemSummaryDto>> GetItemSummaries(string searchText);
-        Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(DateTime start);
+        Task<List<InterruptionItemSummaryDto>> GetItemSummaries(long userId, string searchText);
+        Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(long userId, DateTime start);
         Task<InterruptionItem> CreateItem(InterruptionItemBase item);
         Task<InterruptionItem> UpdateItem(InterruptionItem item, ResolveAction action = ResolveAction.None);
     }
