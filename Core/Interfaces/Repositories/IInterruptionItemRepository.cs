@@ -12,7 +12,7 @@ namespace Core.Interfaces.Repositories
         Task<List<InterruptionItemSummaryDto>> GetResolvedItemSummaries(long userId, DateTime start);
         Task<List<InterruptionItemSummaryDto>> GetUnresolvedItemSummaries(long userId);
         Task<InterruptionItem> GetItemById(long userId, long id, bool excludeDeleted = true);
-        InterruptionItem CreateItem(InterruptionItemBase item);
+        InterruptionItem CreateItem(long userId, InterruptionItemBase item);
         Task<InterruptionItem> UpdateItem(InterruptionItem item);
         Task<bool> DeleteItemById(long userId, long id);
         Task<bool> DeleteItem(InterruptionItem item);

@@ -91,7 +91,7 @@ namespace WebApi.Controllers
                 return false;
             }
 
-            if (item.ResolvedTime != null && await InterruptionItemService.UpdateItem(item, ResolveAction.Unresolve).ConfigureAwait(false) == null)
+            if (item.ResolvedTime != null && await InterruptionItemService.UpdateItem(user.Id, item, ResolveAction.Unresolve).ConfigureAwait(false) == null)
             {
                 return false;
             }

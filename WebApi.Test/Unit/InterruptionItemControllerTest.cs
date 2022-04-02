@@ -92,25 +92,25 @@ namespace WebApi.Test.Unit
         [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            InterruptionItemService.Setup(_ => _.CreateItem(It.IsAny<InterruptionItemBase>())).ReturnsAsync(new InterruptionItem());
+            InterruptionItemService.Setup(_ => _.CreateItem(It.IsAny<long>(), It.IsAny<InterruptionItemBase>())).ReturnsAsync(new InterruptionItem());
 
             var response = await HttpClient.PostAsJsonAsync(ApiBase, new InterruptionItemBase { Name = "item_name" }).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<InterruptionItem>().ConfigureAwait(false));
-            InterruptionItemService.Verify(_ => _.CreateItem(It.IsAny<InterruptionItemBase>()), Times.Once);
+            InterruptionItemService.Verify(_ => _.CreateItem(99, It.IsAny<InterruptionItemBase>()), Times.Once);
         }
 
         [Test]
         public async Task UpdateItemShouldReturnItemUpdated()
         {
-            InterruptionItemService.Setup(_ => _.UpdateItem(It.IsAny<InterruptionItem>(), It.IsAny<ResolveAction>())).ReturnsAsync(new InterruptionItem());
+            InterruptionItemService.Setup(_ => _.UpdateItem(It.IsAny<long>(), It.IsAny<InterruptionItem>(), It.IsAny<ResolveAction>())).ReturnsAsync(new InterruptionItem());
 
             var response = await HttpClient.PutAsJsonAsync($"{ApiBase}?resolve={ResolveAction.Resolve}", new InterruptionItem { Id = 1, Name = "item_name" }).ConfigureAwait(false);
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
             Assert.IsNotNull(await response.Content.ReadFromJsonAsync<InterruptionItem>().ConfigureAwait(false));
-            InterruptionItemService.Verify(_ => _.UpdateItem(It.IsAny<InterruptionItem>(), ResolveAction.Resolve), Times.Once);
+            InterruptionItemService.Verify(_ => _.UpdateItem(99, It.IsAny<InterruptionItem>(), ResolveAction.Resolve), Times.Once);
         }
 
         [Test]

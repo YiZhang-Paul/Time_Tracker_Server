@@ -31,9 +31,9 @@ namespace Service.Test.Unit.Services
         [TestCase(0)]
         public void CreateItemShouldThrowWhenUserIdIsInvalid(long id)
         {
-            var item = new InterruptionItemBase { UserId = id, Name = "valid_name" };
+            var item = new InterruptionItemBase { Name = "valid_name" };
 
-            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(item).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(id, item).ConfigureAwait(false));
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace Service.Test.Unit.Services
         [TestCase(" ")]
         public void CreateItemShouldThrowWhenItemNameIsInvalid(string name)
         {
-            Assert.ThrowsAsync<ArgumentException>(async() => await Subject.CreateItem(new InterruptionItemBase { Name = name }).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentException>(async() => await Subject.CreateItem(99, new InterruptionItemBase { Name = name }).ConfigureAwait(false));
         }
 
         [Test]
@@ -61,19 +61,19 @@ namespace Service.Test.Unit.Services
                 }
             };
 
-            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(item).ConfigureAwait(false));
+            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(99, item).ConfigureAwait(false));
         }
 
         [Test]
         public async Task CreateItemShouldReturnItemCreated()
         {
-            InterruptionItemRepository.Setup(_ => _.CreateItem(It.IsAny<InterruptionItemBase>())).Returns(new InterruptionItem());
+            InterruptionItemRepository.Setup(_ => _.CreateItem(It.IsAny<long>(), It.IsAny<InterruptionItemBase>())).Returns(new InterruptionItem());
             WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
-            var result = await Subject.CreateItem(new InterruptionItemBase { UserId = 1, Name = "valid_name" }).ConfigureAwait(false);
+            var result = await Subject.CreateItem(1, new InterruptionItemBase { Name = "valid_name" }).ConfigureAwait(false);
 
             Assert.IsNotNull(result);
-            InterruptionItemRepository.Verify(_ => _.CreateItem(It.IsAny<InterruptionItemBase>()), Times.Once);
+            InterruptionItemRepository.Verify(_ => _.CreateItem(1, It.IsAny<InterruptionItemBase>()), Times.Once);
             WorkItemUnitOfWork.Verify(_ => _.Save(), Times.Once);
         }
     }
