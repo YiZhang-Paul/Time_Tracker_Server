@@ -38,16 +38,17 @@ namespace Service.Services
             };
         }
 
-        public async Task<TaskItem> CreateItem(TaskItemBase item)
+        public async Task<TaskItem> CreateItem(long userId, TaskItemBase item)
         {
             ValidateItem(item);
-            var created = WorkItemUnitOfWork.TaskItem.CreateItem(item);
+            var created = WorkItemUnitOfWork.TaskItem.CreateItem(userId, item);
 
             return await WorkItemUnitOfWork.Save().ConfigureAwait(false) ? created : null;
         }
 
-        public async Task<TaskItem> UpdateItem(TaskItem item, ResolveAction action = ResolveAction.None)
+        public async Task<TaskItem> UpdateItem(long userId, TaskItem item, ResolveAction action = ResolveAction.None)
         {
+            item.UserId = userId;
             ValidateItem(item);
 
             if (action == ResolveAction.Resolve && item.ResolvedTime.HasValue)
@@ -72,11 +73,6 @@ namespace Service.Services
 
         private void ValidateItem(TaskItemBase item)
         {
-            if (item.UserId <= 0)
-            {
-                throw new ArgumentException("Invalid user id.");
-            }
-
             if (string.IsNullOrWhiteSpace(item.Name))
             {
                 throw new ArgumentException("Name must not be null or empty.");

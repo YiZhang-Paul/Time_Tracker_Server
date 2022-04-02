@@ -39,7 +39,7 @@ namespace Service.Test.Integration.Repositories
         {
             for (var i = 0; i < 3; ++i)
             {
-                Subject.CreatePrompt(new EventPrompt { UserId = Users[0].Id, PromptType = PromptType.ScheduledBreak });
+                Subject.CreatePrompt(Users[0].Id, new EventPrompt { PromptType = PromptType.ScheduledBreak });
             }
 
             await Context.SaveChangesAsync().ConfigureAwait(false);
@@ -52,13 +52,10 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetLastPromptShouldReturnLastPromptWhenNoTypeSpecified()
         {
-            for (var i = 0; i < 4; ++i)
-            {
-                var type = i % 2 == 0 ? PromptType.ScheduledBreak : PromptType.SuggestedBreak;
-                var userId = i < 2 ? Users[0].Id : Users[1].Id;
-                Subject.CreatePrompt(new EventPrompt { UserId = userId, PromptType = type });
-            }
-
+            Subject.CreatePrompt(Users[0].Id, new EventPrompt { PromptType = PromptType.ScheduledBreak });
+            Subject.CreatePrompt(Users[0].Id, new EventPrompt { PromptType = PromptType.SuggestedBreak });
+            Subject.CreatePrompt(Users[1].Id, new EventPrompt { PromptType = PromptType.ScheduledBreak });
+            Subject.CreatePrompt(Users[1].Id, new EventPrompt { PromptType = PromptType.SuggestedBreak });
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetLastPrompt(Users[0].Id, null).ConfigureAwait(false);
@@ -71,13 +68,10 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task GetLastPromptShouldReturnLastPromptOfSpecifiedType()
         {
-            for (var i = 0; i < 4; ++i)
-            {
-                var type = i % 2 == 0 ? PromptType.ScheduledBreak : PromptType.SuggestedBreak;
-                var userId = i < 2 ? Users[0].Id : Users[1].Id;
-                Subject.CreatePrompt(new EventPrompt { UserId = userId, PromptType = type });
-            }
-
+            Subject.CreatePrompt(Users[0].Id, new EventPrompt { PromptType = PromptType.ScheduledBreak });
+            Subject.CreatePrompt(Users[0].Id, new EventPrompt { PromptType = PromptType.SuggestedBreak });
+            Subject.CreatePrompt(Users[1].Id, new EventPrompt { PromptType = PromptType.ScheduledBreak });
+            Subject.CreatePrompt(Users[1].Id, new EventPrompt { PromptType = PromptType.SuggestedBreak });
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             var result = await Subject.GetLastPrompt(Users[0].Id, PromptType.ScheduledBreak).ConfigureAwait(false);
@@ -91,9 +85,9 @@ namespace Service.Test.Integration.Repositories
         [Test]
         public async Task CreatePromptShouldReturnPromptCreated()
         {
-            var prompt = new EventPrompt { UserId = Users[0].Id, PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
+            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
 
-            var result = Subject.CreatePrompt(prompt);
+            var result = Subject.CreatePrompt(Users[0].Id, prompt);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             Assert.AreEqual(Users[0].Id, result.UserId);

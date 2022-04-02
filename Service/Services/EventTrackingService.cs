@@ -28,8 +28,8 @@ namespace Service.Services
                 return false;
             }
 
-            var history = new EventHistory { UserId = userId, ResourceId = -1, EventType = EventType.Idling };
-            EventUnitOfWork.EventHistory.CreateHistory(history);
+            var history = new EventHistory { ResourceId = -1, EventType = EventType.Idling };
+            EventUnitOfWork.EventHistory.CreateHistory(userId, history);
 
             return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
@@ -43,8 +43,8 @@ namespace Service.Services
                 return false;
             }
 
-            var history = new EventHistory { UserId = userId, ResourceId = id, EventType = EventType.Interruption };
-            EventUnitOfWork.EventHistory.CreateHistory(history);
+            var history = new EventHistory { ResourceId = id, EventType = EventType.Interruption };
+            EventUnitOfWork.EventHistory.CreateHistory(userId, history);
 
             return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
@@ -58,8 +58,8 @@ namespace Service.Services
                 return false;
             }
 
-            var history = new EventHistory { UserId = userId, ResourceId = id, EventType = EventType.Task };
-            EventUnitOfWork.EventHistory.CreateHistory(history);
+            var history = new EventHistory { ResourceId = id, EventType = EventType.Task };
+            EventUnitOfWork.EventHistory.CreateHistory(userId, history);
 
             return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
@@ -73,8 +73,8 @@ namespace Service.Services
                 throw new ArgumentException($"Duration cannot be less than {minDuration} milliseconds.");
             }
 
-            var prompt = new EventPrompt { UserId = userId, PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
-            EventUnitOfWork.EventPrompt.CreatePrompt(prompt);
+            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
+            EventUnitOfWork.EventPrompt.CreatePrompt(userId, prompt);
 
             if (!await EventUnitOfWork.Save().ConfigureAwait(false))
             {
@@ -88,16 +88,16 @@ namespace Service.Services
                 return false;
             }
 
-            var history = new EventHistory { UserId = userId, ResourceId = -1, EventType = EventType.Break, TargetDuration = duration };
-            EventUnitOfWork.EventHistory.CreateHistory(history);
+            var history = new EventHistory { ResourceId = -1, EventType = EventType.Break, TargetDuration = duration };
+            EventUnitOfWork.EventHistory.CreateHistory(userId, history);
 
             return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
 
         public async Task<bool> SkipBreakSession(long userId)
         {
-            var prompt = new EventPrompt { UserId = userId, PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Skipped };
-            EventUnitOfWork.EventPrompt.CreatePrompt(prompt);
+            var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Skipped };
+            EventUnitOfWork.EventPrompt.CreatePrompt(userId, prompt);
 
             return await EventUnitOfWork.Save().ConfigureAwait(false);
         }
@@ -152,25 +152,11 @@ namespace Service.Services
                 return;
             }
 
-            var history = new EventHistory
-            {
-                UserId = userId,
-                ResourceId = range.Id,
-                EventType = range.EventType,
-                Timestamp = range.Start
-            };
-
-            EventUnitOfWork.EventHistory.CreateHistory(history);
+            var history = new EventHistory { ResourceId = range.Id, EventType = range.EventType, Timestamp = range.Start };
+            EventUnitOfWork.EventHistory.CreateHistory(userId, history);
             // mark original range start as idling
-            var replaced = new EventHistory
-            {
-                UserId = userId,
-                ResourceId = -1,
-                EventType = EventType.Idling,
-                Timestamp = previous.Timestamp
-            };
-
-            EventUnitOfWork.EventHistory.CreateHistory(replaced);
+            var replaced = new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = previous.Timestamp };
+            EventUnitOfWork.EventHistory.CreateHistory(userId, replaced);
             EventUnitOfWork.EventHistory.DeleteHistory(previous);
         }
 
@@ -178,15 +164,8 @@ namespace Service.Services
         {
             if (histories.All(_ => _.Timestamp != end))
             {
-                var history = new EventHistory
-                {
-                    UserId = userId,
-                    ResourceId = -1,
-                    EventType = EventType.Idling,
-                    Timestamp = end
-                };
-
-                EventUnitOfWork.EventHistory.CreateHistory(history);
+                var history = new EventHistory { ResourceId = -1, EventType = EventType.Idling, Timestamp = end };
+                EventUnitOfWork.EventHistory.CreateHistory(userId, history);
             }
         }
 
@@ -213,15 +192,8 @@ namespace Service.Services
                 EventUnitOfWork.EventHistory.DeleteHistory(existing);
             }
 
-            var history = new EventHistory
-            {
-                UserId = userId,
-                ResourceId = range.Id,
-                EventType = range.EventType,
-                Timestamp = range.Start
-            };
-
-            EventUnitOfWork.EventHistory.CreateHistory(history);
+            var history = new EventHistory { ResourceId = range.Id, EventType = range.EventType, Timestamp = range.Start };
+            EventUnitOfWork.EventHistory.CreateHistory(userId, history);
         }
 
         private void SetOverlapTimeRangeEnd(long userId, List<EventHistory> histories, DateTime end)
@@ -232,16 +204,10 @@ namespace Service.Services
             }
 
             var previous = histories.LastOrDefault(_ => _.Timestamp < end);
-
-            var history = new EventHistory
-            {
-                UserId = userId,
-                ResourceId = previous?.ResourceId ?? -1,
-                EventType = previous?.EventType ?? EventType.Idling,
-                Timestamp = end
-            };
-
-            EventUnitOfWork.EventHistory.CreateHistory(history);
+            var id = previous?.ResourceId ?? -1;
+            var type = previous?.EventType ?? EventType.Idling;
+            var history = new EventHistory { ResourceId = id, EventType = type, Timestamp = end };
+            EventUnitOfWork.EventHistory.CreateHistory(userId, history);
         }
 
         private async Task<bool> MergeTimeRanges(long userId, DateTime start, DateTime end)

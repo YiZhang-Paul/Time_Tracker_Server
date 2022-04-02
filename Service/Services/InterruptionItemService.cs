@@ -38,16 +38,17 @@ namespace Service.Services
             };
         }
 
-        public async Task<InterruptionItem> CreateItem(InterruptionItemBase item)
+        public async Task<InterruptionItem> CreateItem(long userId, InterruptionItemBase item)
         {
             ValidateItem(item);
-            var created = WorkItemUnitOfWork.InterruptionItem.CreateItem(item);
+            var created = WorkItemUnitOfWork.InterruptionItem.CreateItem(userId, item);
 
             return await WorkItemUnitOfWork.Save().ConfigureAwait(false) ? created : null;
         }
 
-        public async Task<InterruptionItem> UpdateItem(InterruptionItem item, ResolveAction action = ResolveAction.None)
+        public async Task<InterruptionItem> UpdateItem(long userId, InterruptionItem item, ResolveAction action = ResolveAction.None)
         {
+            item.UserId = userId;
             ValidateItem(item);
 
             if (action == ResolveAction.Resolve && item.ResolvedTime.HasValue)
@@ -72,11 +73,6 @@ namespace Service.Services
 
         private void ValidateItem(InterruptionItemBase item)
         {
-            if (item.UserId <= 0)
-            {
-                throw new ArgumentException("Invalid user id.");
-            }
-
             if (string.IsNullOrWhiteSpace(item.Name))
             {
                 throw new ArgumentException("Name must not be null or empty.");

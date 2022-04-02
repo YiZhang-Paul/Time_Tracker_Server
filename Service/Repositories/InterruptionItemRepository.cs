@@ -60,13 +60,13 @@ namespace Service.Repositories
             return await query.FirstOrDefaultAsync(_ => _.UserId == userId && _.Id == id).ConfigureAwait(false);
         }
 
-        public InterruptionItem CreateItem(InterruptionItemBase item)
+        public InterruptionItem CreateItem(long userId, InterruptionItemBase item)
         {
             var now = DateTime.UtcNow;
 
             var payload = new InterruptionItem
             {
-                UserId = item.UserId,
+                UserId = userId,
                 Name = item.Name,
                 Description = item.Description,
                 Priority = item.Priority,

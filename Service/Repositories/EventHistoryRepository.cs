@@ -42,12 +42,14 @@ namespace Service.Repositories
                 .ConfigureAwait(false);
         }
 
-        public EventHistory CreateHistory(EventHistory history)
+        public EventHistory CreateHistory(long userId, EventHistory history)
         {
             if (history.Timestamp == default)
             {
                 history.Timestamp = DateTime.UtcNow;
             }
+
+            history.UserId = userId;
 
             return Context.EventHistory.Add(history).Entity;
         }

@@ -11,7 +11,7 @@ namespace Core.Interfaces.Services
     {
         Task<List<InterruptionItemSummaryDto>> GetItemSummaries(long userId, string searchText);
         Task<ItemSummariesDto<InterruptionItemSummaryDto>> GetItemSummaries(long userId, DateTime start);
-        Task<InterruptionItem> CreateItem(InterruptionItemBase item);
-        Task<InterruptionItem> UpdateItem(InterruptionItem item, ResolveAction action = ResolveAction.None);
+        Task<InterruptionItem> CreateItem(long userId, InterruptionItemBase item);
+        Task<InterruptionItem> UpdateItem(long userId, InterruptionItem item, ResolveAction action = ResolveAction.None);
     }
 }
