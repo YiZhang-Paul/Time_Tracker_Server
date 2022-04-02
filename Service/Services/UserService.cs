@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Service.Services
@@ -116,6 +117,14 @@ namespace Service.Services
             }
 
             return await SendVerificationByUserId(userId, tokens.AccessToken).ConfigureAwait(false);
+        }
+
+        public async Task<UserProfile> GetProfile(ClaimsPrincipal user)
+        {
+            var claim = user.Claims.FirstOrDefault(_ => _.Type == "https://ticking/email");
+            var email = claim?.Value ?? string.Empty;
+
+            return string.IsNullOrWhiteSpace(email) ? null : await UserUnitOfWork.UserProfile.GetProfileByEmail(email).ConfigureAwait(false);
         }
 
         private async Task<UserProfile> EnsureProfileCreation(string email)
