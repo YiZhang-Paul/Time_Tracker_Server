@@ -1,6 +1,5 @@
-using Core.Interfaces.UnitOfWorks;
+using Core.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
-using System.Linq;
 using System.Threading.Tasks;
 using WebApi.AuthorizationRequirements;
 
@@ -8,24 +7,16 @@ namespace WebApi.AuthorizationHandlers
 {
     public class UserProfileHandler : AuthorizationHandler<UserProfileRequirement>
     {
-        private IUserUnitOfWork UserUnitOfWork { get; }
+        private IUserService UserService { get; }
 
-        public UserProfileHandler(IUserUnitOfWork userUnitOfWork)
+        public UserProfileHandler(IUserService userService)
         {
-            UserUnitOfWork = userUnitOfWork;
+            UserService = userService;
         }
 
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, UserProfileRequirement requirement)
         {
-            var claim = context.User.Claims.FirstOrDefault(_ => _.Type == "https://ticking/email");
-            var email = claim?.Value ?? string.Empty;
-
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return;
-            }
-
-            if (await UserUnitOfWork.UserProfile.GetProfileByEmail(email).ConfigureAwait(false) != null)
+            if (await UserService.GetProfile(context.User).ConfigureAwait(false) != null)
             {
                 context.Succeed(requirement);
             }
