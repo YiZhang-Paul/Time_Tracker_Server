@@ -17,6 +17,7 @@ namespace WebApi.Controllers
     public class EventController : ControllerBase
     {
         private IWorkItemUnitOfWork WorkItemUnitOfWork { get; }
+        private IUserService UserService { get; }
         private IInterruptionItemService InterruptionItemService { get; }
         private ITaskItemService TaskItemService { get; }
         private IEventSummaryService EventSummaryService { get; }
@@ -25,6 +26,7 @@ namespace WebApi.Controllers
         public EventController
         (
             IWorkItemUnitOfWork workItemUnitOfWork,
+            IUserService userService,
             IInterruptionItemService interruptionItemService,
             ITaskItemService taskItemService,
             IEventSummaryService eventSummaryService,
@@ -32,6 +34,7 @@ namespace WebApi.Controllers
         )
         {
             WorkItemUnitOfWork = workItemUnitOfWork;
+            UserService = userService;
             InterruptionItemService = interruptionItemService;
             TaskItemService = taskItemService;
             EventSummaryService = eventSummaryService;
@@ -92,7 +95,8 @@ namespace WebApi.Controllers
         [Route("task-items/{id}")]
         public async Task<bool> StartTaskItem(long id)
         {
-            var item = await WorkItemUnitOfWork.TaskItem.GetItemById(id).ConfigureAwait(false);
+            var user = await UserService.GetProfile(HttpContext.User).ConfigureAwait(false);
+            var item = await WorkItemUnitOfWork.TaskItem.GetItemById(user.Id, id).ConfigureAwait(false);
 
             if (item == null)
             {

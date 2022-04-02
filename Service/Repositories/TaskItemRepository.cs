@@ -19,45 +19,45 @@ namespace Service.Repositories
             Context = context;
         }
 
-        public async Task<List<TaskItemSummaryDto>> GetItemSummaries(string searchText)
+        public async Task<List<TaskItemSummaryDto>> GetItemSummaries(long userId, string searchText)
         {
             var query = Context.TaskItem
-                .Where(_ => _.Name.ToLower().Contains(searchText.ToLower()))
+                .Where(_ => _.UserId == userId && _.Name.ToLower().Contains(searchText.ToLower()))
                 .Select(_ => TaskItemSummaryDto.Convert(_));
 
             return await query.ToListAsync().ConfigureAwait(false);
         }
 
-        public async Task<List<TaskItemSummaryDto>> GetResolvedItemSummaries(DateTime start)
+        public async Task<List<TaskItemSummaryDto>> GetResolvedItemSummaries(long userId, DateTime start)
         {
             var query = Context.TaskItem
-                .Where(_ => !_.IsDeleted && _.ResolvedTime >= start)
+                .Where(_ => _.UserId == userId && !_.IsDeleted && _.ResolvedTime >= start)
                 .Include(_ => _.Checklists)
                 .Select(_ => TaskItemSummaryDto.Convert(_));
 
             return await query.ToListAsync().ConfigureAwait(false);
         }
 
-        public async Task<List<TaskItemSummaryDto>> GetUnresolvedItemSummaries()
+        public async Task<List<TaskItemSummaryDto>> GetUnresolvedItemSummaries(long userId)
         {
             var query = Context.TaskItem
-                .Where(_ => !_.IsDeleted && _.ResolvedTime == null)
+                .Where(_ => _.UserId == userId && !_.IsDeleted && _.ResolvedTime == null)
                 .Include(_ => _.Checklists)
                 .Select(_ => TaskItemSummaryDto.Convert(_));
 
             return await query.ToListAsync().ConfigureAwait(false);
         }
 
-        public async Task<TaskItem> GetItemById(long id, bool excludeDeleted = true)
+        public async Task<TaskItem> GetItemById(long userId, long id, bool excludeDeleted = true)
         {
             var query = Context.TaskItem.Include(_ => _.Checklists.OrderBy(entry => entry.Rank));
 
             if (excludeDeleted)
             {
-                return await query.FirstOrDefaultAsync(_ => _.Id == id && !_.IsDeleted).ConfigureAwait(false);
+                return await query.FirstOrDefaultAsync(_ => _.UserId == userId && _.Id == id && !_.IsDeleted).ConfigureAwait(false);
             }
 
-            return await query.FirstOrDefaultAsync(_ => _.Id == id).ConfigureAwait(false);
+            return await query.FirstOrDefaultAsync(_ => _.UserId == userId && _.Id == id).ConfigureAwait(false);
         }
 
         public TaskItem CreateItem(TaskItemBase item)
@@ -66,6 +66,7 @@ namespace Service.Repositories
 
             var payload = new TaskItem
             {
+                UserId = item.UserId,
                 Name = item.Name,
                 Description = item.Description,
                 Effort = item.Effort,
@@ -79,7 +80,7 @@ namespace Service.Repositories
 
         public async Task<TaskItem> UpdateItem(TaskItem item)
         {
-            if (await Context.TaskItem.AllAsync(_ => _.Id != item.Id).ConfigureAwait(false))
+            if (await Context.TaskItem.AllAsync(_ => _.UserId != item.UserId || _.Id != item.Id).ConfigureAwait(false))
             {
                 return null;
             }
@@ -89,9 +90,9 @@ namespace Service.Repositories
             return Context.TaskItem.Update(item).Entity;
         }
 
-        public async Task<bool> DeleteItemById(long id)
+        public async Task<bool> DeleteItemById(long userId, long id)
         {
-            var item = await GetItemById(id).ConfigureAwait(false);
+            var item = await GetItemById(userId, id).ConfigureAwait(false);
 
             if (item == null)
             {
@@ -106,7 +107,7 @@ namespace Service.Repositories
 
         public async Task<bool> DeleteItem(TaskItem item)
         {
-            if (await Context.TaskItem.AllAsync(_ => _.Id != item.Id).ConfigureAwait(false))
+            if (await Context.TaskItem.AllAsync(_ => _.UserId != item.UserId || _.Id != item.Id).ConfigureAwait(false))
             {
                 return false;
             }

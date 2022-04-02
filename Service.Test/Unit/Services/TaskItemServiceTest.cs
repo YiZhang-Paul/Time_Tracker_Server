@@ -27,6 +27,16 @@ namespace Service.Test.Unit.Services
         }
 
         [Test]
+        [TestCase(-1)]
+        [TestCase(0)]
+        public void CreateItemShouldThrowWhenUserIdIsInvalid(long id)
+        {
+            var item = new TaskItemBase { UserId = id, Name = "valid_name" };
+
+            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.CreateItem(item).ConfigureAwait(false));
+        }
+
+        [Test]
         [TestCase(null)]
         [TestCase("")]
         [TestCase(" ")]
@@ -60,7 +70,7 @@ namespace Service.Test.Unit.Services
             TaskItemRepository.Setup(_ => _.CreateItem(It.IsAny<TaskItemBase>())).Returns(new TaskItem());
             WorkItemUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(true);
 
-            var result = await Subject.CreateItem(new TaskItemBase { Name = "valid_name" }).ConfigureAwait(false);
+            var result = await Subject.CreateItem(new TaskItemBase { UserId = 1, Name = "valid_name" }).ConfigureAwait(false);
 
             Assert.IsNotNull(result);
             TaskItemRepository.Verify(_ => _.CreateItem(It.IsAny<TaskItemBase>()), Times.Once);

@@ -3,6 +3,7 @@ using Core.Enums;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Interfaces.UnitOfWorks;
+using Core.Models.Authentication;
 using Core.Models.WorkItem;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -12,6 +13,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace WebApi.Test.Unit
@@ -22,6 +24,7 @@ namespace WebApi.Test.Unit
         private const string ApiBase = "api/v1/interruption-items";
         private Mock<IInterruptionItemRepository> InterruptionItemRepository { get; set; }
         private Mock<IWorkItemUnitOfWork> WorkItemUnitOfWork { get; set; }
+        private Mock<IUserService> UserService { get; set; }
         private Mock<IInterruptionItemService> InterruptionItemService { get; set; }
         private HttpClient HttpClient { get; set; }
 
@@ -30,15 +33,18 @@ namespace WebApi.Test.Unit
         {
             InterruptionItemRepository = new Mock<IInterruptionItemRepository>();
             WorkItemUnitOfWork = new Mock<IWorkItemUnitOfWork>();
+            UserService = new Mock<IUserService>();
             InterruptionItemService = new Mock<IInterruptionItemService>();
 
             HttpClient = await new ControllerTestUtility().SetupTestHttpClient
             (
                 _ => _.AddSingleton(WorkItemUnitOfWork.Object)
+                      .AddSingleton(UserService.Object)
                       .AddSingleton(InterruptionItemService.Object)
             ).ConfigureAwait(false);
 
             WorkItemUnitOfWork.SetupGet(_ => _.InterruptionItem).Returns(InterruptionItemRepository.Object);
+            UserService.Setup(_ => _.GetProfile(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(new UserProfile { Id = 99 });
         }
 
         [Test]
