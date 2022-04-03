@@ -10,5 +10,6 @@ namespace Core.Interfaces.Services
         Task<SignInResponse> SignIn(Credentials credentials);
         Task<bool> SendVerification(string idToken);
         Task<UserProfile> GetProfile(ClaimsPrincipal user);
+        Task<UserProfile> UpdateProfile(ClaimsPrincipal user, UserProfile profile);
     }
 }
