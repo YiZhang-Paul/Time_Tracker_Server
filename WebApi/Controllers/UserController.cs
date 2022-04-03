@@ -1,5 +1,6 @@
 using Core.Interfaces.Services;
 using Core.Models.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Security.Authentication;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 namespace WebApi.Controllers
 {
     [Route("api/v1/users")]
+    [Authorize(Policy = "UserProfile")]
     [ApiController]
     public class UserController : ControllerBase
     {
@@ -19,6 +21,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [Route("silent-sign-in")]
         public async Task<IActionResult> SilentSignIn([FromBody]long userId)
         {
@@ -33,6 +36,7 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [Route("sign-in")]
         public async Task<IActionResult> SignIn([FromBody]Credentials credentials)
         {
@@ -61,10 +65,18 @@ namespace WebApi.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         [Route("verification")]
         public async Task<bool> SendVerification([FromBody]string idToken)
         {
             return await UserService.SendVerification(idToken).ConfigureAwait(false);
+        }
+
+        [HttpPut]
+        [Route("profile")]
+        public async Task<UserProfile> UpdateProfile([FromBody]UserProfile profile)
+        {
+            return await UserService.UpdateProfile(HttpContext.User, profile).ConfigureAwait(false);
         }
     }
 }

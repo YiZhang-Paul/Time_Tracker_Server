@@ -127,6 +127,28 @@ namespace Service.Services
             return string.IsNullOrWhiteSpace(email) ? null : await UserUnitOfWork.UserProfile.GetProfileByEmail(email).ConfigureAwait(false);
         }
 
+        public async Task<UserProfile> UpdateProfile(ClaimsPrincipal user, UserProfile profile)
+        {
+            var existing = await GetProfile(user).ConfigureAwait(false);
+
+            if (existing == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                existing.DisplayName = profile.DisplayName;
+                await UserUnitOfWork.Save().ConfigureAwait(false);
+
+                return existing;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private async Task<UserProfile> EnsureProfileCreation(string email)
         {
             var profile = await UserUnitOfWork.UserProfile.GetProfileByEmail(email).ConfigureAwait(false);
