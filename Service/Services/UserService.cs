@@ -1,6 +1,7 @@
 using Core.Interfaces.Services;
 using Core.Interfaces.UnitOfWorks;
 using Core.Models.Authentication;
+using Core.Models.User;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;

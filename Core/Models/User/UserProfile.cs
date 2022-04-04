@@ -1,6 +1,6 @@
 using System;
 
-namespace Core.Models.Authentication
+namespace Core.Models.User
 {
     public class UserProfile
     {

@@ -1,7 +1,7 @@
 using Core.DbContexts;
 using Core.Enums;
-using Core.Models.Authentication;
 using Core.Models.Event;
+using Core.Models.User;
 using NUnit.Framework;
 using Service.Repositories;
 using System;

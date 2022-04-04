@@ -1,4 +1,4 @@
-using Core.Models.Authentication;
+using Core.Models.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

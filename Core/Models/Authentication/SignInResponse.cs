@@ -1,3 +1,5 @@
+using Core.Models.User;
+
 namespace Core.Models.Authentication
 {
     public class SignInResponse

@@ -2,7 +2,7 @@ using Core.Dtos;
 using Core.Interfaces.Repositories;
 using Core.Interfaces.Services;
 using Core.Interfaces.UnitOfWorks;
-using Core.Models.Authentication;
+using Core.Models.User;
 using Core.Models.WorkItem;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;

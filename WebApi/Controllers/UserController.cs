@@ -1,5 +1,6 @@
 using Core.Interfaces.Services;
 using Core.Models.Authentication;
+using Core.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
