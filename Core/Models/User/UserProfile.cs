@@ -9,5 +9,6 @@ namespace Core.Models.User
         public string DisplayName { get; set; }
         public string AvatarUrl { get; set; }
         public DateTime CreationTime { get; set; }
+        public TimeSessionOptions TimeSessionOptions { get; set; } = new TimeSessionOptions();
     }
 }
