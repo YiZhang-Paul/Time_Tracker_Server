@@ -1,6 +1,6 @@
 using Core.DbContexts;
 using Core.Enums;
-using Core.Models.Authentication;
+using Core.Models.User;
 using Core.Models.WorkItem;
 using NUnit.Framework;
 using Service.Repositories;

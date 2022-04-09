@@ -1,4 +1,4 @@
-using Core.Models.Authentication;
+using Core.Models.User;
 using System.Threading.Tasks;
 
 namespace Core.Interfaces.Repositories

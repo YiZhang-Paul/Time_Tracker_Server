@@ -1,6 +1,6 @@
 using Core.DbContexts;
 using Core.Interfaces.Repositories;
-using Core.Models.Authentication;
+using Core.Models.User;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;

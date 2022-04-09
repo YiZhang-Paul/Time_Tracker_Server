@@ -1,6 +1,7 @@
 using Core.DbContexts.Configurations;
 using Core.Models.Authentication;
 using Core.Models.Event;
+using Core.Models.User;
 using Core.Models.WorkItem;
 using Microsoft.EntityFrameworkCore;
 

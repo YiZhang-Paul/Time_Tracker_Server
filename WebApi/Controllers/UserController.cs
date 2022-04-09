@@ -1,5 +1,6 @@
 using Core.Interfaces.Services;
 using Core.Models.Authentication;
+using Core.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -23,11 +24,11 @@ namespace WebApi.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("silent-sign-in")]
-        public async Task<IActionResult> SilentSignIn([FromBody]long userId)
+        public async Task<IActionResult> SilentSignIn([FromBody]string identifier)
         {
             try
             {
-                return Ok(await UserService.SilentSignIn(userId).ConfigureAwait(false));
+                return Ok(await UserService.SilentSignIn(identifier).ConfigureAwait(false));
             }
             catch (InvalidCredentialException)
             {

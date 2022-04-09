@@ -1,6 +1,6 @@
 using System;
 
-namespace Core.Models.Authentication
+namespace Core.Models.User
 {
     public class UserProfile
     {
@@ -9,5 +9,6 @@ namespace Core.Models.Authentication
         public string DisplayName { get; set; }
         public string AvatarUrl { get; set; }
         public DateTime CreationTime { get; set; }
+        public TimeSessionOptions TimeSessionOptions { get; set; } = new TimeSessionOptions();
     }
 }
