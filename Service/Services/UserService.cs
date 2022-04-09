@@ -143,6 +143,7 @@ namespace Service.Services
             try
             {
                 existing.DisplayName = profile.DisplayName;
+                existing.TimeSessionOptions = profile.TimeSessionOptions;
                 await UserUnitOfWork.Save().ConfigureAwait(false);
 
                 return existing;
