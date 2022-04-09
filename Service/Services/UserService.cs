@@ -11,6 +11,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Service.Services
@@ -33,32 +34,32 @@ namespace Service.Services
             AuthenticationService = authenticationService;
         }
 
-        public async Task<SignInResponse> SilentSignIn(long userId)
+        public async Task<SignInResponse> SilentSignIn(string identifier)
         {
-            var record = await UserUnitOfWork.UserRefreshToken.GetTokenByUserId(userId).ConfigureAwait(false);
+            var refreshToken = await GetUserRefreshToken(identifier).ConfigureAwait(false);
 
-            if (record == null)
+            if (refreshToken == null)
             {
                 throw new InvalidCredentialException();
             }
 
-            if (record.ExpireTime <= DateTime.UtcNow)
+            if (refreshToken.ExpireTime <= DateTime.UtcNow)
             {
-                await AuthenticationService.RevokeRefreshToken(record).ConfigureAwait(false);
+                await AuthenticationService.RevokeRefreshToken(refreshToken).ConfigureAwait(false);
 
                 throw new InvalidCredentialException();
             }
 
-            var tokens = await AuthenticationService.GetTokensByRefreshToken(record.RefreshToken).ConfigureAwait(false);
+            var tokens = await AuthenticationService.GetTokensByRefreshToken(refreshToken.RefreshToken).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(tokens.IdToken) || string.IsNullOrWhiteSpace(tokens.AccessToken))
             {
-                await AuthenticationService.RevokeRefreshToken(record).ConfigureAwait(false);
+                await AuthenticationService.RevokeRefreshToken(refreshToken).ConfigureAwait(false);
 
                 throw new InvalidCredentialException();
             }
 
-            var profile = await UserUnitOfWork.UserProfile.GetProfileById(userId).ConfigureAwait(false);
+            var profile = await UserUnitOfWork.UserProfile.GetProfileById(refreshToken.UserId).ConfigureAwait(false);
 
             if (profile == null)
             {
@@ -148,6 +149,23 @@ namespace Service.Services
             {
                 return null;
             }
+        }
+
+        private async Task<UserRefreshToken> GetUserRefreshToken(string identifier)
+        {
+            if (!Regex.IsMatch(identifier, @"^\d+\|\w+$"))
+            {
+                return null;
+            }
+
+            var segments = identifier.Split('|');
+
+            if (!long.TryParse(segments[0], out var userId))
+            {
+                return null;
+            }
+
+            return await UserUnitOfWork.UserRefreshToken.GetToken(userId, segments[1]).ConfigureAwait(false);
         }
 
         private async Task<UserProfile> EnsureProfileCreation(string email)

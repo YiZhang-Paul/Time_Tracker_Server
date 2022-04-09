@@ -75,16 +75,18 @@ namespace Service.Services
 
         public async Task<bool> RecordRefreshToken(long userId, string token)
         {
+            var guid = Guid.NewGuid().ToString();
             var record = await UserUnitOfWork.UserRefreshToken.GetTokenByUserId(userId).ConfigureAwait(false);
 
             if (record != null)
             {
+                record.Guid = guid;
                 record.RefreshToken = token;
                 record.ExpireTime = DateTime.UtcNow.AddHours(8);
             }
             else
             {
-                record = new UserRefreshToken { UserId = userId, RefreshToken = token };
+                record = new UserRefreshToken { UserId = userId, Guid = guid, RefreshToken = token };
                 UserUnitOfWork.UserRefreshToken.CreateToken(record);
             }
 

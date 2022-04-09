@@ -24,11 +24,11 @@ namespace WebApi.Controllers
         [HttpPost]
         [AllowAnonymous]
         [Route("silent-sign-in")]
-        public async Task<IActionResult> SilentSignIn([FromBody]long userId)
+        public async Task<IActionResult> SilentSignIn([FromBody]string identifier)
         {
             try
             {
-                return Ok(await UserService.SilentSignIn(userId).ConfigureAwait(false));
+                return Ok(await UserService.SilentSignIn(identifier).ConfigureAwait(false));
             }
             catch (InvalidCredentialException)
             {
