@@ -155,7 +155,7 @@ namespace Service.Services
 
         private async Task<UserRefreshToken> GetUserRefreshToken(string identifier)
         {
-            if (!Regex.IsMatch(identifier, @"^\d+\|\w+$"))
+            if (!Regex.IsMatch(identifier, @"^\d+\|[0-9a-zA-Z-]+$"))
             {
                 return null;
             }
