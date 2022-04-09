@@ -8,7 +8,7 @@ namespace Core.Interfaces.Services
         Task<BaseTokenResponse> GetTokensByRefreshToken(string token);
         Task<FullTokenResponse> GetTokensByPassword(Credentials credentials);
         Task<BaseTokenResponse> GetTokensByClientCredentials();
-        Task<bool> RecordRefreshToken(long userId, string token);
+        Task<UserRefreshToken> RecordRefreshToken(long userId, string token);
         Task<bool> RevokeRefreshToken(UserRefreshToken record);
     }
 }

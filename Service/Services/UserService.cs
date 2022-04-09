@@ -68,6 +68,7 @@ namespace Service.Services
 
             return new SignInResponse
             {
+                VerificationSequence = refreshToken.Guid,
                 Tokens = new BaseTokenResponse { IdToken = tokens.IdToken, AccessToken = tokens.AccessToken },
                 Profile = profile
             };
@@ -99,10 +100,11 @@ namespace Service.Services
                 throw new InvalidOperationException();
             }
 
-            await AuthenticationService.RecordRefreshToken(profile.Id, tokens.RefreshToken).ConfigureAwait(false);
+            var refreshToken = await AuthenticationService.RecordRefreshToken(profile.Id, tokens.RefreshToken).ConfigureAwait(false);
 
             return new SignInResponse
             {
+                VerificationSequence = refreshToken.Guid,
                 Tokens = new BaseTokenResponse { IdToken = tokens.IdToken, AccessToken = tokens.AccessToken },
                 Profile = profile
             };

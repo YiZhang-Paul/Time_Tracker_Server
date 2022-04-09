@@ -73,7 +73,7 @@ namespace Service.Services
             return await GetTokens<BaseTokenResponse>(form).ConfigureAwait(false);
         }
 
-        public async Task<bool> RecordRefreshToken(long userId, string token)
+        public async Task<UserRefreshToken> RecordRefreshToken(long userId, string token)
         {
             var guid = Guid.NewGuid().ToString();
             var record = await UserUnitOfWork.UserRefreshToken.GetTokenByUserId(userId).ConfigureAwait(false);
@@ -90,7 +90,7 @@ namespace Service.Services
                 UserUnitOfWork.UserRefreshToken.CreateToken(record);
             }
 
-            return await UserUnitOfWork.Save().ConfigureAwait(false);
+            return await UserUnitOfWork.Save().ConfigureAwait(false) ? record : null;
         }
 
         public async Task<bool> RevokeRefreshToken(UserRefreshToken record)
