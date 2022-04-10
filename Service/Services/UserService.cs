@@ -63,7 +63,7 @@ namespace Service.Services
                 throw new InvalidCredentialException();
             }
 
-            var profile = await UserUnitOfWork.UserProfile.GetProfileById(refreshToken.UserId).ConfigureAwait(false);
+            var profile = await GetProfileById(refreshToken.UserId).ConfigureAwait(false);
 
             if (profile == null)
             {
@@ -132,7 +132,12 @@ namespace Service.Services
             var claim = user.Claims.FirstOrDefault(_ => _.Type == "https://ticking/email");
             var email = claim?.Value ?? string.Empty;
 
-            return string.IsNullOrWhiteSpace(email) ? null : await UserUnitOfWork.UserProfile.GetProfileByEmail(email).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return null;
+            }
+
+            return await GetProfileByEmail(email).ConfigureAwait(false);
         }
 
         public async Task<UserProfile> UpdateProfile(ClaimsPrincipal user, UserProfile profile, Stream avatar)
@@ -150,9 +155,9 @@ namespace Service.Services
                 existing.TimeSessionOptions = profile.TimeSessionOptions;
                 await UserUnitOfWork.Save().ConfigureAwait(false);
 
-                if (avatar != null && !await FileService.UploadAvatar(existing.Id, avatar).ConfigureAwait(false))
+                if (avatar != null)
                 {
-                    return null;
+                    return await UpdateAvatar(existing, avatar).ConfigureAwait(false);
                 }
 
                 return existing;
@@ -161,6 +166,30 @@ namespace Service.Services
             {
                 return null;
             }
+        }
+
+        private async Task<UserProfile> GetProfileById(long id)
+        {
+            var profile = await UserUnitOfWork.UserProfile.GetProfileById(id).ConfigureAwait(false);
+
+            if (profile != null)
+            {
+                profile.AvatarUrl = await FileService.GetAvatarUrl(id).ConfigureAwait(false);
+            }
+
+            return profile;
+        }
+
+        private async Task<UserProfile> GetProfileByEmail(string email)
+        {
+            var profile = await UserUnitOfWork.UserProfile.GetProfileByEmail(email).ConfigureAwait(false);
+
+            if (profile != null)
+            {
+                profile.AvatarUrl = await FileService.GetAvatarUrl(profile.Id).ConfigureAwait(false);
+            }
+
+            return profile;
         }
 
         private async Task<UserRefreshToken> GetUserRefreshToken(string identifier)
@@ -182,7 +211,7 @@ namespace Service.Services
 
         private async Task<UserProfile> EnsureProfileCreation(string email)
         {
-            var profile = await UserUnitOfWork.UserProfile.GetProfileByEmail(email).ConfigureAwait(false);
+            var profile = await GetProfileByEmail(email).ConfigureAwait(false);
 
             if (profile != null)
             {
@@ -193,6 +222,18 @@ namespace Service.Services
             UserUnitOfWork.UserProfile.CreateProfile(created);
 
             return await UserUnitOfWork.Save().ConfigureAwait(false) ? created : null;
+        }
+
+        private async Task<UserProfile> UpdateAvatar(UserProfile profile, Stream avatar)
+        {
+            if (!await FileService.UploadAvatar(profile.Id, avatar).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            profile.AvatarUrl = await FileService.GetAvatarUrl(profile.Id).ConfigureAwait(false);
+
+            return profile;
         }
 
         private async Task<bool> SendVerificationByUserId(string userId, string accessToken)
