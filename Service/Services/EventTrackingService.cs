@@ -66,13 +66,6 @@ namespace Service.Services
 
         public async Task<bool> StartBreakSession(long userId, int duration)
         {
-            var minDuration = 1000 * 60 * 5;
-
-            if (duration < minDuration)
-            {
-                throw new ArgumentException($"Duration cannot be less than {minDuration} milliseconds.");
-            }
-
             var prompt = new EventPrompt { PromptType = PromptType.ScheduledBreak, ConfirmType = PromptConfirmType.Commenced };
             EventUnitOfWork.EventPrompt.CreatePrompt(userId, prompt);
 

@@ -177,15 +177,6 @@ namespace Service.Test.Unit.Services
         }
 
         [Test]
-        [TestCase(-1)]
-        [TestCase(0)]
-        [TestCase(299999)]
-        public void StartBreakSessionShouldThrowWhenTargetDurationIsInvalid(int duration)
-        {
-            Assert.ThrowsAsync<ArgumentException>(async () => await Subject.StartBreakSession(99, duration).ConfigureAwait(false));
-        }
-
-        [Test]
         public async Task StartBreakSessionShouldReturnFalseWhenFailedToRecordPromptResponse()
         {
             EventUnitOfWork.Setup(_ => _.Save()).ReturnsAsync(false);
