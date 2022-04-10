@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -20,17 +21,20 @@ namespace Service.Services
     {
         private IConfiguration Configuration { get; }
         private IUserUnitOfWork UserUnitOfWork { get; }
+        private IFileService FileService { get; }
         private IAuthenticationService AuthenticationService { get; }
 
         public UserService
         (
             IConfiguration configuration,
             IUserUnitOfWork userUnitOfWork,
+            IFileService fileService,
             IAuthenticationService authenticationService
         )
         {
             Configuration = configuration;
             UserUnitOfWork = userUnitOfWork;
+            FileService = fileService;
             AuthenticationService = authenticationService;
         }
 
@@ -131,7 +135,7 @@ namespace Service.Services
             return string.IsNullOrWhiteSpace(email) ? null : await UserUnitOfWork.UserProfile.GetProfileByEmail(email).ConfigureAwait(false);
         }
 
-        public async Task<UserProfile> UpdateProfile(ClaimsPrincipal user, UserProfile profile)
+        public async Task<UserProfile> UpdateProfile(ClaimsPrincipal user, UserProfile profile, Stream avatar)
         {
             var existing = await GetProfile(user).ConfigureAwait(false);
 
@@ -145,6 +149,11 @@ namespace Service.Services
                 existing.DisplayName = profile.DisplayName;
                 existing.TimeSessionOptions = profile.TimeSessionOptions;
                 await UserUnitOfWork.Save().ConfigureAwait(false);
+
+                if (avatar != null && !await FileService.UploadAvatar(existing.Id, avatar).ConfigureAwait(false))
+                {
+                    return null;
+                }
 
                 return existing;
             }

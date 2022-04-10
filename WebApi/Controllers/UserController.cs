@@ -2,9 +2,11 @@ using Core.Interfaces.Services;
 using Core.Models.Authentication;
 using Core.Models.User;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Security.Authentication;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers
@@ -75,9 +77,13 @@ namespace WebApi.Controllers
 
         [HttpPut]
         [Route("profile")]
-        public async Task<UserProfile> UpdateProfile([FromBody]UserProfile profile)
+        public async Task<UserProfile> UpdateProfile([FromForm]IFormCollection data)
         {
-            return await UserService.UpdateProfile(HttpContext.User, profile).ConfigureAwait(false);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var profile = JsonSerializer.Deserialize<UserProfile>(data["profile"], options);
+            var avatar = data.Files.Count == 1 ? data.Files[0].OpenReadStream() : null;
+
+            return await UserService.UpdateProfile(HttpContext.User, profile, avatar).ConfigureAwait(false);
         }
     }
 }

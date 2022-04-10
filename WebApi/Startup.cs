@@ -1,4 +1,5 @@
 using Amazon;
+using Amazon.S3;
 using Amazon.SecretsManager;
 using Core.DbContexts;
 using Core.Interfaces.Repositories;
@@ -71,7 +72,9 @@ namespace WebApi
             services.AddScoped<IWorkItemUnitOfWork, WorkItemUnitOfWork>();
             services.AddScoped<IEventUnitOfWork, EventUnitOfWork>();
             services.AddScoped<IAmazonSecretsManager>(_ => new AmazonSecretsManagerClient(RegionEndpoint.USEast1));
+            services.AddScoped(_ => new AmazonS3Client(RegionEndpoint.USEast1));
             services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IFileService, FileService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IInterruptionItemService, InterruptionItemService>();
             services.AddScoped<ITaskItemService, TaskItemService>();
